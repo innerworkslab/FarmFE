@@ -1,0 +1,464 @@
+{
+  "info": {
+    "_postman_id": "5787e9fa-6605-489d-919d-78caa301dd44",
+    "name": "Livestock ERP Auth API",
+    "description": "Postman collection for the Laravel backend authentication and role/permission authorization endpoints. All API endpoints are versioned under /api/v1. Login uses one login field; the backend resolves it as email or username.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-5787e9fa-6605-489d-919d-78caa301dd44?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login succeeded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('access token returned', function () {",
+                  "    pm.expect(json.access_token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "if (json.access_token) {",
+                  "    pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in with one login field. The value may be an email address or username. Stores the returned Sanctum bearer token in the collection variable access_token."
+          },
+          "response": [
+            {
+              "name": "Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 10:03:58 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"token_type\": \"Bearer\",\n  \"access_token\": \"7|JJdoEImNxRJBEqymiiThGqmDFx8kbSbNMgKjm6cAdd3272c3\",\n  \"user\": {\n    \"id\": 5,\n    \"name\": \"Super Admin\",\n    \"email\": \"superadmin@example.com\",\n    \"username\": \"superadmin\",\n    \"account_status\": \"active\",\n    \"last_login_at\": \"2026-09-17T10:03:58.000000Z\",\n    \"two_factor_enabled\": false,\n    \"roles\": [\n      \"super-admin\"\n    ],\n    \"permissions\": [\n      \"authorization.permissions.view\",\n      \"setup.view\",\n      \"setup.manage\",\n      \"purchasing.view\",\n      \"purchasing.manage\",\n      \"inventory.view\",\n      \"inventory.manage\",\n      \"farms.view\",\n      \"farms.manage\",\n      \"sales.view\",\n      \"sales.manage\",\n      \"financial.view\",\n      \"financial.manage\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns the authenticated user, roles, and permissions. Run Login first."
+          },
+          "response": [
+            {
+              "name": "Current User",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/me",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "me"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 10:04:25 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 5,\n    \"name\": \"Super Admin\",\n    \"email\": \"superadmin@example.com\",\n    \"username\": \"superadmin\",\n    \"account_status\": \"active\",\n    \"last_login_at\": \"2026-09-17T10:03:58.000000Z\",\n    \"two_factor_enabled\": false,\n    \"roles\": [\n      \"super-admin\"\n    ],\n    \"permissions\": [\n      \"authorization.permissions.view\",\n      \"setup.view\",\n      \"setup.manage\",\n      \"purchasing.view\",\n      \"purchasing.manage\",\n      \"inventory.view\",\n      \"inventory.manage\",\n      \"farms.view\",\n      \"farms.manage\",\n      \"sales.view\",\n      \"sales.manage\",\n      \"financial.view\",\n      \"financial.manage\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('logout succeeded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('access_token', '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Revokes the current Sanctum token. Run Login first."
+          },
+          "response": [
+            {
+              "name": "Logout",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 10:05:26 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Logged out.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authorization",
+      "item": [
+        {
+          "name": "Permission Catalog",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/authorization/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authorization",
+                "permissions"
+              ]
+            },
+            "description": "Returns the permission catalog. Requires the authorization.permissions.view permission. The seeded superadmin@example.com user has this permission."
+          },
+          "response": [
+            {
+              "name": "Permission Catalog",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/authorization/permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "authorization",
+                    "permissions"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 10:04:30 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"name\": \"authorization.permissions.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"farms.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"farms.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"financial.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"financial.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"inventory.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"inventory.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"purchasing.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"purchasing.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"sales.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"sales.view\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"setup.manage\",\n      \"guard_name\": \"web\"\n    },\n    {\n      \"name\": \"setup.view\",\n      \"guard_name\": \"web\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,1951 @@
+{
+  "info": {
+    "_postman_id": "ae037af1-6221-4e00-83fb-174ae49ece56",
+    "name": "Livestock ERP Setup Core Foundation API",
+    "description": "Postman collection for Setup core foundation CRUD: branches, roles, admins, and activity logs. All endpoints use /api/v1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-ae037af1-6221-4e00-83fb-174ae49ece56?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth Helper",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login succeeded', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('access token returned', function () { pm.expect(json.access_token).to.be.a('string').and.not.empty; });",
+                  "if (json.access_token) pm.collectionVariables.set('access_token', json.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Run this first. Stores access_token for the protected Setup requests."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Branches",
+      "item": [
+        {
+          "name": "List Branches",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/branches?per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Branches",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/branches?per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:38:44 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 5,\n      \"code\": \"BR-MDY\",\n      \"name\": \"Mandalay Feed & Holding\",\n      \"phone_number\": \"+95 9 400000002\",\n      \"address\": \"Feed storage and holding branch\",\n      \"status\": \"active\",\n      \"version\": 1,\n      \"created_at\": \"2026-09-17T11:50:34.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:34.000000Z\"\n    },\n    {\n      \"id\": 6,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\",\n      \"phone_number\": \"+95 9 400000001\",\n      \"address\": \"Main livestock operations compound\",\n      \"status\": \"active\",\n      \"version\": 1,\n      \"created_at\": \"2026-09-17T14:33:02.000000Z\",\n      \"updated_at\": \"2026-09-17T14:33:02.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/setup/branches?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/setup/branches?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/branches?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/setup/branches\",\n    \"per_page\": 15,\n    \"to\": 2,\n    \"total\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Branch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('branch created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('branch_id', json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BR-PM\",\n  \"name\": \"Postman Demo Branch\",\n  \"phone_number\": \"+95 9 499999999\",\n  \"address\": \"Created from Postman\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/branches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Create Branch",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"BR-PM\",\n  \"name\": \"Postman Demo Branch\",\n  \"phone_number\": \"+95 9 499999999\",\n  \"address\": \"Created from Postman\",\n  \"status\": \"active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/setup/branches",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:39:40 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"code\": \"BR-PM\",\n    \"name\": \"Postman Demo Branch\",\n    \"phone_number\": \"+95 9 499999999\",\n    \"address\": \"Created from Postman\",\n    \"status\": \"active\",\n    \"version\": null,\n    \"created_at\": \"2026-09-17T14:39:40.000000Z\",\n    \"updated_at\": \"2026-09-17T14:39:40.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Branch",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches",
+                "{{branch_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Branch",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches",
+                    "{{branch_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:39:56 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"code\": \"BR-PM\",\n    \"name\": \"Postman Demo Branch\",\n    \"phone_number\": \"+95 9 499999999\",\n    \"address\": \"Created from Postman\",\n    \"status\": \"active\",\n    \"version\": 1,\n    \"created_at\": \"2026-09-17T14:39:40.000000Z\",\n    \"updated_at\": \"2026-09-17T14:39:40.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Branch",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BR-PM\",\n  \"name\": \"Postman Demo Branch Updated\",\n  \"phone_number\": \"+95 9 499999999\",\n  \"address\": \"Updated from Postman\",\n  \"status\": \"inactive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches",
+                "{{branch_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Update Branch",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"BR-PM\",\n  \"name\": \"Postman Demo Branch Updated\",\n  \"phone_number\": \"+95 9 499999999\",\n  \"address\": \"Updated from Postman\",\n  \"status\": \"inactive\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches",
+                    "{{branch_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:46:35 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"code\": \"BR-PM\",\n    \"name\": \"Postman Demo Branch Updated\",\n    \"phone_number\": \"+95 9 499999999\",\n    \"address\": \"Updated from Postman\",\n    \"status\": \"inactive\",\n    \"version\": 7,\n    \"created_at\": \"2026-09-17T14:39:40.000000Z\",\n    \"updated_at\": \"2026-09-17T14:46:35.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Toggle Branch Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/branches/{{branch_id}}/toggle-status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches",
+                "{{branch_id}}",
+                "toggle-status"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Toggle Branch Status",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/branches/{{branch_id}}/toggle-status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches",
+                    "{{branch_id}}",
+                    "toggle-status"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:46:28 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"code\": \"BR-PM\",\n    \"name\": \"Postman Demo Branch Updated\",\n    \"phone_number\": \"+95 9 499999999\",\n    \"address\": \"Updated from Postman\",\n    \"status\": \"inactive\",\n    \"version\": 6,\n    \"created_at\": \"2026-09-17T14:39:40.000000Z\",\n    \"updated_at\": \"2026-09-17T14:46:28.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Branch",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches",
+                "{{branch_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Delete Branch",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/branches/{{branch_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches",
+                    "{{branch_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:46:05 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Branch deleted successfully.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "roles"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Roles",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "roles"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:48:28 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 5,\n      \"name\": \"admin\",\n      \"guard_name\": \"web\",\n      \"branch_id\": null,\n      \"branch\": null,\n      \"status\": \"active\",\n      \"version\": 1,\n      \"permissions\": [\n        \"authorization.permissions.view\",\n        \"setup.view\",\n        \"setup.branches.view\",\n        \"setup.roles.view\",\n        \"setup.admins.view\",\n        \"setup.audit.view\",\n        \"purchasing.view\",\n        \"inventory.view\",\n        \"farms.view\",\n        \"sales.view\",\n        \"financial.view\"\n      ],\n      \"created_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:33.000000Z\"\n    },\n    {\n      \"id\": 6,\n      \"name\": \"sales-officer\",\n      \"guard_name\": \"web\",\n      \"branch_id\": null,\n      \"branch\": null,\n      \"status\": \"active\",\n      \"version\": 1,\n      \"permissions\": [\n        \"farms.view\",\n        \"sales.view\",\n        \"sales.manage\"\n      ],\n      \"created_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:33.000000Z\"\n    },\n    {\n      \"id\": 4,\n      \"name\": \"super-admin\",\n      \"guard_name\": \"web\",\n      \"branch_id\": null,\n      \"branch\": null,\n      \"status\": \"active\",\n      \"version\": 1,\n      \"permissions\": [\n        \"authorization.permissions.view\",\n        \"setup.view\",\n        \"setup.manage\",\n        \"setup.branches.view\",\n        \"setup.branches.create\",\n        \"setup.branches.update\",\n        \"setup.branches.delete\",\n        \"setup.roles.view\",\n        \"setup.roles.create\",\n        \"setup.roles.update\",\n        \"setup.roles.delete\",\n        \"setup.admins.view\",\n        \"setup.admins.create\",\n        \"setup.admins.update\",\n        \"setup.admins.delete\",\n        \"setup.audit.view\",\n        \"purchasing.view\",\n        \"purchasing.manage\",\n        \"inventory.view\",\n        \"inventory.manage\",\n        \"farms.view\",\n        \"farms.manage\",\n        \"sales.view\",\n        \"sales.manage\",\n        \"financial.view\",\n        \"financial.manage\"\n      ],\n      \"created_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:33.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/setup/roles?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/setup/roles?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/roles?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/setup/roles\",\n    \"per_page\": 15,\n    \"to\": 3,\n    \"total\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('role created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('role_id', json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"postman-setup-role\",\n  \"branch_id\": null,\n  \"status\": \"active\",\n  \"permissions\": [\"setup.branches.view\", \"setup.admins.view\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "roles"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Create Role",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"postman-setup-role\",\n  \"branch_id\": null,\n  \"status\": \"active\",\n  \"permissions\": [\"setup.branches.view\", \"setup.admins.view\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/setup/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "roles"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:48:51 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"name\": \"postman-setup-role\",\n    \"guard_name\": \"web\",\n    \"branch_id\": null,\n    \"branch\": null,\n    \"status\": \"active\",\n    \"version\": null,\n    \"permissions\": [\n      \"setup.branches.view\",\n      \"setup.admins.view\"\n    ],\n    \"created_at\": \"2026-09-17T14:48:51.000000Z\",\n    \"updated_at\": \"2026-09-17T14:48:51.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"postman-setup-role-updated\",\n  \"branch_id\": null,\n  \"status\": \"inactive\",\n  \"permissions\": [\"setup.branches.view\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/roles/{{role_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "roles",
+                "{{role_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Update Role",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"postman-setup-role-updated\",\n  \"branch_id\": null,\n  \"status\": \"inactive\",\n  \"permissions\": [\"setup.branches.view\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/setup/roles/{{role_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "roles",
+                    "{{role_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:49:02 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"name\": \"postman-setup-role-updated\",\n    \"guard_name\": \"web\",\n    \"branch_id\": null,\n    \"branch\": null,\n    \"status\": \"inactive\",\n    \"version\": 2,\n    \"permissions\": [\n      \"setup.branches.view\"\n    ],\n    \"created_at\": \"2026-09-17T14:48:51.000000Z\",\n    \"updated_at\": \"2026-09-17T14:49:02.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Toggle Role Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/roles/{{role_id}}/toggle-status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "roles",
+                "{{role_id}}",
+                "toggle-status"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Toggle Role Status",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/roles/{{role_id}}/toggle-status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "roles",
+                    "{{role_id}}",
+                    "toggle-status"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:49:12 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 7,\n    \"name\": \"postman-setup-role-updated\",\n    \"guard_name\": \"web\",\n    \"branch_id\": null,\n    \"branch\": null,\n    \"status\": \"active\",\n    \"version\": 3,\n    \"permissions\": [\n      \"setup.branches.view\"\n    ],\n    \"created_at\": \"2026-09-17T14:48:51.000000Z\",\n    \"updated_at\": \"2026-09-17T14:49:12.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/roles/{{role_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "roles",
+                "{{role_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Delete Role",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/roles/{{role_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "roles",
+                    "{{role_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:49:24 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Role deleted successfully.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admins",
+      "item": [
+        {
+          "name": "List Admins",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/admins",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "admins"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Admins",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/admins",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "admins"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:42:23 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 11,\n      \"name\": \"Demo Admin\",\n      \"email\": \"admin@example.com\",\n      \"username\": \"admin\",\n      \"account_status\": \"active\",\n      \"two_factor_enabled\": false,\n      \"last_login_at\": null,\n      \"password_changed_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"roles\": [\n        \"admin\"\n      ],\n      \"branches\": [\n        {\n          \"id\": 5,\n          \"code\": \"BR-MDY\",\n          \"name\": \"Mandalay Feed & Holding\",\n          \"status\": \"active\"\n        },\n        {\n          \"id\": 6,\n          \"code\": \"BR-YGN\",\n          \"name\": \"Yangon Main Farm\",\n          \"status\": \"active\"\n        }\n      ],\n      \"created_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:33.000000Z\"\n    },\n    {\n      \"id\": 12,\n      \"name\": \"Sales Officer\",\n      \"email\": \"sales@example.com\",\n      \"username\": \"sales\",\n      \"account_status\": \"active\",\n      \"two_factor_enabled\": false,\n      \"last_login_at\": null,\n      \"password_changed_at\": \"2026-09-17T11:50:34.000000Z\",\n      \"roles\": [\n        \"sales-officer\"\n      ],\n      \"branches\": [\n        {\n          \"id\": 5,\n          \"code\": \"BR-MDY\",\n          \"name\": \"Mandalay Feed & Holding\",\n          \"status\": \"active\"\n        },\n        {\n          \"id\": 6,\n          \"code\": \"BR-YGN\",\n          \"name\": \"Yangon Main Farm\",\n          \"status\": \"active\"\n        }\n      ],\n      \"created_at\": \"2026-09-17T11:50:34.000000Z\",\n      \"updated_at\": \"2026-09-17T11:50:34.000000Z\"\n    },\n    {\n      \"id\": 10,\n      \"name\": \"Super Admin\",\n      \"email\": \"superadmin@example.com\",\n      \"username\": \"superadmin\",\n      \"account_status\": \"active\",\n      \"two_factor_enabled\": false,\n      \"last_login_at\": \"2026-09-17T14:38:38.000000Z\",\n      \"password_changed_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"roles\": [\n        \"super-admin\"\n      ],\n      \"branches\": [\n        {\n          \"id\": 5,\n          \"code\": \"BR-MDY\",\n          \"name\": \"Mandalay Feed & Holding\",\n          \"status\": \"active\"\n        },\n        {\n          \"id\": 6,\n          \"code\": \"BR-YGN\",\n          \"name\": \"Yangon Main Farm\",\n          \"status\": \"active\"\n        }\n      ],\n      \"created_at\": \"2026-09-17T11:50:33.000000Z\",\n      \"updated_at\": \"2026-09-17T14:38:38.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/setup/admins?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/setup/admins?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/admins?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/setup/admins\",\n    \"per_page\": 15,\n    \"to\": 3,\n    \"total\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('admin created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('admin_id', json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Admin\",\n  \"email\": \"postman-admin@example.com\",\n  \"username\": \"postman-admin\",\n  \"password\": \"secret-password\",\n  \"account_status\": \"active\",\n  \"two_factor_enabled\": false,\n  \"roles\": [\"admin\"],\n  \"branch_ids\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/admins",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "admins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "admins",
+                "{{admin_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Admin",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "admins",
+                    "{{admin_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:47:36 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 13,\n    \"name\": \"Postman Admin\",\n    \"email\": \"postman-admin@example.com\",\n    \"username\": \"postman-admin\",\n    \"account_status\": \"active\",\n    \"two_factor_enabled\": false,\n    \"last_login_at\": null,\n    \"password_changed_at\": \"2026-09-17T14:42:32.000000Z\",\n    \"roles\": [\n      \"admin\"\n    ],\n    \"branches\": [],\n    \"created_at\": \"2026-09-17T14:42:32.000000Z\",\n    \"updated_at\": \"2026-09-17T14:42:32.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Admin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Admin Updated\",\n  \"email\": \"postman-admin@example.com\",\n  \"username\": \"postman-admin\",\n  \"account_status\": \"inactive\",\n  \"two_factor_enabled\": false,\n  \"roles\": [\"admin\"],\n  \"branch_ids\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "admins",
+                "{{admin_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Update Admin",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Postman Admin Updated\",\n  \"email\": \"postman-admin@example.com\",\n  \"username\": \"postman-admin\",\n  \"account_status\": \"inactive\",\n  \"two_factor_enabled\": false,\n  \"roles\": [\"admin\"],\n  \"branch_ids\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "admins",
+                    "{{admin_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:47:47 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 13,\n    \"name\": \"Postman Admin Updated\",\n    \"email\": \"postman-admin@example.com\",\n    \"username\": \"postman-admin\",\n    \"account_status\": \"inactive\",\n    \"two_factor_enabled\": false,\n    \"last_login_at\": null,\n    \"password_changed_at\": \"2026-09-17T14:42:32.000000Z\",\n    \"roles\": [\n      \"admin\"\n    ],\n    \"branches\": [],\n    \"created_at\": \"2026-09-17T14:42:32.000000Z\",\n    \"updated_at\": \"2026-09-17T14:47:47.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "admins",
+                "{{admin_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Delete Admin",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/admins/{{admin_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "admins",
+                    "{{admin_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:48:07 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Admin deleted successfully.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "List Activity Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('activity logs listed', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.length && json.data[0].id) pm.collectionVariables.set('activity_log_id', json.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/activity-logs?log_name=setup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "log_name",
+                  "value": "setup"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Activity Logs",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/activity-logs?log_name=setup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "activity-logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "log_name",
+                      "value": "setup"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:47:11 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 42,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"version\": 6\n        },\n        \"attributes\": {\n          \"version\": 7\n        }\n      },\n      \"created_at\": \"2026-09-17T14:46:35.000000Z\"\n    },\n    {\n      \"id\": 41,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"status\": \"active\",\n          \"version\": 5\n        },\n        \"attributes\": {\n          \"status\": \"inactive\",\n          \"version\": 6\n        }\n      },\n      \"created_at\": \"2026-09-17T14:46:28.000000Z\"\n    },\n    {\n      \"id\": 40,\n      \"log_name\": \"setup\",\n      \"event\": \"deleted\",\n      \"description\": \"deleted\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"code\": \"BR-PM\",\n          \"name\": \"Postman Demo Branch Updated\",\n          \"status\": \"active\",\n          \"address\": \"Updated from Postman\",\n          \"version\": 5,\n          \"phone_number\": \"+95 9 499999999\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:46:05.000000Z\"\n    },\n    {\n      \"id\": 39,\n      \"log_name\": \"setup\",\n      \"event\": \"created\",\n      \"description\": \"created\",\n      \"subject_type\": \"App\\\\Models\\\\User\",\n      \"subject_id\": 13,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"attributes\": {\n          \"name\": \"Postman Admin\",\n          \"email\": \"postman-admin@example.com\",\n          \"username\": \"postman-admin\",\n          \"last_login_at\": null,\n          \"account_status\": \"active\",\n          \"failed_login_count\": 0,\n          \"two_factor_enabled\": false,\n          \"password_changed_at\": \"2026-09-17T14:42:32.000000Z\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:42:32.000000Z\"\n    },\n    {\n      \"id\": 38,\n      \"log_name\": \"setup\",\n      \"event\": \"deleted\",\n      \"description\": \"deleted\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"code\": \"BR-PM\",\n          \"name\": \"Postman Demo Branch Updated\",\n          \"status\": \"active\",\n          \"address\": \"Updated from Postman\",\n          \"version\": 5,\n          \"phone_number\": \"+95 9 499999999\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:41:13.000000Z\"\n    },\n    {\n      \"id\": 37,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"status\": \"inactive\",\n          \"version\": 4\n        },\n        \"attributes\": {\n          \"status\": \"active\",\n          \"version\": 5\n        }\n      },\n      \"created_at\": \"2026-09-17T14:41:03.000000Z\"\n    },\n    {\n      \"id\": 36,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"status\": \"active\",\n          \"version\": 3\n        },\n        \"attributes\": {\n          \"status\": \"inactive\",\n          \"version\": 4\n        }\n      },\n      \"created_at\": \"2026-09-17T14:40:55.000000Z\"\n    },\n    {\n      \"id\": 35,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"status\": \"inactive\",\n          \"version\": 2\n        },\n        \"attributes\": {\n          \"status\": \"active\",\n          \"version\": 3\n        }\n      },\n      \"created_at\": \"2026-09-17T14:40:45.000000Z\"\n    },\n    {\n      \"id\": 34,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"name\": \"Postman Demo Branch\",\n          \"status\": \"active\",\n          \"address\": \"Created from Postman\",\n          \"version\": 1\n        },\n        \"attributes\": {\n          \"name\": \"Postman Demo Branch Updated\",\n          \"status\": \"inactive\",\n          \"address\": \"Updated from Postman\",\n          \"version\": 2\n        }\n      },\n      \"created_at\": \"2026-09-17T14:40:37.000000Z\"\n    },\n    {\n      \"id\": 33,\n      \"log_name\": \"setup\",\n      \"event\": \"created\",\n      \"description\": \"created\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 7,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"attributes\": {\n          \"code\": \"BR-PM\",\n          \"name\": \"Postman Demo Branch\",\n          \"status\": \"active\",\n          \"address\": \"Created from Postman\",\n          \"version\": 1,\n          \"phone_number\": \"+95 9 499999999\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:39:40.000000Z\"\n    },\n    {\n      \"id\": 32,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Models\\\\User\",\n      \"subject_id\": 10,\n      \"causer_type\": null,\n      \"causer_id\": null,\n      \"properties\": {\n        \"old\": {\n          \"last_login_at\": \"2026-09-17T14:18:47.000000Z\"\n        },\n        \"attributes\": {\n          \"last_login_at\": \"2026-09-17T14:38:38.000000Z\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:38:38.000000Z\"\n    },\n    {\n      \"id\": 31,\n      \"log_name\": \"setup\",\n      \"event\": \"created\",\n      \"description\": \"created\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 6,\n      \"causer_type\": null,\n      \"causer_id\": null,\n      \"properties\": {\n        \"attributes\": {\n          \"code\": \"BR-YGN\",\n          \"name\": \"Yangon Main Farm\",\n          \"status\": \"active\",\n          \"address\": \"Main livestock operations compound\",\n          \"version\": 1,\n          \"phone_number\": \"+95 9 400000001\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:33:02.000000Z\"\n    },\n    {\n      \"id\": 30,\n      \"log_name\": \"setup\",\n      \"event\": \"deleted\",\n      \"description\": \"deleted\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 4,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"code\": \"BR-PM\",\n          \"name\": \"Postman Demo Branch Updated\",\n          \"status\": \"inactive\",\n          \"address\": \"Updated from Postman\",\n          \"version\": 2,\n          \"phone_number\": \"+95 9 499999999\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:19:44.000000Z\"\n    },\n    {\n      \"id\": 29,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n      \"subject_id\": 4,\n      \"causer_type\": \"App\\\\Models\\\\User\",\n      \"causer_id\": 10,\n      \"properties\": {\n        \"old\": {\n          \"code\": \"BR-YGN\",\n          \"name\": \"Yangon Main Farm\",\n          \"status\": \"active\",\n          \"address\": \"Main livestock operations compound\",\n          \"version\": 1,\n          \"phone_number\": \"+95 9 400000001\"\n        },\n        \"attributes\": {\n          \"code\": \"BR-PM\",\n          \"name\": \"Postman Demo Branch Updated\",\n          \"status\": \"inactive\",\n          \"address\": \"Updated from Postman\",\n          \"version\": 2,\n          \"phone_number\": \"+95 9 499999999\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:19:33.000000Z\"\n    },\n    {\n      \"id\": 28,\n      \"log_name\": \"setup\",\n      \"event\": \"updated\",\n      \"description\": \"updated\",\n      \"subject_type\": \"App\\\\Models\\\\User\",\n      \"subject_id\": 10,\n      \"causer_type\": null,\n      \"causer_id\": null,\n      \"properties\": {\n        \"old\": {\n          \"last_login_at\": null\n        },\n        \"attributes\": {\n          \"last_login_at\": \"2026-09-17T14:18:47.000000Z\"\n        }\n      },\n      \"created_at\": \"2026-09-17T14:18:47.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/setup/activity-logs?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/setup/activity-logs?page=2\",\n    \"prev\": null,\n    \"next\": \"http://localhost:8089/api/v1/setup/activity-logs?page=2\"\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 2,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/activity-logs?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/activity-logs?page=2\",\n        \"label\": \"2\",\n        \"page\": 2,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/activity-logs?page=2\",\n        \"label\": \"Next &raquo;\",\n        \"page\": 2,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/setup/activity-logs\",\n    \"per_page\": 15,\n    \"to\": 15,\n    \"total\": 23\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Activity Log",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/activity-logs/{{activity_log_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "activity-logs",
+                "{{activity_log_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Activity Log",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/activity-logs/{{activity_log_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "activity-logs",
+                    "{{activity_log_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Thu, 17 Sep 2026 14:47:04 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 42,\n    \"log_name\": \"setup\",\n    \"event\": \"updated\",\n    \"description\": \"updated\",\n    \"subject_type\": \"App\\\\Modules\\\\Setup\\\\Models\\\\Branch\",\n    \"subject_id\": 7,\n    \"causer_type\": \"App\\\\Models\\\\User\",\n    \"causer_id\": 10,\n    \"properties\": {\n      \"old\": {\n        \"version\": 6\n      },\n      \"attributes\": {\n        \"version\": 7\n      }\n    },\n    \"created_at\": \"2026-09-17T14:46:35.000000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman-setup"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "branch_id",
+      "value": ""
+    },
+    {
+      "key": "role_id",
+      "value": ""
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "activity_log_id",
+      "value": ""
+    }
+  ]
+}
