@@ -8,7 +8,7 @@ export interface Branch {
   name: string;
   phone_number: string;
   address: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | string;
   version: number;
   created_at: string;
   updated_at: string;
@@ -29,6 +29,7 @@ export interface BranchListResponse {
 
 export interface SingleBranchResponse {
   data: Branch;
+  message?: string;
 }
 
 export interface BranchPayload {
@@ -36,7 +37,7 @@ export interface BranchPayload {
   name: string;
   phone_number: string;
   address: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | string;
 }
 
 export const branchApiSlice = farmApi.injectEndpoints({

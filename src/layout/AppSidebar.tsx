@@ -24,6 +24,8 @@ import {
   Ruler,
   Wheat,
   ScrollText,
+  ClipboardCheck,
+  ReceiptText,
 } from "lucide-react";
 
 type NavItem = {
@@ -45,6 +47,8 @@ const AppSidebar: React.FC = () => {
 
   const mainNavItems: NavItem[] = useMemo(() => [
     { icon: <LayoutDashboard size={20} />, name: "Dashboard", path: "/" },
+    { icon: <ClipboardCheck size={20} />, name: "Inventory", path: "/inventory" },
+    { icon: <ReceiptText size={20} />, name: "Purchasing", path: "/purchasing" },
   ], []);
 
   const setupChildren: SetupChild[] = useMemo(() => [

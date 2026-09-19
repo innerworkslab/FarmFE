@@ -1,0 +1,1796 @@
+{
+  "info": {
+    "_postman_id": "8d7520ea-ebf1-4438-81e2-44b11f8b252d",
+    "name": "Livestock ERP Purchasing Foundation API",
+    "description": "Postman collection for Purchasing foundation APIs. Covers login, purchase invoice list/create/view/update/cancel, receipt draft/create/confirm, and inventory balance/ledger checks after receipt confirmation. Purchase invoice save does not move stock; confirmed receipts post inventory ledger and balance rows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-8d7520ea-ebf1-4438-81e2-44b11f8b252d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login succeeded', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('access token returned', function () { pm.expect(json.access_token).to.be.a('string').and.not.empty; });",
+                  "if (json.access_token) pm.collectionVariables.set('access_token', json.access_token);"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in and stores access_token."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Logs in and stores access_token."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"token_type\":\"Bearer\",\"access_token\":\"9|DR7GCkdJPPhcPnExnb9Nm2AHNvk38wmTquxc9ma32dfa1535\",\"user\":{\"id\":2,\"name\":\"Demo Admin\",\"email\":\"admin@example.com\",\"username\":\"admin\",\"account_status\":\"active\",\"last_login_at\":\"2026-09-18T16:26:57.000000Z\",\"two_factor_enabled\":false,\"roles\":[\"admin\"],\"permissions\":[\"authorization.permissions.view\",\"setup.view\",\"setup.branches.view\",\"setup.roles.view\",\"setup.admins.view\",\"setup.audit.view\",\"setup.customers.view\",\"setup.customers.create\",\"setup.customers.update\",\"setup.customers.delete\",\"setup.suppliers.view\",\"setup.suppliers.create\",\"setup.suppliers.update\",\"setup.suppliers.delete\",\"setup.foods.view\",\"setup.foods.create\",\"setup.foods.update\",\"setup.foods.delete\",\"setup.medicines.view\",\"setup.medicines.create\",\"setup.medicines.update\",\"setup.medicines.delete\",\"setup.animals.view\",\"setup.animals.create\",\"setup.animals.update\",\"setup.animals.delete\",\"setup.equipment.view\",\"setup.equipment.create\",\"setup.equipment.update\",\"setup.equipment.delete\",\"setup.inventories.view\",\"setup.inventories.create\",\"setup.inventories.update\",\"setup.inventories.delete\",\"setup.uoms.view\",\"setup.uoms.create\",\"setup.uoms.update\",\"setup.uoms.delete\",\"setup.farm-information.view\",\"setup.farm-information.create\",\"setup.farm-information.update\",\"setup.farm-information.delete\",\"purchasing.view\",\"inventory.view\",\"inventory.manage\",\"inventory.items.view\",\"inventory.balances.view\",\"inventory.ledger.view\",\"inventory.confirmations.view\",\"inventory.adjustments.view\",\"inventory.adjustments.create\",\"inventory.adjustments.update\",\"inventory.adjustments.submit\",\"inventory.adjustments.confirm\",\"inventory.adjustments.reverse\",\"farms.view\",\"sales.view\",\"financial.view\",\"purchasing.receipts.confirm\",\"purchasing.receipts.create\",\"purchasing.receipts.view\",\"purchasing.invoices.cancel\",\"purchasing.invoices.update\",\"purchasing.invoices.create\",\"purchasing.invoices.view\"]}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Purchase Invoices",
+      "item": [
+        {
+          "name": "List Purchase Invoices",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices?per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Lists purchase invoices with pagination and filters."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Purchase Invoices",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices?per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Lists purchase invoices with pagination and filters."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":8,\"invoice_number\":\"PINV-POSTMAN-MED-1789748467\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":2,\"branch_id\":2,\"status\":\"open\",\"delivery_status\":\"fully_received\",\"gross_amount\":\"540000.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"total_received_quantity\":\"13.000000\",\"notes\":\"Postman medicine purchase; receipt can quarantine breached cold-chain stock.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":10,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"description\":\"Ivermectin Injection\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"quantity\":\"12.000000\",\"unit_price\":\"45000.00\",\"gross_amount\":\"540000.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":\"quantity\",\"foc_value\":\"1.000000\",\"foc_quantity\":\"1.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"received_quantity\":\"12.000000\",\"received_foc_quantity\":\"1.000000\",\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:57.000000Z\",\"updated_at\":\"2026-09-18T16:20:58.000000Z\"},{\"id\":7,\"invoice_number\":\"PINV-CANCEL-RUN-1789748454\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"cancelled\",\"delivery_status\":\"cancelled\",\"gross_amount\":\"1.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Temporary invoice created by collection runner for cancel endpoint test.\",\"cancellation_reason\":\"Supplier cancelled before any receipt.\",\"version\":2,\"lines\":[{\"id\":9,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"1.000000\",\"unit_price\":\"1.00\",\"gross_amount\":\"1.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":null,\"foc_value\":\"0.000000\",\"foc_quantity\":\"0.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:55.000000Z\",\"updated_at\":\"2026-09-18T16:20:55.000000Z\"},{\"id\":6,\"invoice_number\":\"PINV-POSTMAN-1789748456\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"fully_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"22.000000\",\"notes\":\"Updated while invoice is still unreceived.\",\"cancellation_reason\":null,\"version\":3,\"lines\":[{\"id\":8,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"20.000000\",\"received_foc_quantity\":\"2.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:54.000000Z\",\"updated_at\":\"2026-09-18T16:20:56.000000Z\"},{\"id\":5,\"invoice_number\":\"PINV-POSTMAN-MED-1789748420\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":2,\"branch_id\":2,\"status\":\"open\",\"delivery_status\":\"fully_received\",\"gross_amount\":\"540000.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"total_received_quantity\":\"13.000000\",\"notes\":\"Postman medicine purchase; receipt can quarantine breached cold-chain stock.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":6,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"description\":\"Ivermectin Injection\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"quantity\":\"12.000000\",\"unit_price\":\"45000.00\",\"gross_amount\":\"540000.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":\"quantity\",\"foc_value\":\"1.000000\",\"foc_quantity\":\"1.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"received_quantity\":\"12.000000\",\"received_foc_quantity\":\"1.000000\",\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:10.000000Z\",\"updated_at\":\"2026-09-18T16:20:10.000000Z\"},{\"id\":4,\"invoice_number\":\"PINV-CANCEL-RUN-1789748407\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"cancelled\",\"delivery_status\":\"cancelled\",\"gross_amount\":\"1.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Temporary invoice created by collection runner for cancel endpoint test.\",\"cancellation_reason\":\"Supplier cancelled before any receipt.\",\"version\":2,\"lines\":[{\"id\":5,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"1.000000\",\"unit_price\":\"1.00\",\"gross_amount\":\"1.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":null,\"foc_value\":\"0.000000\",\"foc_quantity\":\"0.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:07.000000Z\",\"updated_at\":\"2026-09-18T16:20:08.000000Z\"},{\"id\":3,\"invoice_number\":\"PINV-POSTMAN-1789748409\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"not_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Updated while invoice is still unreceived.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":4,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:06.000000Z\",\"updated_at\":\"2026-09-18T16:20:07.000000Z\"},{\"id\":2,\"invoice_number\":\"PINV-DEMO-MED-001\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":2,\"branch_id\":2,\"status\":\"open\",\"delivery_status\":\"fully_received\",\"gross_amount\":\"1350000.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1350000.00\",\"total_expected_quantity\":\"33.000000\",\"total_received_quantity\":\"33.000000\",\"notes\":\"Demo medicine purchase for purchase-to-inventory ledger testing.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":2,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"description\":\"Ivermectin Injection\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"quantity\":\"30.000000\",\"unit_price\":\"45000.00\",\"gross_amount\":\"1350000.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":\"quantity\",\"foc_value\":\"3.000000\",\"foc_quantity\":\"3.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1350000.00\",\"total_expected_quantity\":\"33.000000\",\"received_quantity\":\"30.000000\",\"received_foc_quantity\":\"3.000000\",\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"},{\"id\":1,\"invoice_number\":\"PINV-DEMO-FEED-001\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"fully_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"22.000000\",\"notes\":\"Demo feed purchase for purchase-to-inventory ledger testing.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":1,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"20.000000\",\"received_foc_quantity\":\"2.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/invoices?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/invoices?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/invoices?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/invoices\",\"per_page\":15,\"to\":8,\"total\":8}}"
+            }
+          ]
+        },
+        {
+          "name": "Create Food Purchase Invoice",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('invoice created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('purchase_invoice_id', json.data.id);",
+                  "if (json.data.lines && json.data.lines.length) pm.collectionVariables.set('purchase_invoice_line_id', json.data.lines[0].id);",
+                  "pm.test('purchase save did not receive stock', function () { pm.expect(json.data.delivery_status).to.eql('not_received'); });"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_number\": \"PINV-POSTMAN-{{$timestamp}}\",\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{supplier_id}},\n  \"branch_id\": {{branch_id}},\n  \"notes\": \"Postman food purchase; saving this invoice should not move stock.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{food_item_id}},\n      \"purchase_uom_id\": {{purchase_uom_id}},\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"conversion_factor\": {{conversion_factor}},\n      \"quantity\": 20,\n      \"unit_price\": 75000,\n      \"discount_type\": \"percentage\",\n      \"discount_value\": 2,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 2,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices"
+              ]
+            },
+            "description": "Creates a food purchase invoice. This should not increase stock until receipt confirmation."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Food Purchase Invoice",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"invoice_number\": \"PINV-POSTMAN-{{$timestamp}}\",\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{supplier_id}},\n  \"branch_id\": {{branch_id}},\n  \"notes\": \"Postman food purchase; saving this invoice should not move stock.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{food_item_id}},\n      \"purchase_uom_id\": {{purchase_uom_id}},\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"conversion_factor\": {{conversion_factor}},\n      \"quantity\": 20,\n      \"unit_price\": 75000,\n      \"discount_type\": \"percentage\",\n      \"discount_value\": 2,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 2,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices"
+                  ]
+                },
+                "description": "Creates a food purchase invoice. This should not increase stock until receipt confirmation."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":9,\"invoice_number\":\"PINV-POSTMAN-1789748821\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"not_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Postman food purchase; saving this invoice should not move stock.\",\"cancellation_reason\":null,\"version\":1,\"lines\":[{\"id\":11,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:26:58.000000Z\",\"updated_at\":\"2026-09-18T16:26:58.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Show Purchase Invoice",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices/{{purchase_invoice_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices",
+                "{{purchase_invoice_id}}"
+              ]
+            },
+            "description": "Shows invoice header and lines."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Show Purchase Invoice",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices/{{purchase_invoice_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices",
+                    "{{purchase_invoice_id}}"
+                  ]
+                },
+                "description": "Shows invoice header and lines."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":9,\"invoice_number\":\"PINV-POSTMAN-1789748821\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"not_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Postman food purchase; saving this invoice should not move stock.\",\"cancellation_reason\":null,\"version\":1,\"lines\":[{\"id\":11,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:26:58.000000Z\",\"updated_at\":\"2026-09-18T16:26:58.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Open Purchase Invoice",
+          "event": [
+            {
+              "script": {
+                "exec": [
+                  "pm.test('invoice updated', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.lines && json.data.lines.length) pm.collectionVariables.set('purchase_invoice_line_id', json.data.lines[0].id);"
+                ],
+                "type": "text/javascript"
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{supplier_id}},\n  \"branch_id\": {{branch_id}},\n  \"notes\": \"Updated while invoice is still unreceived.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{food_item_id}},\n      \"purchase_uom_id\": {{purchase_uom_id}},\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"conversion_factor\": {{conversion_factor}},\n      \"quantity\": 20,\n      \"unit_price\": 75000,\n      \"discount_type\": \"percentage\",\n      \"discount_value\": 2,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 2,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices/{{purchase_invoice_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices",
+                "{{purchase_invoice_id}}"
+              ]
+            },
+            "description": "Updates an unreceived purchase invoice. Material fields lock after first receipt."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Update Open Purchase Invoice",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{supplier_id}},\n  \"branch_id\": {{branch_id}},\n  \"notes\": \"Updated while invoice is still unreceived.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{food_item_id}},\n      \"purchase_uom_id\": {{purchase_uom_id}},\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"conversion_factor\": {{conversion_factor}},\n      \"quantity\": 20,\n      \"unit_price\": 75000,\n      \"discount_type\": \"percentage\",\n      \"discount_value\": 2,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 2,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices/{{purchase_invoice_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices",
+                    "{{purchase_invoice_id}}"
+                  ]
+                },
+                "description": "Updates an unreceived purchase invoice. Material fields lock after first receipt."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":9,\"invoice_number\":\"PINV-POSTMAN-1789748821\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"open\",\"delivery_status\":\"not_received\",\"gross_amount\":\"1500000.00\",\"discount_amount\":\"30000.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Updated while invoice is still unreceived.\",\"cancellation_reason\":null,\"version\":2,\"lines\":[{\"id\":12,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"20.000000\",\"unit_price\":\"75000.00\",\"gross_amount\":\"1500000.00\",\"discount_type\":\"percentage\",\"discount_value\":\"2.000000\",\"discount_amount\":\"30000.00\",\"foc_type\":\"quantity\",\"foc_value\":\"2.000000\",\"foc_quantity\":\"2.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1470000.00\",\"total_expected_quantity\":\"22.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:26:58.000000Z\",\"updated_at\":\"2026-09-18T16:27:00.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel Open Purchase Invoice",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('invoice cancelled', function () { pm.response.to.have.status(200); });"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Supplier cancelled before any receipt.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices/{{cancel_invoice_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices",
+                "{{cancel_invoice_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels an unreceived invoice. Use a separate cancel_invoice_id that has no receipts."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Cancel Open Purchase Invoice",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Supplier cancelled before any receipt.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices/{{cancel_invoice_id}}/cancel",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices",
+                    "{{cancel_invoice_id}}",
+                    "cancel"
+                  ]
+                },
+                "description": "Cancels an unreceived invoice. Use a separate cancel_invoice_id that has no receipts."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":10,\"invoice_number\":\"PINV-CANCEL-SAMPLE-1789748820\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":1,\"branch_id\":1,\"status\":\"cancelled\",\"delivery_status\":\"cancelled\",\"gross_amount\":\"1.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Temporary invoice created while saving Postman sample responses.\",\"cancellation_reason\":\"Supplier cancelled before any receipt.\",\"version\":2,\"lines\":[{\"id\":13,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"description\":\"Cattle Growth Pellet\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"quantity\":\"1.000000\",\"unit_price\":\"1.00\",\"gross_amount\":\"1.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":null,\"foc_value\":\"0.000000\",\"foc_quantity\":\"0.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"1.00\",\"total_expected_quantity\":\"1.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:00.000000Z\",\"updated_at\":\"2026-09-18T16:27:01.000000Z\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Receipts",
+      "item": [
+        {
+          "name": "List Purchase Receipts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts?per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Lists purchase receipts."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Purchase Receipts",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts?per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Lists purchase receipts."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":5,\"receipt_number\":\"PREC-POSTMAN-MED-1789748469\",\"purchase_invoice_id\":8,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918162058-DGG9BQ\",\"notes\":\"Postman medicine receipt with breached cold-chain status.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:20:58.000000Z\",\"lines\":[{\"id\":5,\"purchase_invoice_line_id\":10,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"accepted_quantity\":\"12.000000\",\"accepted_foc_quantity\":\"1.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-MED-1789748469\",\"receipt_lot_number\":\"LOT-POSTMAN-MED-1789748469\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":true,\"cold_chain_status\":\"breached\",\"observed_temperature\":\"12.500\",\"temperature_uom\":\"C\",\"exception_reason\":\"Postman sample: delivery temperature breached threshold.\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:57.000000Z\",\"updated_at\":\"2026-09-18T16:20:58.000000Z\"},{\"id\":4,\"receipt_number\":\"PREC-POSTMAN-1789748463\",\"purchase_invoice_id\":6,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918162056-7X5OHU\",\"notes\":\"Postman food receipt; confirmation posts stock balance and ledger.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:20:56.000000Z\",\"lines\":[{\"id\":4,\"purchase_invoice_line_id\":8,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-FEED-1789748463\",\"receipt_lot_number\":\"LOT-POSTMAN-FEED-1789748463\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":false,\"cold_chain_status\":null,\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:56.000000Z\",\"updated_at\":\"2026-09-18T16:20:56.000000Z\"},{\"id\":3,\"receipt_number\":\"PREC-POSTMAN-MED-1789748422\",\"purchase_invoice_id\":5,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918162010-BQEGRR\",\"notes\":\"Postman medicine receipt with breached cold-chain status.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:20:10.000000Z\",\"lines\":[{\"id\":3,\"purchase_invoice_line_id\":6,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"accepted_quantity\":\"12.000000\",\"accepted_foc_quantity\":\"1.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-MED-1789748422\",\"receipt_lot_number\":\"LOT-POSTMAN-MED-1789748422\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":true,\"cold_chain_status\":\"breached\",\"observed_temperature\":\"12.500\",\"temperature_uom\":\"C\",\"exception_reason\":\"Postman sample: delivery temperature breached threshold.\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:20:10.000000Z\",\"updated_at\":\"2026-09-18T16:20:10.000000Z\"},{\"id\":2,\"receipt_number\":\"PREC-DEMO-MED-001\",\"purchase_invoice_id\":2,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918161413-WHHUHS\",\"notes\":\"Demo confirmed medicine receipt.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:14:13.000000Z\",\"lines\":[{\"id\":2,\"purchase_invoice_line_id\":2,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"accepted_quantity\":\"30.000000\",\"accepted_foc_quantity\":\"3.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"supplier_batch_number\":\"SUP-PUR-MED-B001\",\"receipt_lot_number\":\"LOT-PUR-MED-001\",\"manufacturing_date\":\"2026-08-18\",\"expiry_date\":\"2028-03-18\",\"cold_chain_required\":false,\"cold_chain_status\":\"compliant\",\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"},{\"id\":1,\"receipt_number\":\"PREC-DEMO-FEED-001\",\"purchase_invoice_id\":1,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918161413-HND2SH\",\"notes\":\"Demo confirmed feed receipt.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:14:13.000000Z\",\"lines\":[{\"id\":1,\"purchase_invoice_line_id\":1,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"supplier_batch_number\":\"SUP-PUR-FEED-B001\",\"receipt_lot_number\":\"LOT-PUR-FEED-001\",\"manufacturing_date\":\"2026-09-04\",\"expiry_date\":\"2027-08-18\",\"cold_chain_required\":false,\"cold_chain_status\":null,\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/receipts?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/receipts?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/receipts?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/purchasing\\/receipts\",\"per_page\":15,\"to\":5,\"total\":5}}"
+            }
+          ]
+        },
+        {
+          "name": "Create Food Receipt Draft",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('receipt draft created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('purchase_receipt_id', json.data.id);",
+                  "pm.test('receipt remains draft before confirmation', function () { pm.expect(json.data.status).to.eql('draft'); });"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receipt_number\": \"PREC-POSTMAN-{{$timestamp}}\",\n  \"purchase_invoice_id\": {{purchase_invoice_id}},\n  \"receipt_date\": \"{{business_date}}\",\n  \"idempotency_key\": \"postman-food-receipt-{{$timestamp}}\",\n  \"notes\": \"Postman food receipt; confirmation posts stock balance and ledger.\",\n  \"lines\": [\n    {\n      \"purchase_invoice_line_id\": {{purchase_invoice_line_id}},\n      \"accepted_quantity\": 20,\n      \"accepted_foc_quantity\": 2,\n      \"rejected_quantity\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\",\n      \"supplier_batch_number\": \"SUP-POSTMAN-FEED-{{$timestamp}}\",\n      \"receipt_lot_number\": \"LOT-POSTMAN-FEED-{{$timestamp}}\",\n      \"manufacturing_date\": \"{{manufacturing_date}}\",\n      \"expiry_date\": \"{{expiry_date}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts"
+              ]
+            },
+            "description": "Creates a draft receipt. Stock is still unchanged until confirmation."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Food Receipt Draft",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"receipt_number\": \"PREC-POSTMAN-{{$timestamp}}\",\n  \"purchase_invoice_id\": {{purchase_invoice_id}},\n  \"receipt_date\": \"{{business_date}}\",\n  \"idempotency_key\": \"postman-food-receipt-{{$timestamp}}\",\n  \"notes\": \"Postman food receipt; confirmation posts stock balance and ledger.\",\n  \"lines\": [\n    {\n      \"purchase_invoice_line_id\": {{purchase_invoice_line_id}},\n      \"accepted_quantity\": 20,\n      \"accepted_foc_quantity\": 2,\n      \"rejected_quantity\": 0,\n      \"target_inventory_id\": {{inventory_id}},\n      \"target_location\": \"{{target_location}}\",\n      \"supplier_batch_number\": \"SUP-POSTMAN-FEED-{{$timestamp}}\",\n      \"receipt_lot_number\": \"LOT-POSTMAN-FEED-{{$timestamp}}\",\n      \"manufacturing_date\": \"{{manufacturing_date}}\",\n      \"expiry_date\": \"{{expiry_date}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts"
+                  ]
+                },
+                "description": "Creates a draft receipt. Stock is still unchanged until confirmation."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":6,\"receipt_number\":\"PREC-POSTMAN-1789748829\",\"purchase_invoice_id\":9,\"receipt_date\":\"2026-09-18\",\"status\":\"draft\",\"posting_batch_id\":null,\"notes\":\"Postman food receipt; confirmation posts stock balance and ledger.\",\"version\":1,\"confirmed_at\":null,\"lines\":[{\"id\":6,\"purchase_invoice_line_id\":12,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-FEED-1789748829\",\"receipt_lot_number\":\"LOT-POSTMAN-FEED-1789748829\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":false,\"cold_chain_status\":null,\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:02.000000Z\",\"updated_at\":\"2026-09-18T16:27:02.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Show Purchase Receipt",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts/{{purchase_receipt_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts",
+                "{{purchase_receipt_id}}"
+              ]
+            },
+            "description": "Shows receipt header and lines."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Show Purchase Receipt",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts/{{purchase_receipt_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts",
+                    "{{purchase_receipt_id}}"
+                  ]
+                },
+                "description": "Shows receipt header and lines."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":6,\"receipt_number\":\"PREC-POSTMAN-1789748829\",\"purchase_invoice_id\":9,\"receipt_date\":\"2026-09-18\",\"status\":\"draft\",\"posting_batch_id\":null,\"notes\":\"Postman food receipt; confirmation posts stock balance and ledger.\",\"version\":1,\"confirmed_at\":null,\"lines\":[{\"id\":6,\"purchase_invoice_line_id\":12,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-FEED-1789748829\",\"receipt_lot_number\":\"LOT-POSTMAN-FEED-1789748829\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":false,\"cold_chain_status\":null,\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:02.000000Z\",\"updated_at\":\"2026-09-18T16:27:02.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm Food Receipt And Post Stock",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('receipt confirmed', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('posting batch was created', function () { pm.expect(json.data.posting_batch_id).to.be.a('string').and.not.empty; });"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts/{{purchase_receipt_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts",
+                "{{purchase_receipt_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Confirms the receipt and posts purchase stock to inventory ledgers and balances."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Confirm Food Receipt And Post Stock",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts/{{purchase_receipt_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts",
+                    "{{purchase_receipt_id}}",
+                    "confirm"
+                  ]
+                },
+                "description": "Confirms the receipt and posts purchase stock to inventory ledgers and balances."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":6,\"receipt_number\":\"PREC-POSTMAN-1789748829\",\"purchase_invoice_id\":9,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918162703-OIIT2J\",\"notes\":\"Postman food receipt; confirmation posts stock balance and ledger.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:27:03.000000Z\",\"lines\":[{\"id\":6,\"purchase_invoice_line_id\":12,\"line_number\":1,\"category\":\"food\",\"item_id\":1,\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":1,\"target_farm_information_id\":null,\"target_location\":\"R2\",\"purchase_uom_id\":2,\"stock_uom_id\":1,\"conversion_factor\":\"50.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-FEED-1789748829\",\"receipt_lot_number\":\"LOT-POSTMAN-FEED-1789748829\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":false,\"cold_chain_status\":null,\"observed_temperature\":null,\"temperature_uom\":null,\"exception_reason\":null,\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:02.000000Z\",\"updated_at\":\"2026-09-18T16:27:03.000000Z\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Medicine Quarantine Sample",
+      "item": [
+        {
+          "name": "Create Medicine Purchase Invoice",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('medicine invoice created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('medicine_purchase_invoice_id', json.data.id);",
+                  "if (json.data.lines && json.data.lines.length) pm.collectionVariables.set('medicine_purchase_invoice_line_id', json.data.lines[0].id);"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_number\": \"PINV-POSTMAN-MED-{{$timestamp}}\",\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{medicine_supplier_id}},\n  \"branch_id\": {{medicine_branch_id}},\n  \"notes\": \"Postman medicine purchase; receipt can quarantine breached cold-chain stock.\",\n  \"lines\": [\n    {\n      \"category\": \"medicine\",\n      \"item_id\": {{medicine_item_id}},\n      \"purchase_uom_id\": {{medicine_uom_id}},\n      \"stock_uom_id\": {{medicine_uom_id}},\n      \"conversion_factor\": 1,\n      \"quantity\": 12,\n      \"unit_price\": 45000,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 1,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{medicine_inventory_id}},\n      \"target_location\": \"{{medicine_target_location}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/invoices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "invoices"
+              ]
+            },
+            "description": "Creates a medicine purchase invoice."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Medicine Purchase Invoice",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"invoice_number\": \"PINV-POSTMAN-MED-{{$timestamp}}\",\n  \"invoice_date\": \"{{business_date}}\",\n  \"supplier_id\": {{medicine_supplier_id}},\n  \"branch_id\": {{medicine_branch_id}},\n  \"notes\": \"Postman medicine purchase; receipt can quarantine breached cold-chain stock.\",\n  \"lines\": [\n    {\n      \"category\": \"medicine\",\n      \"item_id\": {{medicine_item_id}},\n      \"purchase_uom_id\": {{medicine_uom_id}},\n      \"stock_uom_id\": {{medicine_uom_id}},\n      \"conversion_factor\": 1,\n      \"quantity\": 12,\n      \"unit_price\": 45000,\n      \"foc_type\": \"quantity\",\n      \"foc_value\": 1,\n      \"tax_rate\": 0,\n      \"target_inventory_id\": {{medicine_inventory_id}},\n      \"target_location\": \"{{medicine_target_location}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "invoices"
+                  ]
+                },
+                "description": "Creates a medicine purchase invoice."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":11,\"invoice_number\":\"PINV-POSTMAN-MED-1789748834\",\"invoice_date\":\"2026-09-18\",\"supplier_id\":2,\"branch_id\":2,\"status\":\"open\",\"delivery_status\":\"not_received\",\"gross_amount\":\"540000.00\",\"discount_amount\":\"0.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"total_received_quantity\":\"0.000000\",\"notes\":\"Postman medicine purchase; receipt can quarantine breached cold-chain stock.\",\"cancellation_reason\":null,\"version\":1,\"lines\":[{\"id\":14,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"description\":\"Ivermectin Injection\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"quantity\":\"12.000000\",\"unit_price\":\"45000.00\",\"gross_amount\":\"540000.00\",\"discount_type\":null,\"discount_value\":\"0.000000\",\"discount_amount\":\"0.00\",\"foc_type\":\"quantity\",\"foc_value\":\"1.000000\",\"foc_quantity\":\"1.000000\",\"tax_rate\":\"0.000000\",\"tax_amount\":\"0.00\",\"total_amount\":\"540000.00\",\"total_expected_quantity\":\"13.000000\",\"received_quantity\":\"0.000000\",\"received_foc_quantity\":\"0.000000\",\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:04.000000Z\",\"updated_at\":\"2026-09-18T16:27:04.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Create Breached Medicine Receipt Draft",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('medicine receipt draft created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('medicine_purchase_receipt_id', json.data.id);"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receipt_number\": \"PREC-POSTMAN-MED-{{$timestamp}}\",\n  \"purchase_invoice_id\": {{medicine_purchase_invoice_id}},\n  \"receipt_date\": \"{{business_date}}\",\n  \"idempotency_key\": \"postman-med-receipt-{{$timestamp}}\",\n  \"notes\": \"Postman medicine receipt with breached cold-chain status.\",\n  \"lines\": [\n    {\n      \"purchase_invoice_line_id\": {{medicine_purchase_invoice_line_id}},\n      \"accepted_quantity\": 12,\n      \"accepted_foc_quantity\": 1,\n      \"target_inventory_id\": {{medicine_inventory_id}},\n      \"target_location\": \"{{medicine_target_location}}\",\n      \"supplier_batch_number\": \"SUP-POSTMAN-MED-{{$timestamp}}\",\n      \"receipt_lot_number\": \"LOT-POSTMAN-MED-{{$timestamp}}\",\n      \"manufacturing_date\": \"{{manufacturing_date}}\",\n      \"expiry_date\": \"{{expiry_date}}\",\n      \"cold_chain_required\": true,\n      \"cold_chain_status\": \"breached\",\n      \"observed_temperature\": 12.5,\n      \"temperature_uom\": \"C\",\n      \"exception_reason\": \"Postman sample: delivery temperature breached threshold.\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts"
+              ]
+            },
+            "description": "Creates a medicine receipt draft with breached cold-chain evidence."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Breached Medicine Receipt Draft",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"receipt_number\": \"PREC-POSTMAN-MED-{{$timestamp}}\",\n  \"purchase_invoice_id\": {{medicine_purchase_invoice_id}},\n  \"receipt_date\": \"{{business_date}}\",\n  \"idempotency_key\": \"postman-med-receipt-{{$timestamp}}\",\n  \"notes\": \"Postman medicine receipt with breached cold-chain status.\",\n  \"lines\": [\n    {\n      \"purchase_invoice_line_id\": {{medicine_purchase_invoice_line_id}},\n      \"accepted_quantity\": 12,\n      \"accepted_foc_quantity\": 1,\n      \"target_inventory_id\": {{medicine_inventory_id}},\n      \"target_location\": \"{{medicine_target_location}}\",\n      \"supplier_batch_number\": \"SUP-POSTMAN-MED-{{$timestamp}}\",\n      \"receipt_lot_number\": \"LOT-POSTMAN-MED-{{$timestamp}}\",\n      \"manufacturing_date\": \"{{manufacturing_date}}\",\n      \"expiry_date\": \"{{expiry_date}}\",\n      \"cold_chain_required\": true,\n      \"cold_chain_status\": \"breached\",\n      \"observed_temperature\": 12.5,\n      \"temperature_uom\": \"C\",\n      \"exception_reason\": \"Postman sample: delivery temperature breached threshold.\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts"
+                  ]
+                },
+                "description": "Creates a medicine receipt draft with breached cold-chain evidence."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":7,\"receipt_number\":\"PREC-POSTMAN-MED-1789748836\",\"purchase_invoice_id\":11,\"receipt_date\":\"2026-09-18\",\"status\":\"draft\",\"posting_batch_id\":null,\"notes\":\"Postman medicine receipt with breached cold-chain status.\",\"version\":1,\"confirmed_at\":null,\"lines\":[{\"id\":7,\"purchase_invoice_line_id\":14,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"accepted_quantity\":\"12.000000\",\"accepted_foc_quantity\":\"1.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-MED-1789748836\",\"receipt_lot_number\":\"LOT-POSTMAN-MED-1789748836\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":true,\"cold_chain_status\":\"breached\",\"observed_temperature\":\"12.500\",\"temperature_uom\":\"C\",\"exception_reason\":\"Postman sample: delivery temperature breached threshold.\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:05.000000Z\",\"updated_at\":\"2026-09-18T16:27:05.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm Medicine Receipt To Quarantine",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('receipt confirmed', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('posting batch was created', function () { pm.expect(json.data.posting_batch_id).to.be.a('string').and.not.empty; });"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchasing/receipts/{{medicine_purchase_receipt_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "purchasing",
+                "receipts",
+                "{{medicine_purchase_receipt_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Posts breached/unknown medicine stock as quarantined, so available quantity remains zero."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Confirm Medicine Receipt To Quarantine",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/purchasing/receipts/{{medicine_purchase_receipt_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchasing",
+                    "receipts",
+                    "{{medicine_purchase_receipt_id}}",
+                    "confirm"
+                  ]
+                },
+                "description": "Posts breached/unknown medicine stock as quarantined, so available quantity remains zero."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":7,\"receipt_number\":\"PREC-POSTMAN-MED-1789748836\",\"purchase_invoice_id\":11,\"receipt_date\":\"2026-09-18\",\"status\":\"confirmed\",\"posting_batch_id\":\"PRB-20260918162705-NRDNR6\",\"notes\":\"Postman medicine receipt with breached cold-chain status.\",\"version\":2,\"confirmed_at\":\"2026-09-18T16:27:05.000000Z\",\"lines\":[{\"id\":7,\"purchase_invoice_line_id\":14,\"line_number\":1,\"category\":\"medicine\",\"item_id\":2,\"accepted_quantity\":\"12.000000\",\"accepted_foc_quantity\":\"1.000000\",\"rejected_quantity\":\"0.000000\",\"rejection_reason\":null,\"target_inventory_id\":2,\"target_farm_information_id\":null,\"target_location\":\"MED-R2\",\"purchase_uom_id\":3,\"stock_uom_id\":3,\"conversion_factor\":\"1.00000000\",\"supplier_batch_number\":\"SUP-POSTMAN-MED-1789748836\",\"receipt_lot_number\":\"LOT-POSTMAN-MED-1789748836\",\"manufacturing_date\":\"2026-09-01\",\"expiry_date\":\"2027-09-01\",\"cold_chain_required\":true,\"cold_chain_status\":\"breached\",\"observed_temperature\":\"12.500\",\"temperature_uom\":\"C\",\"exception_reason\":\"Postman sample: delivery temperature breached threshold.\",\"metadata\":null}],\"created_at\":\"2026-09-18T16:27:05.000000Z\",\"updated_at\":\"2026-09-18T16:27:05.000000Z\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inventory Checks",
+      "item": [
+        {
+          "name": "Check Purchase Balances",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/balances?category={{balance_category}}&item_id={{food_item_id}}&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "balances"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{balance_category}}"
+                },
+                {
+                  "key": "item_id",
+                  "value": "{{food_item_id}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Checks current balances after confirming purchase receipts."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Check Purchase Balances",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/balances?category={{balance_category}}&item_id={{food_item_id}}&per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "balances"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "{{balance_category}}"
+                    },
+                    {
+                      "key": "item_id",
+                      "value": "{{food_item_id}}"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Checks current balances after confirming purchase receipts."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":1,\"identity_key\":\"d457faf6273d1334a5b47fada20ac0b051d8a2e613900a0d857f76971010040b\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"on_hand_quantity\":\"925.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"925.000000\",\"version\":5,\"last_ledger_entry_id\":15,\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":5,\"identity_key\":\"f24cbb238d72f7d82b4454154d7cfc3e16d76fdf6bc79f4f80cd6ebfbb622d5f\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":5,\"equipment_instance_id\":null,\"on_hand_quantity\":\"300.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"300.000000\",\"version\":2,\"last_ledger_entry_id\":5,\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":6,\"identity_key\":\"d46a58d20425f0797bccf4361e2ef4faa6e23a8a954f09fefc0d25861197ebd0\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":6,\"equipment_instance_id\":null,\"on_hand_quantity\":\"300.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"300.000000\",\"version\":2,\"last_ledger_entry_id\":6,\"created_at\":\"2026-09-18T16:18:37.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},{\"id\":7,\"identity_key\":\"376810872c34433b351bf44ddd319c18263075854612b9b82d0444c0cee95aaa\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":7,\"equipment_instance_id\":null,\"on_hand_quantity\":\"0.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"0.000000\",\"version\":3,\"last_ledger_entry_id\":10,\"created_at\":\"2026-09-18T16:19:44.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":11,\"identity_key\":\"284dd1f933a286bb51b5559f6069f1499f2a3b62087beba4591ad28aaae6d41f\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":11,\"equipment_instance_id\":null,\"on_hand_quantity\":\"0.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"0.000000\",\"version\":3,\"last_ledger_entry_id\":16,\"created_at\":\"2026-09-18T16:26:31.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":3,\"identity_key\":\"276d5db7dbc6bb446cd62b0b5016ec3ddef64403e7f90a63af1fbdda49c4a015\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":3,\"equipment_instance_id\":null,\"on_hand_quantity\":\"1100.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"1100.000000\",\"version\":2,\"last_ledger_entry_id\":3,\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"},{\"id\":9,\"identity_key\":\"fc343b16a4e4c939497608a25d7d462976ef44d55e419ea6aee0e825cd47df8b\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":9,\"equipment_instance_id\":null,\"on_hand_quantity\":\"1100.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"1100.000000\",\"version\":2,\"last_ledger_entry_id\":12,\"created_at\":\"2026-09-18T16:20:56.000000Z\",\"updated_at\":\"2026-09-18T16:20:56.000000Z\"},{\"id\":12,\"identity_key\":\"06ce6af0eb96fdf25800e16b83f2453df773e6c84d3f06e2c9b797f812a4d191\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":12,\"equipment_instance_id\":null,\"on_hand_quantity\":\"1100.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"1100.000000\",\"version\":2,\"last_ledger_entry_id\":17,\"created_at\":\"2026-09-18T16:27:03.000000Z\",\"updated_at\":\"2026-09-18T16:27:03.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances\",\"per_page\":15,\"to\":8,\"total\":8}}"
+            }
+          ]
+        },
+        {
+          "name": "Check Purchase Ledger",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/ledger?source_type=purchase_receipt&transaction_type=purchase_receipt&item_id={{food_item_id}}&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "ledger"
+              ],
+              "query": [
+                {
+                  "key": "source_type",
+                  "value": "purchase_receipt"
+                },
+                {
+                  "key": "transaction_type",
+                  "value": "purchase_receipt"
+                },
+                {
+                  "key": "item_id",
+                  "value": "{{food_item_id}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Checks purchase receipt ledger entries."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Check Purchase Ledger",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/ledger?source_type=purchase_receipt&transaction_type=purchase_receipt&item_id={{food_item_id}}&per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "ledger"
+                  ],
+                  "query": [
+                    {
+                      "key": "source_type",
+                      "value": "purchase_receipt"
+                    },
+                    {
+                      "key": "transaction_type",
+                      "value": "purchase_receipt"
+                    },
+                    {
+                      "key": "item_id",
+                      "value": "{{food_item_id}}"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Checks purchase receipt ledger entries."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":17,\"posting_id\":\"LED-20260918162703-NKUDJCW6\",\"posting_batch_id\":\"PRB-20260918162703-OIIT2J\",\"confirmation_id\":null,\"source_module\":\"purchasing\",\"source_type\":\"purchase_receipt\",\"source_id\":6,\"source_line_id\":6,\"transaction_type\":\"purchase_receipt\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":12,\"equipment_instance_id\":null,\"original_quantity\":\"22.000000\",\"original_uom_id\":2,\"conversion_factor\":\"50.00000000\",\"quantity_in\":\"1100.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1100.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:27:03.000000Z\",\"metadata\":{\"invoice_number\":\"PINV-POSTMAN-1789748821\",\"receipt_number\":\"PREC-POSTMAN-1789748829\",\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\"}},{\"id\":12,\"posting_id\":\"LED-20260918162056-00DSFNTG\",\"posting_batch_id\":\"PRB-20260918162056-7X5OHU\",\"confirmation_id\":null,\"source_module\":\"purchasing\",\"source_type\":\"purchase_receipt\",\"source_id\":4,\"source_line_id\":4,\"transaction_type\":\"purchase_receipt\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":9,\"equipment_instance_id\":null,\"original_quantity\":\"22.000000\",\"original_uom_id\":2,\"conversion_factor\":\"50.00000000\",\"quantity_in\":\"1100.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1100.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:20:56.000000Z\",\"metadata\":{\"invoice_number\":\"PINV-POSTMAN-1789748456\",\"receipt_number\":\"PREC-POSTMAN-1789748463\",\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\"}},{\"id\":3,\"posting_id\":\"LED-20260918161413-I6TQSWOM\",\"posting_batch_id\":\"PRB-20260918161413-HND2SH\",\"confirmation_id\":null,\"source_module\":\"purchasing\",\"source_type\":\"purchase_receipt\",\"source_id\":1,\"source_line_id\":1,\"transaction_type\":\"purchase_receipt\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":3,\"equipment_instance_id\":null,\"original_quantity\":\"22.000000\",\"original_uom_id\":2,\"conversion_factor\":\"50.00000000\",\"quantity_in\":\"1100.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1100.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:14:13.000000Z\",\"metadata\":{\"invoice_number\":\"PINV-DEMO-FEED-001\",\"receipt_number\":\"PREC-DEMO-FEED-001\",\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\"}}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger\",\"per_page\":15,\"to\":3,\"total\":3}}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "Postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "business_date",
+      "value": "2026-09-18"
+    },
+    {
+      "key": "manufacturing_date",
+      "value": "2026-09-01"
+    },
+    {
+      "key": "expiry_date",
+      "value": "2027-09-01"
+    },
+    {
+      "key": "supplier_id",
+      "value": "1"
+    },
+    {
+      "key": "branch_id",
+      "value": "1"
+    },
+    {
+      "key": "food_item_id",
+      "value": "1"
+    },
+    {
+      "key": "purchase_uom_id",
+      "value": "1"
+    },
+    {
+      "key": "stock_uom_id",
+      "value": "1"
+    },
+    {
+      "key": "conversion_factor",
+      "value": "1"
+    },
+    {
+      "key": "inventory_id",
+      "value": "1"
+    },
+    {
+      "key": "target_location",
+      "value": "R2"
+    },
+    {
+      "key": "purchase_invoice_id",
+      "value": ""
+    },
+    {
+      "key": "purchase_invoice_line_id",
+      "value": ""
+    },
+    {
+      "key": "purchase_receipt_id",
+      "value": ""
+    },
+    {
+      "key": "cancel_invoice_id",
+      "value": ""
+    },
+    {
+      "key": "balance_category",
+      "value": "food"
+    },
+    {
+      "key": "medicine_supplier_id",
+      "value": "1"
+    },
+    {
+      "key": "medicine_branch_id",
+      "value": "1"
+    },
+    {
+      "key": "medicine_item_id",
+      "value": "1"
+    },
+    {
+      "key": "medicine_uom_id",
+      "value": "1"
+    },
+    {
+      "key": "medicine_inventory_id",
+      "value": "1"
+    },
+    {
+      "key": "medicine_target_location",
+      "value": "MED-R2"
+    },
+    {
+      "key": "medicine_purchase_invoice_id",
+      "value": ""
+    },
+    {
+      "key": "medicine_purchase_invoice_line_id",
+      "value": ""
+    },
+    {
+      "key": "medicine_purchase_receipt_id",
+      "value": ""
+    }
+  ]
+}

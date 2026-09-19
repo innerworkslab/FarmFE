@@ -57,6 +57,14 @@ export const farmApi = createApi({
     "equipment",
     "farmInformation",
     "inventories",
+    // Inventory Foundation
+    "inventoryAdjustments",
+    "inventoryBalances",
+    "inventoryLedger",
+    "inventoryConfirmations",
+    // Purchasing Foundation
+    "purchaseInvoices",
+    "purchaseReceipts",
   ],
   endpoints: () => ({}),
 });

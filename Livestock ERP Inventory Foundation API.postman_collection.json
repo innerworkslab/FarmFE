@@ -1,0 +1,1760 @@
+{
+  "info": {
+    "_postman_id": "ff3ca7bc-96bb-4065-89ba-9f574a35c1fd",
+    "name": "Livestock ERP Inventory Foundation API",
+    "description": "Postman collection for the Inventory foundation APIs. Covers login, stock adjustment draft/submit/confirm/reject/reverse, current balances, ledger, and confirmation review. All endpoints use /api/v1 and updates use POST.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-ff3ca7bc-96bb-4065-89ba-9f574a35c1fd?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in and stores the bearer token in access_token."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Logs in and stores the bearer token in access_token."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"token_type\":\"Bearer\",\"access_token\":\"8|X5V1Ks76NglyMsBgB2yZnfbBfHLjUUfYBEr19Q38656d89ac\",\"user\":{\"id\":2,\"name\":\"Demo Admin\",\"email\":\"admin@example.com\",\"username\":\"admin\",\"account_status\":\"active\",\"last_login_at\":\"2026-09-18T16:26:27.000000Z\",\"two_factor_enabled\":false,\"roles\":[\"admin\"],\"permissions\":[\"authorization.permissions.view\",\"setup.view\",\"setup.branches.view\",\"setup.roles.view\",\"setup.admins.view\",\"setup.audit.view\",\"setup.customers.view\",\"setup.customers.create\",\"setup.customers.update\",\"setup.customers.delete\",\"setup.suppliers.view\",\"setup.suppliers.create\",\"setup.suppliers.update\",\"setup.suppliers.delete\",\"setup.foods.view\",\"setup.foods.create\",\"setup.foods.update\",\"setup.foods.delete\",\"setup.medicines.view\",\"setup.medicines.create\",\"setup.medicines.update\",\"setup.medicines.delete\",\"setup.animals.view\",\"setup.animals.create\",\"setup.animals.update\",\"setup.animals.delete\",\"setup.equipment.view\",\"setup.equipment.create\",\"setup.equipment.update\",\"setup.equipment.delete\",\"setup.inventories.view\",\"setup.inventories.create\",\"setup.inventories.update\",\"setup.inventories.delete\",\"setup.uoms.view\",\"setup.uoms.create\",\"setup.uoms.update\",\"setup.uoms.delete\",\"setup.farm-information.view\",\"setup.farm-information.create\",\"setup.farm-information.update\",\"setup.farm-information.delete\",\"purchasing.view\",\"inventory.view\",\"inventory.manage\",\"inventory.items.view\",\"inventory.balances.view\",\"inventory.ledger.view\",\"inventory.confirmations.view\",\"inventory.adjustments.view\",\"inventory.adjustments.create\",\"inventory.adjustments.update\",\"inventory.adjustments.submit\",\"inventory.adjustments.confirm\",\"inventory.adjustments.reverse\",\"farms.view\",\"sales.view\",\"financial.view\",\"purchasing.receipts.confirm\",\"purchasing.receipts.create\",\"purchasing.receipts.view\",\"purchasing.invoices.cancel\",\"purchasing.invoices.update\",\"purchasing.invoices.create\",\"purchasing.invoices.view\"]}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Adjustment Workflow",
+      "item": [
+        {
+          "name": "List Adjustments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments"
+              ]
+            },
+            "description": "Lists inventory adjustments. Supports filters such as status, type, inventory_id, search, and per_page."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Adjustments",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments"
+                  ]
+                },
+                "description": "Lists inventory adjustments. Supports filters such as status, type, inventory_id, search, and per_page."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":14,\"adjustment_number\":\"ADJ-20260918161946-CS4YI\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"rejected\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":3,\"submitted_at\":\"2026-09-18T16:19:46.000000Z\",\"confirmed_at\":null,\"rejected_at\":\"2026-09-18T16:19:46.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"lines\":[{\"id\":16,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748397\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":11,\"confirmation_number\":\"CNF-20260918161946-C6XT0\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":14,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:46.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:19:46.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:46.000000Z\",\"updated_at\":\"2026-09-18T16:19:46.000000Z\"},\"created_at\":\"2026-09-18T16:19:46.000000Z\",\"updated_at\":\"2026-09-18T16:19:46.000000Z\"},{\"id\":13,\"adjustment_number\":\"REV-20260918161945-HNNGJ\",\"type\":\"reversal\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"reversal\",\"reason\":\"Reversal from Postman after confirming the original adjustment.\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918161945-MDHM2I\",\"version\":3,\"submitted_at\":\"2026-09-18T16:19:45.000000Z\",\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":15,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":7,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":{\"reverses_adjustment_line_id\":13}}],\"confirmation\":{\"id\":10,\"confirmation_number\":\"CNF-20260918161945-INZAT\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":13,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:45.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-MDHM2I\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:45.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},\"created_at\":\"2026-09-18T16:19:45.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":12,\"adjustment_number\":\"ADJ-20260918161944-UXA83\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918161945-VQUEHW\",\"version\":3,\"submitted_at\":\"2026-09-18T16:19:44.000000Z\",\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":14,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":9,\"confirmation_number\":\"CNF-20260918161944-NF4GN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":12,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:44.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-VQUEHW\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:44.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},\"created_at\":\"2026-09-18T16:19:44.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":11,\"adjustment_number\":\"ADJ-20260918161942-1H7VN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"reversed\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":\"IPB-20260918161944-AVS0A0\",\"version\":5,\"submitted_at\":\"2026-09-18T16:19:43.000000Z\",\"confirmed_at\":\"2026-09-18T16:19:44.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":13,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748388\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":8,\"confirmation_number\":\"CNF-20260918161943-Y80N5\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":11,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:43.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:44.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161944-AVS0A0\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:43.000000Z\",\"updated_at\":\"2026-09-18T16:19:44.000000Z\"},\"created_at\":\"2026-09-18T16:19:42.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":10,\"adjustment_number\":\"ADJ-20260918161839-QF5YD\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"rejected\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":3,\"submitted_at\":\"2026-09-18T16:18:39.000000Z\",\"confirmed_at\":null,\"rejected_at\":\"2026-09-18T16:18:40.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"lines\":[{\"id\":11,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748331\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":7,\"confirmation_number\":\"CNF-20260918161839-CZDI7\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":10,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:39.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:18:40.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:39.000000Z\",\"updated_at\":\"2026-09-18T16:18:40.000000Z\"},\"created_at\":\"2026-09-18T16:18:39.000000Z\",\"updated_at\":\"2026-09-18T16:18:40.000000Z\"},{\"id\":8,\"adjustment_number\":\"ADJ-20260918161838-Y3VEO\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918161838-RQ4QPF\",\"version\":3,\"submitted_at\":\"2026-09-18T16:18:38.000000Z\",\"confirmed_at\":\"2026-09-18T16:18:38.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":10,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":6,\"confirmation_number\":\"CNF-20260918161838-JRNBV\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":8,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:38.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:38.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161838-RQ4QPF\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:38.000000Z\",\"updated_at\":\"2026-09-18T16:18:38.000000Z\"},\"created_at\":\"2026-09-18T16:18:38.000000Z\",\"updated_at\":\"2026-09-18T16:18:38.000000Z\"},{\"id\":7,\"adjustment_number\":\"ADJ-20260918161836-VIWHN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":\"IPB-20260918161837-5RF72A\",\"version\":4,\"submitted_at\":\"2026-09-18T16:18:37.000000Z\",\"confirmed_at\":\"2026-09-18T16:18:37.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":9,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748321\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":5,\"confirmation_number\":\"CNF-20260918161837-NOFU3\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":7,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:37.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:37.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161837-5RF72A\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:37.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},\"created_at\":\"2026-09-18T16:18:36.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},{\"id\":6,\"adjustment_number\":\"ADJ-20260918161707-MJTHQ\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":7,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748238\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:17:07.000000Z\",\"updated_at\":\"2026-09-18T16:17:07.000000Z\"},{\"id\":4,\"adjustment_number\":\"ADJ-20260918161705-VY58V\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":5,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":3,\"adjustment_number\":\"ADJ-20260918161704-MKGBV\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":\"IPB-20260918161705-NT4UGQ\",\"version\":4,\"submitted_at\":\"2026-09-18T16:17:05.000000Z\",\"confirmed_at\":\"2026-09-18T16:17:05.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":4,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748229\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":3,\"confirmation_number\":\"CNF-20260918161705-SFQCZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":3,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:17:05.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:17:05.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161705-NT4UGQ\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},\"created_at\":\"2026-09-18T16:17:04.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":2,\"adjustment_number\":\"ADJ-20260918153318-ODLQR\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":2,\"inventory_id\":2,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"opening_balance\",\"reason\":\"Demo opening medicine balance\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918153318-ITBL9M\",\"version\":3,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":2,\"line_number\":1,\"category\":\"medicine\",\"item_type\":\"medicine\",\"item_id\":2,\"location\":\"MED-R1\",\"stock_uom_id\":3,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"80.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"LOT-MED-001\",\"supplier_batch_number\":\"SUP-MED-B001\",\"manufacturing_date\":\"2026-07-18\",\"expiry_date\":\"2028-03-18\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":2,\"confirmation_number\":\"CNF-20260918153318-UL4VQ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":2,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-ITBL9M\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"},{\"id\":1,\"adjustment_number\":\"ADJ-20260918153318-AGBXC\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"opening_balance\",\"reason\":\"Demo opening feed balance\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918153318-WO0CUK\",\"version\":3,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":1,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1000.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"LOT-FEED-001\",\"supplier_batch_number\":\"SUP-FEED-B001\",\"manufacturing_date\":\"2026-08-18\",\"expiry_date\":\"2027-07-18\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":1,\"confirmation_number\":\"CNF-20260918153318-U09JZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":1,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-WO0CUK\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/adjustments?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/adjustments?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/adjustments?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/adjustments\",\"per_page\":15,\"to\":12,\"total\":12}}"
+            }
+          ]
+        },
+        {
+          "name": "Create Food Opening Balance Draft",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"opening_balance\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"opening_balance\",\n  \"reason\": \"Postman opening stock balance\",\n  \"notes\": \"Created from the inventory foundation Postman collection.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 250,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-FEED-BATCH-001\",\n      \"receipt_lot_number\": \"PM-FEED-LOT-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments"
+              ]
+            },
+            "description": "Creates a draft opening balance. Drafts do not affect ledger or stock balance."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Food Opening Balance Draft",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"opening_balance\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"opening_balance\",\n  \"reason\": \"Postman opening stock balance\",\n  \"notes\": \"Created from the inventory foundation Postman collection.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 250,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-FEED-BATCH-001\",\n      \"receipt_lot_number\": \"PM-FEED-LOT-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments"
+                  ]
+                },
+                "description": "Creates a draft opening balance. Drafts do not affect ledger or stock balance."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance\",\"notes\":\"Created from the inventory foundation Postman collection.\",\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":17,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"250.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-1789748791\",\"supplier_batch_number\":\"PM-FEED-BATCH-001\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:28.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Show Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{adjustment_id}}"
+              ]
+            },
+            "description": "Shows one adjustment with lines and confirmation if present."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Show Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{adjustment_id}}"
+                  ]
+                },
+                "description": "Shows one adjustment with lines and confirmation if present."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance\",\"notes\":\"Created from the inventory foundation Postman collection.\",\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":17,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"250.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-1789748791\",\"supplier_batch_number\":\"PM-FEED-BATCH-001\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:28.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Draft Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"opening_balance\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"opening_balance\",\n  \"reason\": \"Postman opening stock balance updated before submission\",\n  \"notes\": \"Drafts and rejected adjustments may be edited before posting.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 300,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-FEED-BATCH-UPDATED\",\n      \"receipt_lot_number\": \"PM-FEED-LOT-UPD-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{adjustment_id}}"
+              ]
+            },
+            "description": "Updates a draft or rejected adjustment before posting."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Update Draft Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"opening_balance\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"opening_balance\",\n  \"reason\": \"Postman opening stock balance updated before submission\",\n  \"notes\": \"Drafts and rejected adjustments may be edited before posting.\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 300,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-FEED-BATCH-UPDATED\",\n      \"receipt_lot_number\": \"PM-FEED-LOT-UPD-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{adjustment_id}}"
+                  ]
+                },
+                "description": "Updates a draft or rejected adjustment before posting."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":null,\"version\":2,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":18,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748794\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:30.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{adjustment_id}}",
+                "submit"
+              ]
+            },
+            "description": "Submits the draft for confirmation. Submission does not affect stock."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Submit Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/submit",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{adjustment_id}}",
+                    "submit"
+                  ]
+                },
+                "description": "Submits the draft for confirmation. Submission does not affect stock."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"submitted\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":null,\"version\":3,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":18,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748794\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":12,\"confirmation_number\":\"CNF-20260918162630-T1NZP\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"submission_version\":3,\"status\":\"pending\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:30.000000Z\",\"updated_at\":\"2026-09-18T16:26:30.000000Z\"},\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:30.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm And Post Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{adjustment_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Confirms and posts exactly once. This creates ledger entries and updates current balances atomically."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Confirm And Post Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{adjustment_id}}",
+                    "confirm"
+                  ]
+                },
+                "description": "Confirms and posts exactly once. This creates ledger entries and updates current balances atomically."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"version\":4,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":18,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748794\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":12,\"confirmation_number\":\"CNF-20260918162630-T1NZP\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:30.000000Z\",\"updated_at\":\"2026-09-18T16:26:31.000000Z\"},\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:31.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Create Stock-Out Adjustment Draft",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"data_correction\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"correction\",\n  \"reason\": \"Postman controlled stock-out adjustment\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"stock_lot_id\": {{stock_lot_id}},\n      \"adjustment_quantity\": 25,\n      \"direction\": \"out\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments"
+              ]
+            },
+            "description": "Creates a controlled stock-out draft against an existing stock_lot_id. Use List Balances first to populate stock_lot_id."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Stock-Out Adjustment Draft",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"data_correction\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"correction\",\n  \"reason\": \"Postman controlled stock-out adjustment\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"stock_lot_id\": {{stock_lot_id}},\n      \"adjustment_quantity\": 25,\n      \"direction\": \"out\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments"
+                  ]
+                },
+                "description": "Creates a controlled stock-out draft against an existing stock_lot_id. Use List Balances first to populate stock_lot_id."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":16,\"adjustment_number\":\"ADJ-20260918162632-DFCZO\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":19,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:32.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Stock-Out Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{stock_out_adjustment_id}}/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{stock_out_adjustment_id}}",
+                "submit"
+              ]
+            },
+            "description": "Submits the stock-out draft."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Submit Stock-Out Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{stock_out_adjustment_id}}/submit",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{stock_out_adjustment_id}}",
+                    "submit"
+                  ]
+                },
+                "description": "Submits the stock-out draft."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":16,\"adjustment_number\":\"ADJ-20260918162632-DFCZO\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"submitted\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":null,\"version\":2,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":19,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":13,\"confirmation_number\":\"CNF-20260918162632-9DEEK\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":16,\"submission_version\":2,\"status\":\"pending\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:32.000000Z\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:32.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm Stock-Out Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{stock_out_adjustment_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{stock_out_adjustment_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Confirms stock-out. Confirmation revalidates current balance and blocks negative stock."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Confirm Stock-Out Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{stock_out_adjustment_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{stock_out_adjustment_id}}",
+                    "confirm"
+                  ]
+                },
+                "description": "Confirms stock-out. Confirmation revalidates current balance and blocks negative stock."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":16,\"adjustment_number\":\"ADJ-20260918162632-DFCZO\",\"type\":\"data_correction\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"confirmed\",\"reason_type\":\"correction\",\"reason\":\"Postman controlled stock-out adjustment\",\"notes\":null,\"posting_batch_id\":\"IPB-20260918162633-0TLUQL\",\"version\":3,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":19,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"25.000000\",\"direction\":\"out\",\"new_identity\":false,\"receipt_lot_number\":null,\"supplier_batch_number\":null,\"manufacturing_date\":null,\"expiry_date\":null,\"lot_status\":null,\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":13,\"confirmation_number\":\"CNF-20260918162632-9DEEK\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":16,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162633-0TLUQL\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Reverse Confirmed Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Reversal from Postman after confirming the original adjustment.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/reverse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{adjustment_id}}",
+                "reverse"
+              ]
+            },
+            "description": "Creates and posts a reversal adjustment. Reversal is blocked if it would create invalid stock."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Reverse Confirmed Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Reversal from Postman after confirming the original adjustment.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{adjustment_id}}/reverse",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{adjustment_id}}",
+                    "reverse"
+                  ]
+                },
+                "description": "Creates and posts a reversal adjustment. Reversal is blocked if it would create invalid stock."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":15,\"adjustment_number\":\"ADJ-20260918162628-MWMIN\",\"type\":\"opening_balance\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"reversed\",\"reason_type\":\"opening_balance\",\"reason\":\"Postman opening stock balance updated before submission\",\"notes\":\"Drafts and rejected adjustments may be edited before posting.\",\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"version\":5,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":18,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"300.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-FEED-LOT-UPD-1789748794\",\"supplier_batch_number\":\"PM-FEED-BATCH-UPDATED\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":12,\"confirmation_number\":\"CNF-20260918162630-T1NZP\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:30.000000Z\",\"updated_at\":\"2026-09-18T16:26:31.000000Z\"},\"created_at\":\"2026-09-18T16:26:28.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reject Flow",
+      "item": [
+        {
+          "name": "Create Draft For Rejection",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"other\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"demo_rejection\",\n  \"reason\": \"Postman rejection flow sample\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 1,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-REJECT-BATCH\",\n      \"receipt_lot_number\": \"PM-REJECT-LOT-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments"
+              ]
+            },
+            "description": "Creates a separate draft for testing rejection."
+          },
+          "response": [
+            {
+              "name": "Sample 201 - Create Draft For Rejection",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"other\",\n  \"adjustment_date\": \"{{business_date}}\",\n  \"branch_id\": {{branch_id}},\n  \"inventory_id\": {{inventory_id}},\n  \"reason_type\": \"demo_rejection\",\n  \"reason\": \"Postman rejection flow sample\",\n  \"lines\": [\n    {\n      \"category\": \"food\",\n      \"item_id\": {{item_id}},\n      \"location\": \"{{location}}\",\n      \"stock_uom_id\": {{stock_uom_id}},\n      \"adjustment_quantity\": 1,\n      \"direction\": \"in\",\n      \"new_identity\": true,\n      \"supplier_id\": {{supplier_id}},\n      \"supplier_batch_number\": \"PM-REJECT-BATCH\",\n      \"receipt_lot_number\": \"PM-REJECT-LOT-{{$timestamp}}\",\n      \"manufacturing_date\": \"2026-08-01\",\n      \"expiry_date\": \"2027-08-01\",\n      \"lot_status\": \"available\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments"
+                  ]
+                },
+                "description": "Creates a separate draft for testing rejection."
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":18,\"adjustment_number\":\"ADJ-20260918162634-EFQT7\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"draft\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":1,\"submitted_at\":null,\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":21,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748805\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":null,\"created_at\":\"2026-09-18T16:26:34.000000Z\",\"updated_at\":\"2026-09-18T16:26:34.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Reject Sample",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{reject_adjustment_id}}/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{reject_adjustment_id}}",
+                "submit"
+              ]
+            },
+            "description": "Submits the reject sample."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Submit Reject Sample",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{reject_adjustment_id}}/submit",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{reject_adjustment_id}}",
+                    "submit"
+                  ]
+                },
+                "description": "Submits the reject sample."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":18,\"adjustment_number\":\"ADJ-20260918162634-EFQT7\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"submitted\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":2,\"submitted_at\":\"2026-09-18T16:26:35.000000Z\",\"confirmed_at\":null,\"rejected_at\":null,\"rejection_reason\":null,\"lines\":[{\"id\":21,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748805\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":15,\"confirmation_number\":\"CNF-20260918162635-BA8IN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":18,\"submission_version\":2,\"status\":\"pending\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:35.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:35.000000Z\",\"updated_at\":\"2026-09-18T16:26:35.000000Z\"},\"created_at\":\"2026-09-18T16:26:34.000000Z\",\"updated_at\":\"2026-09-18T16:26:35.000000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Reject Submitted Adjustment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Rejected from Postman to verify checker workflow.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustments/{{reject_adjustment_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustments",
+                "{{reject_adjustment_id}}",
+                "reject"
+              ]
+            },
+            "description": "Rejects a submitted adjustment with a reason. Rejected records do not affect stock."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Reject Submitted Adjustment",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "value": "application/json",
+                    "key": "Accept"
+                  },
+                  {
+                    "value": "application/json",
+                    "key": "Content-Type"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Rejected from Postman to verify checker workflow.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/inventory/adjustments/{{reject_adjustment_id}}/reject",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "adjustments",
+                    "{{reject_adjustment_id}}",
+                    "reject"
+                  ]
+                },
+                "description": "Rejects a submitted adjustment with a reason. Rejected records do not affect stock."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":18,\"adjustment_number\":\"ADJ-20260918162634-EFQT7\",\"type\":\"other\",\"adjustment_date\":\"2026-09-18\",\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"status\":\"rejected\",\"reason_type\":\"demo_rejection\",\"reason\":\"Postman rejection flow sample\",\"notes\":null,\"posting_batch_id\":null,\"version\":3,\"submitted_at\":\"2026-09-18T16:26:35.000000Z\",\"confirmed_at\":null,\"rejected_at\":\"2026-09-18T16:26:35.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"lines\":[{\"id\":21,\"line_number\":1,\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"system_quantity\":\"0.000000\",\"counted_quantity\":null,\"adjustment_quantity\":\"1.000000\",\"direction\":\"in\",\"new_identity\":true,\"receipt_lot_number\":\"PM-REJECT-LOT-1789748805\",\"supplier_batch_number\":\"PM-REJECT-BATCH\",\"manufacturing_date\":\"2026-08-01\",\"expiry_date\":\"2027-08-01\",\"lot_status\":\"available\",\"serial_number\":null,\"asset_tag\":null,\"metadata\":null}],\"confirmation\":{\"id\":15,\"confirmation_number\":\"CNF-20260918162635-BA8IN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":18,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:35.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:26:35.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:35.000000Z\",\"updated_at\":\"2026-09-18T16:26:35.000000Z\"},\"created_at\":\"2026-09-18T16:26:34.000000Z\",\"updated_at\":\"2026-09-18T16:26:35.000000Z\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Balances And Ledger",
+      "item": [
+        {
+          "name": "List Balances",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/balances",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "balances"
+              ]
+            },
+            "description": "Lists current stock snapshots. The first returned stock_lot_id is stored for stock-out sample requests."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Balances",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/balances",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "balances"
+                  ]
+                },
+                "description": "Lists current stock snapshots. The first returned stock_lot_id is stored for stock-out sample requests."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":1,\"identity_key\":\"d457faf6273d1334a5b47fada20ac0b051d8a2e613900a0d857f76971010040b\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"on_hand_quantity\":\"925.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"925.000000\",\"version\":5,\"last_ledger_entry_id\":15,\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":5,\"identity_key\":\"f24cbb238d72f7d82b4454154d7cfc3e16d76fdf6bc79f4f80cd6ebfbb622d5f\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":5,\"equipment_instance_id\":null,\"on_hand_quantity\":\"300.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"300.000000\",\"version\":2,\"last_ledger_entry_id\":5,\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":6,\"identity_key\":\"d46a58d20425f0797bccf4361e2ef4faa6e23a8a954f09fefc0d25861197ebd0\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":6,\"equipment_instance_id\":null,\"on_hand_quantity\":\"300.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"300.000000\",\"version\":2,\"last_ledger_entry_id\":6,\"created_at\":\"2026-09-18T16:18:37.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},{\"id\":3,\"identity_key\":\"276d5db7dbc6bb446cd62b0b5016ec3ddef64403e7f90a63af1fbdda49c4a015\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":3,\"equipment_instance_id\":null,\"on_hand_quantity\":\"1100.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"1100.000000\",\"version\":2,\"last_ledger_entry_id\":3,\"created_at\":\"2026-09-18T16:14:13.000000Z\",\"updated_at\":\"2026-09-18T16:14:13.000000Z\"},{\"id\":9,\"identity_key\":\"fc343b16a4e4c939497608a25d7d462976ef44d55e419ea6aee0e825cd47df8b\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":9,\"equipment_instance_id\":null,\"on_hand_quantity\":\"1100.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"1100.000000\",\"version\":2,\"last_ledger_entry_id\":12,\"created_at\":\"2026-09-18T16:20:56.000000Z\",\"updated_at\":\"2026-09-18T16:20:56.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/balances\",\"per_page\":15,\"to\":5,\"total\":5}}"
+            }
+          ]
+        },
+        {
+          "name": "List Ledger",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/ledger",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "ledger"
+              ]
+            },
+            "description": "Lists posted ledger entries. Supports category, item_id, inventory_id, transaction_type, source_type, date_from, and date_to filters."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Ledger",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/ledger",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "ledger"
+                  ]
+                },
+                "description": "Lists posted ledger entries. Supports category, item_id, inventory_id, transaction_type, source_type, date_from, and date_to filters."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":16,\"posting_id\":\"LED-20260918162633-U9GUUSBF\",\"posting_batch_id\":\"IPB-20260918162633-7FJX3F\",\"confirmation_id\":14,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":17,\"source_line_id\":20,\"transaction_type\":\"reversal\",\"direction\":\"out\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":11,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"0.000000\",\"quantity_out\":\"300.000000\",\"balance_before\":\"300.000000\",\"balance_after\":\"0.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:26:33.000000Z\",\"metadata\":{\"reason\":\"Reversal from Postman after confirming the original adjustment.\",\"reason_type\":\"reversal\",\"adjustment_number\":\"REV-20260918162633-TAZ29\"}},{\"id\":15,\"posting_id\":\"LED-20260918162633-IRK0PKLX\",\"posting_batch_id\":\"IPB-20260918162633-0TLUQL\",\"confirmation_id\":13,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":16,\"source_line_id\":19,\"transaction_type\":\"data_correction\",\"direction\":\"out\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"original_quantity\":\"25.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"0.000000\",\"quantity_out\":\"25.000000\",\"balance_before\":\"950.000000\",\"balance_after\":\"925.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:26:33.000000Z\",\"metadata\":{\"reason\":\"Postman controlled stock-out adjustment\",\"reason_type\":\"correction\",\"adjustment_number\":\"ADJ-20260918162632-DFCZO\"}},{\"id\":14,\"posting_id\":\"LED-20260918162631-1WTJMA2N\",\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"confirmation_id\":12,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"source_line_id\":18,\"transaction_type\":\"opening_balance\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":11,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"300.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"300.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:26:31.000000Z\",\"metadata\":{\"reason\":\"Postman opening stock balance updated before submission\",\"reason_type\":\"opening_balance\",\"adjustment_number\":\"ADJ-20260918162628-MWMIN\"}},{\"id\":12,\"posting_id\":\"LED-20260918162056-00DSFNTG\",\"posting_batch_id\":\"PRB-20260918162056-7X5OHU\",\"confirmation_id\":null,\"source_module\":\"purchasing\",\"source_type\":\"purchase_receipt\",\"source_id\":4,\"source_line_id\":4,\"transaction_type\":\"purchase_receipt\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":9,\"equipment_instance_id\":null,\"original_quantity\":\"22.000000\",\"original_uom_id\":2,\"conversion_factor\":\"50.00000000\",\"quantity_in\":\"1100.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1100.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:20:56.000000Z\",\"metadata\":{\"invoice_number\":\"PINV-POSTMAN-1789748456\",\"receipt_number\":\"PREC-POSTMAN-1789748463\",\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\"}},{\"id\":10,\"posting_id\":\"LED-20260918161945-0JLW3LFB\",\"posting_batch_id\":\"IPB-20260918161945-MDHM2I\",\"confirmation_id\":10,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":13,\"source_line_id\":15,\"transaction_type\":\"reversal\",\"direction\":\"out\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":7,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"0.000000\",\"quantity_out\":\"300.000000\",\"balance_before\":\"300.000000\",\"balance_after\":\"0.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:19:45.000000Z\",\"metadata\":{\"reason\":\"Reversal from Postman after confirming the original adjustment.\",\"reason_type\":\"reversal\",\"adjustment_number\":\"REV-20260918161945-HNNGJ\"}},{\"id\":9,\"posting_id\":\"LED-20260918161945-YQW5RZ8T\",\"posting_batch_id\":\"IPB-20260918161945-VQUEHW\",\"confirmation_id\":9,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":12,\"source_line_id\":14,\"transaction_type\":\"data_correction\",\"direction\":\"out\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"original_quantity\":\"25.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"0.000000\",\"quantity_out\":\"25.000000\",\"balance_before\":\"975.000000\",\"balance_after\":\"950.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:19:45.000000Z\",\"metadata\":{\"reason\":\"Postman controlled stock-out adjustment\",\"reason_type\":\"correction\",\"adjustment_number\":\"ADJ-20260918161944-UXA83\"}},{\"id\":8,\"posting_id\":\"LED-20260918161944-XJGXDKNC\",\"posting_batch_id\":\"IPB-20260918161944-AVS0A0\",\"confirmation_id\":8,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":11,\"source_line_id\":13,\"transaction_type\":\"opening_balance\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":7,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"300.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"300.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:19:44.000000Z\",\"metadata\":{\"reason\":\"Postman opening stock balance updated before submission\",\"reason_type\":\"opening_balance\",\"adjustment_number\":\"ADJ-20260918161942-1H7VN\"}},{\"id\":7,\"posting_id\":\"LED-20260918161838-SAVZ0TS7\",\"posting_batch_id\":\"IPB-20260918161838-RQ4QPF\",\"confirmation_id\":6,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":8,\"source_line_id\":10,\"transaction_type\":\"data_correction\",\"direction\":\"out\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"original_quantity\":\"25.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"0.000000\",\"quantity_out\":\"25.000000\",\"balance_before\":\"1000.000000\",\"balance_after\":\"975.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:18:38.000000Z\",\"metadata\":{\"reason\":\"Postman controlled stock-out adjustment\",\"reason_type\":\"correction\",\"adjustment_number\":\"ADJ-20260918161838-Y3VEO\"}},{\"id\":6,\"posting_id\":\"LED-20260918161837-DZZK7GEY\",\"posting_batch_id\":\"IPB-20260918161837-5RF72A\",\"confirmation_id\":5,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":7,\"source_line_id\":9,\"transaction_type\":\"opening_balance\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":6,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"300.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"300.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:18:37.000000Z\",\"metadata\":{\"reason\":\"Postman opening stock balance updated before submission\",\"reason_type\":\"opening_balance\",\"adjustment_number\":\"ADJ-20260918161836-VIWHN\"}},{\"id\":5,\"posting_id\":\"LED-20260918161705-MCDOT0ET\",\"posting_batch_id\":\"IPB-20260918161705-NT4UGQ\",\"confirmation_id\":3,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":3,\"source_line_id\":4,\"transaction_type\":\"opening_balance\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":5,\"equipment_instance_id\":null,\"original_quantity\":\"300.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"300.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"300.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:17:05.000000Z\",\"metadata\":{\"reason\":\"Postman opening stock balance updated before submission\",\"reason_type\":\"opening_balance\",\"adjustment_number\":\"ADJ-20260918161704-MKGBV\"}},{\"id\":3,\"posting_id\":\"LED-20260918161413-I6TQSWOM\",\"posting_batch_id\":\"PRB-20260918161413-HND2SH\",\"confirmation_id\":null,\"source_module\":\"purchasing\",\"source_type\":\"purchase_receipt\",\"source_id\":1,\"source_line_id\":1,\"transaction_type\":\"purchase_receipt\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R2\",\"stock_uom_id\":1,\"stock_lot_id\":3,\"equipment_instance_id\":null,\"original_quantity\":\"22.000000\",\"original_uom_id\":2,\"conversion_factor\":\"50.00000000\",\"quantity_in\":\"1100.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1100.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T16:14:13.000000Z\",\"metadata\":{\"invoice_number\":\"PINV-DEMO-FEED-001\",\"receipt_number\":\"PREC-DEMO-FEED-001\",\"accepted_quantity\":\"20.000000\",\"accepted_foc_quantity\":\"2.000000\"}},{\"id\":1,\"posting_id\":\"LED-20260918153318-BSGPNRAK\",\"posting_batch_id\":\"IPB-20260918153318-WO0CUK\",\"confirmation_id\":1,\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":1,\"source_line_id\":1,\"transaction_type\":\"opening_balance\",\"direction\":\"in\",\"category\":\"food\",\"item_type\":\"food\",\"item_id\":1,\"branch_id\":1,\"inventory_id\":1,\"farm_information_id\":null,\"location\":\"R1\",\"stock_uom_id\":1,\"stock_lot_id\":1,\"equipment_instance_id\":null,\"original_quantity\":\"1000.000000\",\"original_uom_id\":1,\"conversion_factor\":\"1.00000000\",\"quantity_in\":\"1000.000000\",\"quantity_out\":\"0.000000\",\"balance_before\":\"0.000000\",\"balance_after\":\"1000.000000\",\"posting_status\":\"posted\",\"posted_by_id\":2,\"posted_at\":\"2026-09-18T15:33:18.000000Z\",\"metadata\":{\"reason\":\"Demo opening feed balance\",\"reason_type\":\"opening_balance\",\"adjustment_number\":\"ADJ-20260918153318-AGBXC\"}}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/ledger\",\"per_page\":15,\"to\":12,\"total\":12}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Confirmations",
+      "item": [
+        {
+          "name": "List Pending Confirmations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/confirmations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "confirmations"
+              ]
+            },
+            "description": "Lists confirmation queue records."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Pending Confirmations",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/confirmations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "confirmations"
+                  ]
+                },
+                "description": "Lists confirmation queue records."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":null,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations\",\"per_page\":15,\"to\":null,\"total\":0}}"
+            }
+          ]
+        },
+        {
+          "name": "List Confirmed Confirmations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/confirmations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "confirmations"
+              ]
+            },
+            "description": "Lists posted confirmation records."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Confirmed Confirmations",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/confirmations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "confirmations"
+                  ]
+                },
+                "description": "Lists posted confirmation records."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":14,\"confirmation_number\":\"CNF-20260918162633-ZVVAO\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":17,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:33.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162633-7FJX3F\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:33.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":13,\"confirmation_number\":\"CNF-20260918162632-9DEEK\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":16,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162633-0TLUQL\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":12,\"confirmation_number\":\"CNF-20260918162630-T1NZP\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:30.000000Z\",\"updated_at\":\"2026-09-18T16:26:31.000000Z\"},{\"id\":10,\"confirmation_number\":\"CNF-20260918161945-INZAT\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":13,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:45.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-MDHM2I\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:45.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":9,\"confirmation_number\":\"CNF-20260918161944-NF4GN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":12,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:44.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-VQUEHW\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:44.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":8,\"confirmation_number\":\"CNF-20260918161943-Y80N5\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":11,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:43.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:44.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161944-AVS0A0\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:43.000000Z\",\"updated_at\":\"2026-09-18T16:19:44.000000Z\"},{\"id\":6,\"confirmation_number\":\"CNF-20260918161838-JRNBV\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":8,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:38.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:38.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161838-RQ4QPF\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:38.000000Z\",\"updated_at\":\"2026-09-18T16:18:38.000000Z\"},{\"id\":5,\"confirmation_number\":\"CNF-20260918161837-NOFU3\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":7,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:37.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:37.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161837-5RF72A\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:37.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},{\"id\":3,\"confirmation_number\":\"CNF-20260918161705-SFQCZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":3,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:17:05.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:17:05.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161705-NT4UGQ\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":2,\"confirmation_number\":\"CNF-20260918153318-UL4VQ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":2,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-ITBL9M\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"},{\"id\":1,\"confirmation_number\":\"CNF-20260918153318-U09JZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":1,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-WO0CUK\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations\",\"per_page\":15,\"to\":11,\"total\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Show Confirmation",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {},
+              {}
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/confirmations/{{confirmation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "confirmations",
+                "{{confirmation_id}}"
+              ]
+            },
+            "description": "Shows one confirmation and its ledger entries."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Show Confirmation",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  "application/json",
+                  "Accept"
+                ],
+                "url": {
+                  "raw": "{{base_url}}/inventory/confirmations/{{confirmation_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "inventory",
+                    "confirmations",
+                    "{{confirmation_id}}"
+                  ]
+                },
+                "description": "Shows one confirmation and its ledger entries."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":15,\"confirmation_number\":\"CNF-20260918162635-BA8IN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":18,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:35.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:26:35.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:35.000000Z\",\"updated_at\":\"2026-09-18T16:26:35.000000Z\"},{\"id\":14,\"confirmation_number\":\"CNF-20260918162633-ZVVAO\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":17,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:33.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162633-7FJX3F\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:33.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":13,\"confirmation_number\":\"CNF-20260918162632-9DEEK\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":16,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:32.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:33.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162633-0TLUQL\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:32.000000Z\",\"updated_at\":\"2026-09-18T16:26:33.000000Z\"},{\"id\":12,\"confirmation_number\":\"CNF-20260918162630-T1NZP\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":15,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:26:30.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:26:31.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918162631-JFYXAH\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:26:30.000000Z\",\"updated_at\":\"2026-09-18T16:26:31.000000Z\"},{\"id\":11,\"confirmation_number\":\"CNF-20260918161946-C6XT0\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":14,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:46.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:19:46.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:46.000000Z\",\"updated_at\":\"2026-09-18T16:19:46.000000Z\"},{\"id\":10,\"confirmation_number\":\"CNF-20260918161945-INZAT\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":13,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:45.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-MDHM2I\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:45.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":9,\"confirmation_number\":\"CNF-20260918161944-NF4GN\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":12,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:44.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:45.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161945-VQUEHW\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:44.000000Z\",\"updated_at\":\"2026-09-18T16:19:45.000000Z\"},{\"id\":8,\"confirmation_number\":\"CNF-20260918161943-Y80N5\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":11,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:19:43.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:19:44.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161944-AVS0A0\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:19:43.000000Z\",\"updated_at\":\"2026-09-18T16:19:44.000000Z\"},{\"id\":7,\"confirmation_number\":\"CNF-20260918161839-CZDI7\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":10,\"submission_version\":2,\"status\":\"rejected\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:39.000000Z\",\"confirmed_by_id\":null,\"confirmed_at\":null,\"rejected_by_id\":2,\"rejected_at\":\"2026-09-18T16:18:40.000000Z\",\"rejection_reason\":\"Rejected from Postman to verify checker workflow.\",\"posting_batch_id\":null,\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:39.000000Z\",\"updated_at\":\"2026-09-18T16:18:40.000000Z\"},{\"id\":6,\"confirmation_number\":\"CNF-20260918161838-JRNBV\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":8,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:38.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:38.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161838-RQ4QPF\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:38.000000Z\",\"updated_at\":\"2026-09-18T16:18:38.000000Z\"},{\"id\":5,\"confirmation_number\":\"CNF-20260918161837-NOFU3\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":7,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:18:37.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:18:37.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161837-5RF72A\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:18:37.000000Z\",\"updated_at\":\"2026-09-18T16:18:37.000000Z\"},{\"id\":3,\"confirmation_number\":\"CNF-20260918161705-SFQCZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":3,\"submission_version\":3,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T16:17:05.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T16:17:05.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918161705-NT4UGQ\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T16:17:05.000000Z\",\"updated_at\":\"2026-09-18T16:17:05.000000Z\"},{\"id\":2,\"confirmation_number\":\"CNF-20260918153318-UL4VQ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":2,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-ITBL9M\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"},{\"id\":1,\"confirmation_number\":\"CNF-20260918153318-U09JZ\",\"source_module\":\"inventory\",\"source_type\":\"adjustment\",\"source_id\":1,\"submission_version\":2,\"status\":\"confirmed\",\"submitted_by_id\":2,\"submitted_at\":\"2026-09-18T15:33:18.000000Z\",\"confirmed_by_id\":2,\"confirmed_at\":\"2026-09-18T15:33:18.000000Z\",\"rejected_by_id\":null,\"rejected_at\":null,\"rejection_reason\":null,\"posting_batch_id\":\"IPB-20260918153318-WO0CUK\",\"validation_snapshot\":{\"message\":\"Pending confirmation revalidation required before posting.\"},\"created_at\":\"2026-09-18T15:33:18.000000Z\",\"updated_at\":\"2026-09-18T15:33:18.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"last\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/127.0.0.1:8000\\/api\\/v1\\/inventory\\/confirmations\",\"per_page\":15,\"to\":14,\"total\":14}}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "business_date",
+      "value": "2026-09-18"
+    },
+    {
+      "key": "branch_id",
+      "value": "1"
+    },
+    {
+      "key": "inventory_id",
+      "value": "1"
+    },
+    {
+      "key": "item_id",
+      "value": "1"
+    },
+    {
+      "key": "stock_uom_id",
+      "value": "1"
+    },
+    {
+      "key": "supplier_id",
+      "value": "1"
+    },
+    {
+      "key": "location",
+      "value": "R1"
+    },
+    {
+      "key": "adjustment_id",
+      "value": ""
+    },
+    {
+      "key": "stock_out_adjustment_id",
+      "value": ""
+    },
+    {
+      "key": "reject_adjustment_id",
+      "value": ""
+    },
+    {
+      "key": "confirmation_id",
+      "value": ""
+    },
+    {
+      "key": "posting_batch_id",
+      "value": ""
+    },
+    {
+      "key": "stock_lot_id",
+      "value": "1"
+    }
+  ]
+}
