@@ -22,10 +22,17 @@ import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import Select from "@/components/form/Select";
 import DatePicker from "@/components/form/date-picker";
 import Loading from "@/components/common/Loading";
+import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
+import { useGetInventoriesQuery } from "@/redux/features/setup/InventoryApiSlice";
+import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
+import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
+import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
+import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
 import { toast } from "sonner";
-import { CheckCircle2, Eye, ReceiptText, XCircle } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Database, Eye, Plus, ReceiptText, ScrollText, XCircle } from "lucide-react";
 
 type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
 type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt";
@@ -247,6 +254,13 @@ export default function PurchasingPage() {
   const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() => receiptFormFromPayload(receiptSample));
   const [cancelReason, setCancelReason] = useState("Supplier cancelled before any receipt.");
 
+  const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
+  const { data: inventoriesSetupData } = useGetInventoriesQuery({ per_page: 100 });
+  const { data: foodsData } = useGetFoodsQuery({ per_page: 100 });
+  const { data: medicinesData } = useGetMedicinesQuery({ per_page: 100 });
+  const { data: uomsData } = useGetUomsQuery({ per_page: 100 });
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
+
   const { data: invoicesData, isLoading: invoicesLoading } = useGetPurchaseInvoicesQuery({ per_page: 15 });
   const { data: receiptsData, isLoading: receiptsLoading } = useGetPurchaseReceiptsQuery({ per_page: 15 });
   const { data: balancesData, isLoading: balancesLoading } = useGetInventoryBalancesQuery({ per_page: 15 });
@@ -268,6 +282,40 @@ export default function PurchasingPage() {
   const receipts = receiptsData?.data || [];
   const balances = balancesData?.data || [];
   const ledger = ledgerData?.data || [];
+  const branches = branchesData?.data || [];
+  const setupInventories = inventoriesSetupData?.data || [];
+  const suppliers = suppliersData?.data || [];
+  const foods = foodsData?.data || [];
+  const medicines = medicinesData?.data || [];
+  const uoms = uomsData?.data || [];
+
+  const branchMap = useMemo(() => new Map((branchesData?.data || []).map((b) => [b.id, b.name])), [branchesData]);
+  const inventoryMap = useMemo(() => new Map((inventoriesSetupData?.data || []).map((i) => [i.id, i.name])), [inventoriesSetupData]);
+  const supplierMap = useMemo(() => new Map((suppliersData?.data || []).map((s) => [s.id, s.name])), [suppliersData]);
+  const invoiceMap = useMemo(() => new Map((invoicesData?.data || []).map((inv) => [inv.id, inv])), [invoicesData]);
+
+  const getItemLabel = (category?: string, itemId?: number | string) => {
+    if (!itemId) return "-";
+    const id = Number(itemId);
+    if (category === "food") {
+      const food = foods.find((f) => f.id === id);
+      return food ? `${food.name} (${food.code})` : `Food #${id}`;
+    }
+    if (category === "medicine") {
+      const med = medicines.find((m) => m.id === id);
+      return med ? `${med.name} (${med.code})` : `Medicine #${id}`;
+    }
+    const food = foods.find((f) => f.id === id);
+    if (food) return `${food.name} (${food.code})`;
+    const med = medicines.find((m) => m.id === id);
+    if (med) return `${med.name} (${med.code})`;
+    return `Item #${id}`;
+  };
+
+  const namedOption = (item: { id: number; code?: string; name?: string }) => ({
+    value: String(item.id),
+    label: [item.code, item.name].filter(Boolean).join(" - ") || `#${item.id}`,
+  });
 
   const isMutating =
     createInvoiceState.isLoading ||
@@ -276,15 +324,35 @@ export default function PurchasingPage() {
     createReceiptState.isLoading ||
     confirmReceiptState.isLoading;
 
-  const tabs = useMemo(
-    () => [
-      { key: "invoices" as const, label: "Invoices", count: invoices.length },
-      { key: "receipts" as const, label: "Receipts", count: receipts.length },
-      { key: "balances" as const, label: "Inventory Checks", count: balances.length },
-      { key: "ledger" as const, label: "Purchase Ledger", count: ledger.length },
-    ],
-    [balances.length, invoices.length, ledger.length, receipts.length]
-  );
+  const pageMeta = useMemo(() => {
+    switch (tab) {
+      case "receipts":
+        return {
+          title: "Purchase Receipts",
+          description: "Record incoming goods receipts, supplier batch/lot details, and cold-chain compliance verification.",
+          icon: <ClipboardCheck className="text-[#15803d] dark:text-emerald-400" size={26} />,
+        };
+      case "balances":
+        return {
+          title: "Purchasing Inventory Checks",
+          description: "Review real-time inventory balances and lot availability for purchased goods.",
+          icon: <Database className="text-[#15803d] dark:text-emerald-400" size={26} />,
+        };
+      case "ledger":
+        return {
+          title: "Purchase Ledger",
+          description: "Inspect immutable audit ledger transactions posted from completed purchase receipts.",
+          icon: <ScrollText className="text-[#15803d] dark:text-emerald-400" size={26} />,
+        };
+      case "invoices":
+      default:
+        return {
+          title: "Purchase Invoices",
+          description: "Manage purchase invoices, pricing terms, FOC goods, discounts, and vendor billing records.",
+          icon: <ReceiptText className="text-[#15803d] dark:text-emerald-400" size={26} />,
+        };
+    }
+  }, [tab]);
 
   React.useEffect(() => {
     if (tabParam === "invoices" || tabParam === "receipts" || tabParam === "balances" || tabParam === "ledger") {
@@ -348,37 +416,39 @@ export default function PurchasingPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <ReceiptText className="text-[#15803d] dark:text-emerald-400" size={26} />
+            {pageMeta.icon}
             <h1 className="text-2xl font-extrabold tracking-tight text-[#1E293B] dark:text-white">
-              Purchasing
+              {pageMeta.title}
             </h1>
           </div>
           <p className="mt-1 text-sm text-[#64748B] dark:text-gray-400">
-            Purchase invoices, receipt drafts, confirmation posting, and inventory checks from the Postman purchasing collection.
+            {pageMeta.description}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => openFormAction("createInvoice", foodInvoiceSample)}>Food Invoice</Button>
-          <Button size="sm" variant="outline" onClick={() => openFormAction("createInvoice", medicineInvoiceSample)}>Medicine Invoice</Button>
-          <Button size="sm" variant="outline" onClick={() => openFormAction("createReceipt", receiptSample)}>Food Receipt</Button>
-          <Button size="sm" variant="outline" onClick={() => openFormAction("createReceipt", medicineReceiptSample)}>Medicine Receipt</Button>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setTab(item.key)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-              tab === item.key
-                ? "bg-[#15803d] text-white"
-                : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-            }`}
-          >
-            {item.label} <span className="ml-1 opacity-75">{item.count}</span>
-          </button>
-        ))}
+        {tab === "invoices" && (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="gap-2" onClick={() => openFormAction("createInvoice", foodInvoiceSample)}>
+              <Plus size={15} />
+              Food Invoice
+            </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => openFormAction("createInvoice", medicineInvoiceSample)}>
+              <ReceiptText size={15} />
+              Medicine Invoice
+            </Button>
+          </div>
+        )}
+        {tab === "receipts" && (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="gap-2" onClick={() => openFormAction("createReceipt", receiptSample)}>
+              <Plus size={15} />
+              Food Receipt
+            </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => openFormAction("createReceipt", medicineReceiptSample)}>
+              <ClipboardCheck size={15} />
+              Medicine Receipt
+            </Button>
+          </div>
+        )}
       </div>
 
       {tab === "invoices" && (
@@ -397,8 +467,8 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.invoice_number}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.invoice_date}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.supplier_id}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.branch_id}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">{supplierMap.get(item.supplier_id) || `Supplier #${item.supplier_id}`}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">{branchMap.get(item.branch_id) || `Branch #${item.branch_id}`}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status || "open"}</span></TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
@@ -430,7 +500,9 @@ export default function PurchasingPage() {
                 <TableRow key={item.id}>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.receipt_number}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.purchase_invoice_id}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {invoiceMap.get(item.purchase_invoice_id)?.invoice_number || `Invoice #${item.purchase_invoice_id}`}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.receipt_date}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status || "draft"}</span></TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
@@ -448,11 +520,82 @@ export default function PurchasingPage() {
       )}
 
       {tab === "balances" && (
-        <SimpleObjectTable loading={balancesLoading} empty="No purchase inventory balances found." rows={balances} preferredKeys={["category", "item_id", "inventory_id", "location", "quantity", "available_quantity", "stock_lot_id"]} onView={setSelectedJson} />
+        <DataPanel loading={balancesLoading} empty="No purchase inventory balances found.">
+          <Table>
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+              <TableRow>
+                {["No.", "Item", "Category", "Warehouse", "Location", "Quantity", "Available", "Lot / Batch", "Actions"].map((head) => (
+                  <TableCell key={head} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{head}</TableCell>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {balances.map((item: Record<string, unknown>, index) => (
+                <TableRow key={String(item.id || index)}>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                    {getItemLabel(String(item.category || ""), item.item_id as number)}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium capitalize text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      {formatValue(item.category)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-300">
+                    {inventoryMap.get(Number(item.inventory_id)) || `Warehouse #${item.inventory_id}`}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{formatValue(item.location)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{formatValue(item.quantity)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">{formatValue(item.available_quantity ?? item.quantity)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <TableActionButton label="View" tone="neutral" onClick={() => setSelectedJson(item)} icon={<Eye size={14} />} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DataPanel>
       )}
 
       {tab === "ledger" && (
-        <SimpleObjectTable loading={ledgerLoading} empty="No purchase ledger entries found." rows={ledger} preferredKeys={["transaction_date", "transaction_type", "source_type", "source_id", "item_id", "quantity", "balance_after"]} onView={setSelectedJson} />
+        <DataPanel loading={ledgerLoading} empty="No purchase ledger entries found.">
+          <Table>
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+              <TableRow>
+                {["No.", "Date", "Type", "Source", "Item", "Quantity", "Balance After", "Actions"].map((head) => (
+                  <TableCell key={head} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{head}</TableCell>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {ledger.map((item: Record<string, unknown>, index) => (
+                <TableRow key={String(item.id || index)}>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{formatValue(item.transaction_date || item.created_at)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                      {formatValue(item.transaction_type)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{String(item.source_type || "").replace(/_/g, " ")} #{formatValue(item.source_id)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                    {getItemLabel(String(item.category || ""), item.item_id as number)}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold">
+                    <span className={Number(item.quantity) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+                      {Number(item.quantity) > 0 ? `+${item.quantity}` : formatValue(item.quantity)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{formatValue(item.balance_after)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <TableActionButton label="View" tone="neutral" onClick={() => setSelectedJson(item)} icon={<Eye size={14} />} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DataPanel>
       )}
 
       <PurchasingActionModal
@@ -461,6 +604,13 @@ export default function PurchasingPage() {
         invoiceForm={invoiceForm}
         receiptForm={receiptForm}
         cancelReason={cancelReason}
+        branchOptions={branches.map(namedOption)}
+        supplierOptions={suppliers.map(namedOption)}
+        inventoryOptions={setupInventories.map((i) => ({ value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
+        foodOptions={foods.map(namedOption)}
+        medicineOptions={medicines.map(namedOption)}
+        uomOptions={uoms.map((u) => ({ value: String(u.id), label: `${u.code} - ${u.name} (${u.symbol})` }))}
+        invoiceOptions={invoices.map((inv) => ({ value: String(inv.id), label: `${inv.invoice_number} (Supplier #${inv.supplier_id})` }))}
         isSaving={isMutating}
         onInvoiceChange={setInvoiceForm}
         onReceiptChange={setReceiptForm}
@@ -489,52 +639,7 @@ function DataPanel({ loading, empty, children }: { loading: boolean; empty: stri
   );
 }
 
-function SimpleObjectTable({
-  loading,
-  empty,
-  rows,
-  preferredKeys,
-  onView,
-}: {
-  loading: boolean;
-  empty: string;
-  rows: Record<string, unknown>[];
-  preferredKeys: string[];
-  onView: (row: unknown) => void;
-}) {
-  return (
-    <DataPanel loading={loading} empty={empty}>
-      {rows.length === 0 ? (
-        <div className="flex h-64 items-center justify-center text-gray-500">{empty}</div>
-      ) : (
-        <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              <TableCell isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">No.</TableCell>
-              {preferredKeys.map((key) => (
-                <TableCell key={key} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{key}</TableCell>
-              ))}
-              <TableCell isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">Actions</TableCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {rows.map((row, index) => (
-              <TableRow key={String(row.id || index)}>
-                <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
-                {preferredKeys.map((key) => (
-                  <TableCell key={key} className="max-w-[220px] truncate px-5 py-3.5 text-sm text-gray-500">{formatValue(row[key])}</TableCell>
-                ))}
-                <TableCell className="px-5 py-3.5 text-sm">
-                  <TableActionButton label="View" tone="neutral" onClick={() => onView(row)} icon={<Eye size={14} />} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </DataPanel>
-  );
-}
+type SelectOption = { value: string; label: string };
 
 function PurchasingActionModal({
   action,
@@ -542,6 +647,13 @@ function PurchasingActionModal({
   invoiceForm,
   receiptForm,
   cancelReason,
+  branchOptions,
+  supplierOptions,
+  inventoryOptions,
+  foodOptions,
+  medicineOptions,
+  uomOptions,
+  invoiceOptions,
   isSaving,
   onInvoiceChange,
   onReceiptChange,
@@ -554,6 +666,13 @@ function PurchasingActionModal({
   invoiceForm: InvoiceForm;
   receiptForm: ReceiptForm;
   cancelReason: string;
+  branchOptions: SelectOption[];
+  supplierOptions: SelectOption[];
+  inventoryOptions: SelectOption[];
+  foodOptions: SelectOption[];
+  medicineOptions: SelectOption[];
+  uomOptions: SelectOption[];
+  invoiceOptions: SelectOption[];
   isSaving: boolean;
   onInvoiceChange: React.Dispatch<React.SetStateAction<InvoiceForm>>;
   onReceiptChange: React.Dispatch<React.SetStateAction<ReceiptForm>>;
@@ -565,6 +684,13 @@ function PurchasingActionModal({
   const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => onReceiptChange((current) => ({ ...current, [key]: value }));
   const selectClass = "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
   const title = action === "createInvoice" ? "Create Purchase Invoice" : action === "updateInvoice" ? "Update Purchase Invoice" : action === "cancelInvoice" ? "Cancel Purchase Invoice" : "Create Purchase Receipt";
+
+  const ensureOption = (opts: SelectOption[], val: string) => {
+    if (!val || opts.some((o) => o.value === val)) return opts;
+    return [{ value: val, label: `#${val}` }, ...opts];
+  };
+
+  const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : foodOptions;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-4xl">
@@ -583,8 +709,12 @@ function PurchasingActionModal({
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {action === "createInvoice" && <FormField label="Invoice Number"><Input value={invoiceForm.invoice_number} onChange={(event) => setInvoiceField("invoice_number", event.target.value)} /></FormField>}
               <FormField label="Invoice Date" required><DatePicker id="purchase-invoice-date" defaultDate={invoiceForm.invoice_date || undefined} placeholder="Select invoice date" onChange={(_, dateStr) => setInvoiceField("invoice_date", dateStr)} /></FormField>
-              <FormField label="Supplier ID" required><Input type="number" min="1" value={invoiceForm.supplier_id} onChange={(event) => setInvoiceField("supplier_id", event.target.value)} /></FormField>
-              <FormField label="Branch ID" required><Input type="number" min="1" value={invoiceForm.branch_id} onChange={(event) => setInvoiceField("branch_id", event.target.value)} /></FormField>
+              <FormField label="Supplier" required>
+                <Select value={invoiceForm.supplier_id} onChange={(e) => setInvoiceField("supplier_id", e.target.value)} options={ensureOption(supplierOptions, invoiceForm.supplier_id)} placeholder="Select supplier" />
+              </FormField>
+              <FormField label="Branch" required>
+                <Select value={invoiceForm.branch_id} onChange={(e) => setInvoiceField("branch_id", e.target.value)} options={ensureOption(branchOptions, invoiceForm.branch_id)} placeholder="Select branch" />
+              </FormField>
               <FormField label="Notes"><Input value={invoiceForm.notes} onChange={(event) => setInvoiceField("notes", event.target.value)} /></FormField>
             </section>
 
@@ -592,9 +722,15 @@ function PurchasingActionModal({
               <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Invoice Line</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField label="Category" required><select value={invoiceForm.category} onChange={(event) => setInvoiceField("category", event.target.value)} className={selectClass}><option value="food">food</option><option value="medicine">medicine</option></select></FormField>
-                <FormField label="Item ID" required><Input type="number" min="1" value={invoiceForm.item_id} onChange={(event) => setInvoiceField("item_id", event.target.value)} /></FormField>
-                <FormField label="Purchase UOM ID" required><Input type="number" min="1" value={invoiceForm.purchase_uom_id} onChange={(event) => setInvoiceField("purchase_uom_id", event.target.value)} /></FormField>
-                <FormField label="Stock UOM ID" required><Input type="number" min="1" value={invoiceForm.stock_uom_id} onChange={(event) => setInvoiceField("stock_uom_id", event.target.value)} /></FormField>
+                <FormField label="Item" required>
+                  <Select value={invoiceForm.item_id} onChange={(e) => setInvoiceField("item_id", e.target.value)} options={ensureOption(itemOptions, invoiceForm.item_id)} placeholder="Select item" />
+                </FormField>
+                <FormField label="Purchase UOM" required>
+                  <Select value={invoiceForm.purchase_uom_id} onChange={(e) => setInvoiceField("purchase_uom_id", e.target.value)} options={ensureOption(uomOptions, invoiceForm.purchase_uom_id)} placeholder="Select purchase UOM" />
+                </FormField>
+                <FormField label="Stock UOM" required>
+                  <Select value={invoiceForm.stock_uom_id} onChange={(e) => setInvoiceField("stock_uom_id", e.target.value)} options={ensureOption(uomOptions, invoiceForm.stock_uom_id)} placeholder="Select stock UOM" />
+                </FormField>
                 <FormField label="Conversion Factor" required><Input type="number" step="any" value={invoiceForm.conversion_factor} onChange={(event) => setInvoiceField("conversion_factor", event.target.value)} /></FormField>
                 <FormField label="Quantity" required><Input type="number" step="any" value={invoiceForm.quantity} onChange={(event) => setInvoiceField("quantity", event.target.value)} /></FormField>
                 <FormField label="Unit Price" required><Input type="number" step="any" value={invoiceForm.unit_price} onChange={(event) => setInvoiceField("unit_price", event.target.value)} /></FormField>
@@ -603,7 +739,9 @@ function PurchasingActionModal({
                 <FormField label="FOC Type"><select value={invoiceForm.foc_type} onChange={(event) => setInvoiceField("foc_type", event.target.value)} className={selectClass}><option value="">none</option><option value="quantity">quantity</option><option value="amount">amount</option></select></FormField>
                 <FormField label="FOC Value"><Input type="number" step="any" value={invoiceForm.foc_value} onChange={(event) => setInvoiceField("foc_value", event.target.value)} /></FormField>
                 <FormField label="Tax Rate"><Input type="number" step="any" value={invoiceForm.tax_rate} onChange={(event) => setInvoiceField("tax_rate", event.target.value)} /></FormField>
-                <FormField label="Target Inventory ID"><Input type="number" min="1" value={invoiceForm.target_inventory_id} onChange={(event) => setInvoiceField("target_inventory_id", event.target.value)} /></FormField>
+                <FormField label="Target Warehouse">
+                  <Select value={invoiceForm.target_inventory_id} onChange={(e) => setInvoiceField("target_inventory_id", e.target.value)} options={ensureOption(inventoryOptions, invoiceForm.target_inventory_id)} placeholder="Select warehouse" />
+                </FormField>
                 <FormField label="Target Location"><Input value={invoiceForm.target_location} onChange={(event) => setInvoiceField("target_location", event.target.value)} /></FormField>
               </div>
             </section>
@@ -614,7 +752,9 @@ function PurchasingActionModal({
           <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-2">
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Receipt Number"><Input value={receiptForm.receipt_number} onChange={(event) => setReceiptField("receipt_number", event.target.value)} /></FormField>
-              <FormField label="Purchase Invoice ID" required><Input type="number" min="1" value={receiptForm.purchase_invoice_id} onChange={(event) => setReceiptField("purchase_invoice_id", event.target.value)} /></FormField>
+              <FormField label="Purchase Invoice" required>
+                <Select value={receiptForm.purchase_invoice_id} onChange={(e) => setReceiptField("purchase_invoice_id", e.target.value)} options={ensureOption(invoiceOptions, receiptForm.purchase_invoice_id)} placeholder="Select invoice" />
+              </FormField>
               <FormField label="Receipt Date" required><DatePicker id="purchase-receipt-date" defaultDate={receiptForm.receipt_date || undefined} placeholder="Select receipt date" onChange={(_, dateStr) => setReceiptField("receipt_date", dateStr)} /></FormField>
               <FormField label="Idempotency Key" required><Input value={receiptForm.idempotency_key} onChange={(event) => setReceiptField("idempotency_key", event.target.value)} /></FormField>
               <FormField label="Notes"><Input value={receiptForm.notes} onChange={(event) => setReceiptField("notes", event.target.value)} /></FormField>
@@ -627,7 +767,9 @@ function PurchasingActionModal({
                 <FormField label="Accepted Quantity" required><Input type="number" step="any" value={receiptForm.accepted_quantity} onChange={(event) => setReceiptField("accepted_quantity", event.target.value)} /></FormField>
                 <FormField label="Accepted FOC Quantity"><Input type="number" step="any" value={receiptForm.accepted_foc_quantity} onChange={(event) => setReceiptField("accepted_foc_quantity", event.target.value)} /></FormField>
                 <FormField label="Rejected Quantity"><Input type="number" step="any" value={receiptForm.rejected_quantity} onChange={(event) => setReceiptField("rejected_quantity", event.target.value)} /></FormField>
-                <FormField label="Target Inventory ID" required><Input type="number" min="1" value={receiptForm.target_inventory_id} onChange={(event) => setReceiptField("target_inventory_id", event.target.value)} /></FormField>
+                <FormField label="Target Warehouse" required>
+                  <Select value={receiptForm.target_inventory_id} onChange={(e) => setReceiptField("target_inventory_id", e.target.value)} options={ensureOption(inventoryOptions, receiptForm.target_inventory_id)} placeholder="Select warehouse" />
+                </FormField>
                 <FormField label="Target Location" required><Input value={receiptForm.target_location} onChange={(event) => setReceiptField("target_location", event.target.value)} /></FormField>
                 <FormField label="Supplier Batch Number"><Input value={receiptForm.supplier_batch_number} onChange={(event) => setReceiptField("supplier_batch_number", event.target.value)} /></FormField>
                 <FormField label="Receipt Lot Number"><Input value={receiptForm.receipt_lot_number} onChange={(event) => setReceiptField("receipt_lot_number", event.target.value)} /></FormField>

@@ -5,6 +5,7 @@ import {
   useGetActivityLogsQuery,
   ActivityLogItem,
 } from "@/redux/features/setup/ActivityLogApiSlice";
+import { useGetSetupAdminsQuery, SetupAdmin } from "@/redux/features/setup/AdminSetupApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
@@ -51,8 +52,10 @@ function LogProperties({ data }: { data: Record<string, unknown> }) {
 export default function ActivityLogsPage() {
   const [logName, setLogName] = useState("setup");
   const { data, isLoading } = useGetActivityLogsQuery({ log_name: logName || undefined });
+  const { data: adminsData } = useGetSetupAdminsQuery();
 
   const logs = data?.data || [];
+  const adminMap = React.useMemo(() => new Map<number, string>((adminsData?.data || []).map((a: SetupAdmin) => [a.id, a.name])), [adminsData?.data]);
   const [selectedLog, setSelectedLog] = useState<ActivityLogItem | null>(null);
 
   return (
@@ -105,7 +108,7 @@ export default function ActivityLogsPage() {
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Event</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Subject</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Subject ID</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Causer ID</TableCell>
+                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Causer</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Date</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Details</TableCell>
                 </TableRow>
@@ -122,7 +125,9 @@ export default function ActivityLogsPage() {
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm truncate max-w-xs">{item.subject_type?.split("\\").pop() || item.subject_type}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">#{item.subject_id}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">User #{item.causer_id}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 font-medium text-sm">
+                      {adminMap.get(item.causer_id) || `User #${item.causer_id}`}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">
                       {item.created_at ? new Date(item.created_at).toLocaleString() : "-"}
                     </TableCell>
@@ -150,7 +155,7 @@ export default function ActivityLogsPage() {
                 <div><span className="text-gray-500">Module:</span> <strong className="text-gray-800 dark:text-gray-200">{selectedLog.log_name}</strong></div>
                 <div><span className="text-gray-500">Subject:</span> <strong className="text-gray-800 dark:text-gray-200">{selectedLog.subject_type}</strong></div>
                 <div><span className="text-gray-500">Subject ID:</span> <strong className="text-gray-800 dark:text-gray-200">#{selectedLog.subject_id}</strong></div>
-                <div><span className="text-gray-500">Causer:</span> <strong className="text-gray-800 dark:text-gray-200">User #{selectedLog.causer_id}</strong></div>
+                <div><span className="text-gray-500">Causer:</span> <strong className="text-gray-800 dark:text-gray-200">{adminMap.get(selectedLog.causer_id) || `User #${selectedLog.causer_id}`}</strong></div>
                 <div><span className="text-gray-500">Time:</span> <strong className="text-gray-800 dark:text-gray-200">{new Date(selectedLog.created_at).toLocaleString()}</strong></div>
               </div>
 

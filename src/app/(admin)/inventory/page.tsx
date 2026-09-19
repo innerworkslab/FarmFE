@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   InventoryAdjustment,
@@ -334,6 +334,35 @@ export default function InventoryPage() {
     }
   };
 
+  const branchMap = useMemo(() => new Map((branchesData?.data || []).map((b) => [b.id, b.name])), [branchesData]);
+  const inventoryMap = useMemo(() => new Map((inventoriesSetupData?.data || []).map((i) => [i.id, i.name])), [inventoriesSetupData]);
+
+  const getItemLabel = (category?: string, itemId?: number | string) => {
+    if (!itemId) return "-";
+    const id = Number(itemId);
+    if (category === "food") {
+      const food = foodsData?.data.find((f) => f.id === id);
+      return food ? `${food.name} (${food.code})` : `Food #${id}`;
+    }
+    if (category === "medicine") {
+      const med = medicinesData?.data.find((m) => m.id === id);
+      return med ? `${med.name} (${med.code})` : `Medicine #${id}`;
+    }
+    if (category === "animal") {
+      const animal = animalsData?.data.find((a) => a.id === id);
+      return animal ? `${animal.name} (${animal.code})` : `Animal #${id}`;
+    }
+    if (category === "equipment") {
+      const eq = equipmentData?.data.find((e) => e.id === id);
+      return eq ? `${eq.name} (${eq.code})` : `Equipment #${id}`;
+    }
+    const food = foodsData?.data.find((f) => f.id === id);
+    if (food) return `${food.name} (${food.code})`;
+    const med = medicinesData?.data.find((m) => m.id === id);
+    if (med) return `${med.name} (${med.code})`;
+    return `Item #${id}`;
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -371,7 +400,7 @@ export default function InventoryPage() {
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                {["No.", "Number", "Type", "Date", "Branch", "Inventory", "Status", "Lines", "Actions"].map((head) => (
+                {["No.", "Number", "Type", "Date", "Branch", "Warehouse", "Status", "Lines", "Actions"].map((head) => (
                   <TableCell key={head} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">
                     {head}
                   </TableCell>
@@ -384,6 +413,8 @@ export default function InventoryPage() {
                   key={item.id}
                   item={item}
                   index={index}
+                  branchName={branchMap.get(item.branch_id) || `Branch #${item.branch_id}`}
+                  inventoryName={inventoryMap.get(item.inventory_id) || `Warehouse #${item.inventory_id}`}
                   onShow={() => showSavedResponse("adjustment", item.id, item)}
                   onUpdate={() => openFormAction("update", item)}
                   onSubmit={() => runSimpleAction("submit", item.id)}
@@ -398,11 +429,82 @@ export default function InventoryPage() {
       )}
 
       {tab === "balances" && (
-        <SimpleObjectTable loading={balancesLoading} empty="No inventory balances found." rows={balances} preferredKeys={["category", "item_id", "inventory_id", "location", "quantity", "available_quantity", "stock_lot_id"]} onView={setSelectedJson} />
+        <DataPanel loading={balancesLoading} empty="No inventory balances found.">
+          <Table>
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+              <TableRow>
+                {["No.", "Item", "Category", "Warehouse", "Location", "Quantity", "Available", "Lot / Batch", "Actions"].map((head) => (
+                  <TableCell key={head} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{head}</TableCell>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {balances.map((item: Record<string, unknown>, index) => (
+                <TableRow key={String(item.id || index)}>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                    {getItemLabel(String(item.category || ""), item.item_id as number)}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium capitalize text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      {formatValue(item.category)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-300">
+                    {inventoryMap.get(Number(item.inventory_id)) || `Warehouse #${item.inventory_id}`}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{formatValue(item.location)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{formatValue(item.quantity)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">{formatValue(item.available_quantity ?? item.quantity)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <TableActionButton label="View" tone="neutral" onClick={() => setSelectedJson(item)} icon={<Eye size={14} />} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DataPanel>
       )}
 
       {tab === "ledger" && (
-        <SimpleObjectTable loading={ledgerLoading} empty="No inventory ledger entries found." rows={ledger} preferredKeys={["transaction_date", "transaction_type", "source_type", "source_id", "item_id", "quantity", "balance_after"]} onView={setSelectedJson} />
+        <DataPanel loading={ledgerLoading} empty="No inventory ledger entries found.">
+          <Table>
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+              <TableRow>
+                {["No.", "Date", "Type", "Source", "Item", "Quantity", "Balance After", "Actions"].map((head) => (
+                  <TableCell key={head} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{head}</TableCell>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {ledger.map((item: Record<string, unknown>, index) => (
+                <TableRow key={String(item.id || index)}>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{formatValue(item.transaction_date || item.created_at)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                      {formatValue(item.transaction_type)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{String(item.source_type || "").replace(/_/g, " ")} #{formatValue(item.source_id)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                    {getItemLabel(String(item.category || ""), item.item_id as number)}
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold">
+                    <span className={Number(item.quantity) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+                      {Number(item.quantity) > 0 ? `+${item.quantity}` : formatValue(item.quantity)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{formatValue(item.balance_after)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">
+                    <TableActionButton label="View" tone="neutral" onClick={() => setSelectedJson(item)} icon={<Eye size={14} />} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DataPanel>
       )}
 
       {tab === "confirmations" && (
@@ -422,7 +524,7 @@ export default function InventoryPage() {
                 <TableRow key={item.id}>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.confirmation_number}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.source_type} #{item.source_id}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.source_type?.replace(/_/g, " ")} #{item.source_id}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status}</span></TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.submitted_at || "-"}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.confirmed_at || "-"}</TableCell>
@@ -466,6 +568,8 @@ export default function InventoryPage() {
 function AdjustmentRow({
   item,
   index,
+  branchName,
+  inventoryName,
   onShow,
   onUpdate,
   onSubmit,
@@ -475,6 +579,8 @@ function AdjustmentRow({
 }: {
   item: InventoryAdjustment;
   index: number;
+  branchName: string;
+  inventoryName: string;
   onShow: () => void;
   onUpdate: () => void;
   onSubmit: () => void;
@@ -490,8 +596,8 @@ function AdjustmentRow({
       <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.adjustment_number}</TableCell>
       <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.type}</TableCell>
       <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.adjustment_date}</TableCell>
-      <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.branch_id}</TableCell>
-      <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.inventory_id}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-300 font-medium">{branchName}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-300 font-medium">{inventoryName}</TableCell>
       <TableCell className="px-5 py-3.5 text-sm">
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status}</span>
       </TableCell>
@@ -521,54 +627,6 @@ function DataPanel({ loading, empty, children }: { loading: boolean; empty: stri
         <div className="max-w-full overflow-x-auto">{children}</div>
       )}
     </div>
-  );
-}
-
-function SimpleObjectTable({
-  loading,
-  empty,
-  rows,
-  preferredKeys,
-  onView,
-}: {
-  loading: boolean;
-  empty: string;
-  rows: Record<string, unknown>[];
-  preferredKeys: string[];
-  onView: (row: unknown) => void;
-}) {
-  const keys = preferredKeys;
-  return (
-    <DataPanel loading={loading} empty={empty}>
-      {rows.length === 0 ? (
-        <div className="flex h-64 items-center justify-center text-gray-500">{empty}</div>
-      ) : (
-        <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              <TableCell isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">No.</TableCell>
-              {keys.map((key) => (
-                <TableCell key={key} isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">{key}</TableCell>
-              ))}
-              <TableCell isHeader className="px-5 py-3 text-start text-xs font-medium text-gray-500">Actions</TableCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {rows.map((row, index) => (
-              <TableRow key={String(row.id || index)}>
-                <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
-                {keys.map((key) => (
-                  <TableCell key={key} className="max-w-[220px] truncate px-5 py-3.5 text-sm text-gray-500">{formatValue(row[key])}</TableCell>
-                ))}
-                <TableCell className="px-5 py-3.5 text-sm">
-                  <TableActionButton label="View" tone="neutral" onClick={() => onView(row)} icon={<Eye size={14} />} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </DataPanel>
   );
 }
 

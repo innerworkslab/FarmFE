@@ -181,7 +181,9 @@ export default function EquipmentPage() {
                       {item.brand} {item.model ? `(${item.model})` : ""}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm font-mono">{item.purchase_cost}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.supplier?.name || "-"}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 text-sm font-medium">
+                      {suppliers.find((s) => s.id === item.supplier_id)?.name || item.supplier?.name || "-"}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <div className="flex items-center gap-2">
                         <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />

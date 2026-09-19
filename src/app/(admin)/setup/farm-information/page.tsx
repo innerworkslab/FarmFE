@@ -159,7 +159,9 @@ export default function FarmInformationPage() {
                   <TableRow key={item.id}>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{index + 1}</TableCell>
                     <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.branch?.name || `Branch #${item.branch_id}`}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 font-medium text-sm">
+                      {branches.find((b) => b.id === item.branch_id)?.name || item.branch?.name || `Branch #${item.branch_id}`}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.house_barn || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.pen_cage_pond || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
