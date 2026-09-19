@@ -18,14 +18,35 @@ import {
   useUpdateInventoryAdjustmentMutation,
 } from "@/redux/features/inventory/InventoryFoundationApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import Input from "@/components/form/input/InputField";
+import Select from "@/components/form/Select";
+import DatePicker from "@/components/form/date-picker";
 import Loading from "@/components/common/Loading";
+import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
+import { useGetInventoriesQuery } from "@/redux/features/setup/InventoryApiSlice";
+import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
+import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
+import { useGetAnimalsQuery } from "@/redux/features/setup/AnimalApiSlice";
+import { useGetEquipmentListQuery } from "@/redux/features/setup/EquipmentApiSlice";
+import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
+import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
 import { toast } from "sonner";
 import { CheckCircle2, ClipboardCheck, Eye, RotateCcw, Send, XCircle } from "lucide-react";
 
 type InventoryTab = "adjustments" | "balances" | "ledger" | "confirmations";
 type JsonAction = "create" | "update" | "reverse" | "reject";
+
+type AdjustmentForm = {
+  type: string; adjustment_date: string; branch_id: string; inventory_id: string; reason_type: string; reason: string; notes: string;
+  category: string; item_id: string; location: string; stock_uom_id: string; stock_lot_id: string; adjustment_quantity: string;
+  direction: string; new_identity: boolean; supplier_id: string; supplier_batch_number: string; receipt_lot_number: string;
+  manufacturing_date: string; expiry_date: string; lot_status: string;
+};
+
+type SelectOption = { value: string; label: string };
 
 const createAdjustmentSample: InventoryAdjustmentPayload = {
   type: "opening_balance",
@@ -100,12 +121,77 @@ const rejectDraftSample: InventoryAdjustmentPayload = {
   ],
 };
 
+const adjustmentFormFromPayload = (payload: InventoryAdjustmentPayload): AdjustmentForm => {
+  const line = payload.lines[0];
+  return {
+    type: payload.type, adjustment_date: payload.adjustment_date, branch_id: String(payload.branch_id), inventory_id: String(payload.inventory_id),
+    reason_type: payload.reason_type, reason: payload.reason, notes: payload.notes || "", category: line.category, item_id: String(line.item_id),
+    location: line.location, stock_uom_id: String(line.stock_uom_id), stock_lot_id: line.stock_lot_id ? String(line.stock_lot_id) : "",
+    adjustment_quantity: String(line.adjustment_quantity), direction: line.direction, new_identity: Boolean(line.new_identity),
+    supplier_id: line.supplier_id ? String(line.supplier_id) : "", supplier_batch_number: line.supplier_batch_number || "",
+    receipt_lot_number: line.receipt_lot_number || "", manufacturing_date: line.manufacturing_date || "", expiry_date: line.expiry_date || "", lot_status: line.lot_status || "available",
+  };
+};
+
+const adjustmentFormFromRecord = (adjustment: InventoryAdjustment) => adjustmentFormFromPayload({
+  type: adjustment.type, adjustment_date: adjustment.adjustment_date, branch_id: adjustment.branch_id, inventory_id: adjustment.inventory_id,
+  reason_type: adjustment.reason_type, reason: adjustment.reason, notes: adjustment.notes,
+  lines: adjustment.lines?.length ? adjustment.lines : createAdjustmentSample.lines,
+});
+
+const namedOption = (item: { id: number; code?: string; name?: string }): SelectOption => ({
+  value: String(item.id),
+  label: [item.code, item.name].filter(Boolean).join(" - ") || `#${item.id}`,
+});
+
+const ensureSelectedOption = (options: SelectOption[], value: string): SelectOption[] => {
+  if (!value || options.some((option) => option.value === value)) return options;
+  return [{ value, label: `#${value}` }, ...options];
+};
+
+const reasonOptionsByType: Record<string, SelectOption[]> = {
+  opening_balance: [{ value: "opening_balance", label: "opening_balance" }],
+  data_correction: [{ value: "correction", label: "correction" }],
+  other: [{ value: "demo_rejection", label: "demo_rejection" }, { value: "other", label: "other" }],
+};
+
+const toAdjustmentPayload = (form: AdjustmentForm): InventoryAdjustmentPayload => ({
+  type: form.type, adjustment_date: form.adjustment_date, branch_id: Number(form.branch_id), inventory_id: Number(form.inventory_id),
+  reason_type: form.reason_type, reason: form.reason,
+  ...(form.notes ? { notes: form.notes } : {}),
+  lines: [{
+    category: form.category, item_id: Number(form.item_id), location: form.location, stock_uom_id: Number(form.stock_uom_id),
+    adjustment_quantity: Number(form.adjustment_quantity), direction: form.direction,
+    ...(form.direction === "out" && form.stock_lot_id ? { stock_lot_id: Number(form.stock_lot_id) } : {}),
+    ...(form.direction === "in" ? {
+      new_identity: form.new_identity,
+      ...(form.supplier_id ? { supplier_id: Number(form.supplier_id) } : {}),
+      ...(form.supplier_batch_number ? { supplier_batch_number: form.supplier_batch_number } : {}),
+      ...(form.receipt_lot_number ? { receipt_lot_number: form.receipt_lot_number } : {}),
+      ...(form.manufacturing_date ? { manufacturing_date: form.manufacturing_date } : {}),
+      ...(form.expiry_date ? { expiry_date: form.expiry_date } : {}),
+      ...(form.lot_status ? { lot_status: form.lot_status } : {}),
+    } : {}),
+  }],
+});
+
 const statusClass = (status?: string) => {
   if (status === "confirmed") return "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400";
   if (status === "submitted") return "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300";
   if (status === "rejected") return "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300";
   if (status === "reversed") return "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300";
   return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+};
+
+const adjustmentActions = (item: InventoryAdjustment) => {
+  const status = item.status;
+  return {
+    canUpdate: status === "draft" || status === "rejected",
+    canSubmit: status === "draft" || status === "rejected",
+    canConfirm: status === "submitted",
+    canReject: status === "submitted",
+    canReverse: status === "confirmed" && item.type !== "reversal",
+  };
 };
 
 const formatValue = (value: unknown) => {
@@ -119,7 +205,7 @@ export default function InventoryPage() {
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetAdjustment, setTargetAdjustment] = useState<InventoryAdjustment | null>(null);
-  const [jsonText, setJsonText] = useState("");
+  const [form, setForm] = useState<AdjustmentForm>(() => adjustmentFormFromPayload(createAdjustmentSample));
 
   const { data: adjustmentsData, isLoading: adjustmentsLoading } = useGetInventoryAdjustmentsQuery();
   const { data: balancesData, isLoading: balancesLoading } = useGetInventoryBalancesQuery({ per_page: 15 });
@@ -127,6 +213,14 @@ export default function InventoryPage() {
   const { data: confirmationsData, isLoading: confirmationsLoading } = useGetInventoryConfirmationsQuery({
     per_page: 15,
   });
+  const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
+  const { data: inventoriesSetupData } = useGetInventoriesQuery({ per_page: 100 });
+  const { data: foodsData } = useGetFoodsQuery({ per_page: 100 });
+  const { data: medicinesData } = useGetMedicinesQuery({ per_page: 100 });
+  const { data: animalsData } = useGetAnimalsQuery({ per_page: 100 });
+  const { data: equipmentData } = useGetEquipmentListQuery({ per_page: 100 });
+  const { data: uomsData } = useGetUomsQuery({ per_page: 100 });
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
 
   const [showAdjustment] = useLazyGetInventoryAdjustmentQuery();
   const [showConfirmation] = useLazyGetInventoryConfirmationQuery();
@@ -141,6 +235,14 @@ export default function InventoryPage() {
   const balances = balancesData?.data || [];
   const ledger = ledgerData?.data || [];
   const confirmations = confirmationsData?.data || [];
+  const branches = branchesData?.data || [];
+  const setupInventories = inventoriesSetupData?.data || [];
+  const itemOptionsByCategory = {
+    food: foodsData?.data.map(namedOption) || [],
+    medicine: medicinesData?.data.map(namedOption) || [],
+    animal: animalsData?.data.map(namedOption) || [],
+    equipment: equipmentData?.data.map(namedOption) || [],
+  };
 
   const isMutating =
     createState.isLoading ||
@@ -160,34 +262,27 @@ export default function InventoryPage() {
     [adjustments.length, balances.length, confirmations.length, ledger.length]
   );
 
-  const openJsonAction = (action: JsonAction, adjustment?: InventoryAdjustment, sample?: unknown) => {
+  const openFormAction = (action: JsonAction, adjustment?: InventoryAdjustment, sample?: InventoryAdjustmentPayload) => {
     setJsonAction(action);
     setTargetAdjustment(adjustment || null);
-    if (sample) {
-      setJsonText(JSON.stringify(sample, null, 2));
-    } else if (action === "update" && adjustment) {
-      setJsonText(JSON.stringify(createAdjustmentSample, null, 2));
-    } else {
-      setJsonText(JSON.stringify({ reason: "" }, null, 2));
-    }
+    if (sample) setForm(adjustmentFormFromPayload(sample));
+    else if (action === "update" && adjustment) setForm(adjustmentFormFromRecord(adjustment));
+    else setForm((current) => ({ ...current, reason: "" }));
   };
 
-  const runJsonAction = async () => {
+  const runFormAction = async () => {
     if (!jsonAction) return;
     try {
-      const parsed = JSON.parse(jsonText);
-      let result: unknown;
-      if (jsonAction === "create") result = await createAdjustment(parsed).unwrap();
+      if (jsonAction === "create") await createAdjustment(toAdjustmentPayload(form)).unwrap();
       if (jsonAction === "update" && targetAdjustment) {
-        result = await updateAdjustment({ id: targetAdjustment.id, body: parsed }).unwrap();
+        await updateAdjustment({ id: targetAdjustment.id, body: toAdjustmentPayload(form) }).unwrap();
       }
       if (jsonAction === "reverse" && targetAdjustment) {
-        result = await reverseAdjustment({ id: targetAdjustment.id, reason: parsed.reason }).unwrap();
+        await reverseAdjustment({ id: targetAdjustment.id, reason: form.reason }).unwrap();
       }
       if (jsonAction === "reject" && targetAdjustment) {
-        result = await rejectAdjustment({ id: targetAdjustment.id, reason: parsed.reason }).unwrap();
+        await rejectAdjustment({ id: targetAdjustment.id, reason: form.reason }).unwrap();
       }
-      setSelectedJson(result);
       setJsonAction(null);
       toast.success("Inventory API request saved successfully");
     } catch (error: unknown) {
@@ -198,11 +293,8 @@ export default function InventoryPage() {
 
   const runSimpleAction = async (action: "submit" | "confirm", id: number) => {
     try {
-      const result =
-        action === "submit"
-          ? await submitAdjustment(id).unwrap()
-          : await confirmAdjustment(id).unwrap();
-      setSelectedJson(result);
+      if (action === "submit") await submitAdjustment(id).unwrap();
+      else await confirmAdjustment(id).unwrap();
       toast.success(`Adjustment ${action === "submit" ? "submitted" : "confirmed"} successfully`);
     } catch (error: unknown) {
       const err = error as { data?: { message?: string } };
@@ -237,13 +329,13 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => openJsonAction("create", undefined, createAdjustmentSample)}>
+          <Button size="sm" onClick={() => openFormAction("create", undefined, createAdjustmentSample)}>
             Create Opening Balance
           </Button>
-          <Button size="sm" variant="outline" onClick={() => openJsonAction("create", undefined, stockOutSample)}>
+          <Button size="sm" variant="outline" onClick={() => openFormAction("create", undefined, stockOutSample)}>
             Create Stock Out
           </Button>
-          <Button size="sm" variant="outline" onClick={() => openJsonAction("create", undefined, rejectDraftSample)}>
+          <Button size="sm" variant="outline" onClick={() => openFormAction("create", undefined, rejectDraftSample)}>
             Create Reject Draft
           </Button>
         </div>
@@ -279,28 +371,17 @@ export default function InventoryPage() {
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {adjustments.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.adjustment_number}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.type}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.adjustment_date}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.branch_id}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.inventory_id}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status}</span>
-                  </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <IconButton title="Show adjustment" onClick={() => showSavedResponse("adjustment", item.id, item)} icon={<Eye size={15} />} />
-                      <IconButton title="Update with Postman payload" onClick={() => openJsonAction("update", item)} icon={<ClipboardCheck size={15} />} />
-                      <IconButton title="Submit" onClick={() => runSimpleAction("submit", item.id)} icon={<Send size={15} />} />
-                      <IconButton title="Confirm and post" onClick={() => runSimpleAction("confirm", item.id)} icon={<CheckCircle2 size={15} />} />
-                      <IconButton title="Reverse" onClick={() => openJsonAction("reverse", item)} icon={<RotateCcw size={15} />} />
-                      <IconButton title="Reject" onClick={() => openJsonAction("reject", item)} icon={<XCircle size={15} />} />
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <AdjustmentRow
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  onShow={() => showSavedResponse("adjustment", item.id, item)}
+                  onUpdate={() => openFormAction("update", item)}
+                  onSubmit={() => runSimpleAction("submit", item.id)}
+                  onConfirm={() => runSimpleAction("confirm", item.id)}
+                  onReverse={() => openFormAction("reverse", item)}
+                  onReject={() => openFormAction("reject", item)}
+                />
               ))}
             </TableBody>
           </Table>
@@ -338,7 +419,7 @@ export default function InventoryPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.confirmed_at || "-"}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.rejected_at || "-"}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
-                    <IconButton title="Show confirmation" onClick={() => showSavedResponse("confirmation", item.id, item)} icon={<Eye size={15} />} />
+                    <TableActionButton label="View" tone="neutral" onClick={() => showSavedResponse("confirmation", item.id, item)} icon={<Eye size={14} />} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -347,14 +428,25 @@ export default function InventoryPage() {
         </DataPanel>
       )}
 
-      <JsonModal
-        title={jsonAction === "create" ? "Postman Create Payload" : jsonAction === "update" ? "Postman Update Payload" : "Reason Payload"}
+      <InventoryActionModal
+        action={jsonAction}
         isOpen={!!jsonAction}
-        jsonText={jsonText}
+        form={form}
+        branchOptions={branches.map(namedOption)}
+        inventoryOptions={setupInventories.map((item) => ({
+          value: String(item.id),
+          label: `${item.code} - ${item.name} (${item.type})`,
+        }))}
+        itemOptions={itemOptionsByCategory[form.category as keyof typeof itemOptionsByCategory] || []}
+        uomOptions={uomsData?.data.map((item) => ({
+          value: String(item.id),
+          label: `${item.code} - ${item.name} (${item.symbol})`,
+        })) || []}
+        supplierOptions={suppliersData?.data.map(namedOption) || []}
         isSaving={isMutating}
-        onChange={setJsonText}
+        onChange={setForm}
         onClose={() => setJsonAction(null)}
-        onSubmit={runJsonAction}
+        onSubmit={runFormAction}
       />
 
       <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} />
@@ -362,16 +454,50 @@ export default function InventoryPage() {
   );
 }
 
-function IconButton({ title, icon, onClick }: { title: string; icon: React.ReactNode; onClick: () => void }) {
+function AdjustmentRow({
+  item,
+  index,
+  onShow,
+  onUpdate,
+  onSubmit,
+  onConfirm,
+  onReverse,
+  onReject,
+}: {
+  item: InventoryAdjustment;
+  index: number;
+  onShow: () => void;
+  onUpdate: () => void;
+  onSubmit: () => void;
+  onConfirm: () => void;
+  onReverse: () => void;
+  onReject: () => void;
+}) {
+  const actions = adjustmentActions(item);
+
   return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className="rounded-md p-1.5 text-gray-600 transition hover:bg-green-50 hover:text-[#15803d] dark:text-gray-300 dark:hover:bg-green-950/20"
-    >
-      {icon}
-    </button>
+    <TableRow>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{item.adjustment_number}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.type}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.adjustment_date}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.branch_id}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">#{item.inventory_id}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm">
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass(item.status)}`}>{item.status}</span>
+      </TableCell>
+      <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
+      <TableCell className="px-5 py-3.5 text-sm">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <TableActionButton label="View" tone="neutral" onClick={onShow} icon={<Eye size={14} />} />
+          {actions.canUpdate && <TableActionButton label="Update" tone="neutral" onClick={onUpdate} icon={<ClipboardCheck size={14} />} />}
+          {actions.canSubmit && <TableActionButton label="Submit" tone="blue" onClick={onSubmit} icon={<Send size={14} />} />}
+          {actions.canConfirm && <TableActionButton label="Confirm" tone="green" onClick={onConfirm} icon={<CheckCircle2 size={14} />} />}
+          {actions.canReverse && <TableActionButton label="Reverse" tone="amber" onClick={onReverse} icon={<RotateCcw size={14} />} />}
+          {actions.canReject && <TableActionButton label="Reject" tone="red" onClick={onReject} icon={<XCircle size={14} />} />}
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -426,7 +552,7 @@ function SimpleObjectTable({
                   <TableCell key={key} className="max-w-[220px] truncate px-5 py-3.5 text-sm text-gray-500">{formatValue(row[key])}</TableCell>
                 ))}
                 <TableCell className="px-5 py-3.5 text-sm">
-                  <IconButton title="View saved response" onClick={() => onView(row)} icon={<Eye size={15} />} />
+                  <TableActionButton label="View" tone="neutral" onClick={() => onView(row)} icon={<Eye size={14} />} />
                 </TableCell>
               </TableRow>
             ))}
@@ -437,49 +563,168 @@ function SimpleObjectTable({
   );
 }
 
-function JsonModal({
-  title,
+function InventoryActionModal({
+  action,
   isOpen,
-  jsonText,
+  form,
+  branchOptions,
+  inventoryOptions,
+  itemOptions,
+  uomOptions,
+  supplierOptions,
   isSaving,
   onChange,
   onClose,
   onSubmit,
 }: {
-  title: string;
+  action: JsonAction | null;
   isOpen: boolean;
-  jsonText: string;
+  form: AdjustmentForm;
+  branchOptions: SelectOption[];
+  inventoryOptions: SelectOption[];
+  itemOptions: SelectOption[];
+  uomOptions: SelectOption[];
+  supplierOptions: SelectOption[];
   isSaving: boolean;
-  onChange: (value: string) => void;
+  onChange: React.Dispatch<React.SetStateAction<AdjustmentForm>>;
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const setField = (key: keyof AdjustmentForm, value: string | boolean) => onChange((current) => ({ ...current, [key]: value }));
+  const setAdjustmentType = (value: string) => onChange((current) => ({
+    ...current,
+    type: value,
+    reason_type: reasonOptionsByType[value]?.[0]?.value || current.reason_type,
+  }));
+  const setCategory = (value: string) => onChange((current) => ({ ...current, category: value, item_id: "" }));
+  const isReasonOnly = action === "reverse" || action === "reject";
+  const title = action === "create" ? "Create Inventory Adjustment" : action === "update" ? "Update Inventory Adjustment" : action === "reverse" ? "Reverse Adjustment" : "Reject Adjustment";
+  const reasonOptions = reasonOptionsByType[form.type] || [{ value: form.reason_type, label: form.reason_type }];
+  const hasRequiredPayloadFields = Boolean(
+    form.type &&
+    form.adjustment_date &&
+    form.branch_id &&
+    form.inventory_id &&
+    form.reason_type &&
+    form.reason.trim() &&
+    form.category &&
+    form.item_id &&
+    form.location &&
+    form.stock_uom_id &&
+    form.adjustment_quantity &&
+    form.direction
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-[820px]">
+    <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-4xl">
       <div className="space-y-4 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
-        <textarea
-          value={jsonText}
-          onChange={(event) => onChange(event.target.value)}
-          className="min-h-[360px] w-full rounded-lg border border-gray-300 bg-white p-4 font-mono text-xs text-gray-800 outline-none focus:border-[#15803d] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-        />
+        <p className="text-sm text-gray-500">These fields produce the required Postman request payload.</p>
+        {isReasonOnly ? (
+          <FormField label="Reason" required><Input value={form.reason} onChange={(event) => setField("reason", event.target.value)} placeholder="Enter reason" /></FormField>
+        ) : (
+          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-2">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="Adjustment Type" required><Select value={form.type} onChange={(event) => setAdjustmentType(event.target.value)} options={[{ value: "opening_balance", label: "opening_balance" }, { value: "data_correction", label: "data_correction" }, { value: "other", label: "other" }]} /></FormField>
+              <FormField label="Adjustment Date" required><DatePicker id="inventory-adjustment-date" defaultDate={form.adjustment_date || undefined} placeholder="Select adjustment date" onChange={(_, dateStr) => setField("adjustment_date", dateStr)} /></FormField>
+              <FormField label="Branch" required><Select value={form.branch_id} onChange={(event) => setField("branch_id", event.target.value)} placeholder="Select branch" options={ensureSelectedOption(branchOptions, form.branch_id)} /></FormField>
+              <FormField label="Inventory" required><Select value={form.inventory_id} onChange={(event) => setField("inventory_id", event.target.value)} placeholder="Select inventory" options={ensureSelectedOption(inventoryOptions, form.inventory_id)} /></FormField>
+              <FormField label="Reason Type" required><Select value={form.reason_type} onChange={(event) => setField("reason_type", event.target.value)} options={reasonOptions} /></FormField>
+              <FormField label="Reason" required><Input value={form.reason} onChange={(event) => setField("reason", event.target.value)} /></FormField>
+              <FormField label="Notes"><Input value={form.notes} onChange={(event) => setField("notes", event.target.value)} /></FormField>
+            </section>
+            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Adjustment Line</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField label="Category" required><Select value={form.category} onChange={(event) => setCategory(event.target.value)} options={[{ value: "food", label: "food" }, { value: "medicine", label: "medicine" }, { value: "animal", label: "animal" }, { value: "equipment", label: "equipment" }]} /></FormField>
+                <FormField label="Item" required><Select value={form.item_id} onChange={(event) => setField("item_id", event.target.value)} placeholder="Select item" options={ensureSelectedOption(itemOptions, form.item_id)} /></FormField>
+                <FormField label="Location" required><Input value={form.location} onChange={(event) => setField("location", event.target.value)} /></FormField>
+                <FormField label="Stock UOM" required><Select value={form.stock_uom_id} onChange={(event) => setField("stock_uom_id", event.target.value)} placeholder="Select stock UOM" options={ensureSelectedOption(uomOptions, form.stock_uom_id)} /></FormField>
+                <FormField label="Quantity" required><Input type="number" step="any" value={form.adjustment_quantity} onChange={(event) => setField("adjustment_quantity", event.target.value)} /></FormField>
+                <FormField label="Direction" required><Select value={form.direction} onChange={(event) => setField("direction", event.target.value)} options={[{ value: "in", label: "in" }, { value: "out", label: "out" }]} /></FormField>
+                {form.direction === "out" && <FormField label="Stock Lot ID"><Input type="number" min="1" value={form.stock_lot_id} onChange={(event) => setField("stock_lot_id", event.target.value)} /></FormField>}
+              </div>
+              {form.direction === "in" && <div className="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2 dark:border-gray-800">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"><input type="checkbox" checked={form.new_identity} onChange={(event) => setField("new_identity", event.target.checked)} /> New identity</label>
+                <FormField label="Supplier"><Select value={form.supplier_id} onChange={(event) => setField("supplier_id", event.target.value)} placeholder="Select supplier" options={ensureSelectedOption(supplierOptions, form.supplier_id)} /></FormField>
+                <FormField label="Supplier Batch Number"><Input value={form.supplier_batch_number} onChange={(event) => setField("supplier_batch_number", event.target.value)} /></FormField>
+                <FormField label="Receipt Lot Number"><Input value={form.receipt_lot_number} onChange={(event) => setField("receipt_lot_number", event.target.value)} /></FormField>
+                <FormField label="Manufacturing Date"><DatePicker id="inventory-manufacturing-date" defaultDate={form.manufacturing_date || undefined} placeholder="Select manufacturing date" onChange={(_, dateStr) => setField("manufacturing_date", dateStr)} /></FormField>
+                <FormField label="Expiry Date"><DatePicker id="inventory-expiry-date" defaultDate={form.expiry_date || undefined} placeholder="Select expiry date" onChange={(_, dateStr) => setField("expiry_date", dateStr)} /></FormField>
+                <FormField label="Lot Status"><Select value={form.lot_status} onChange={(event) => setField("lot_status", event.target.value)} options={[{ value: "available", label: "available" }, { value: "quarantine", label: "quarantine" }, { value: "blocked", label: "blocked" }]} /></FormField>
+              </div>}
+            </section>
+          </div>
+        )}
         <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
           <Button type="button" size="sm" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="button" size="sm" disabled={isSaving} onClick={onSubmit}>{isSaving ? "Saving..." : "Save Response"}</Button>
+          <Button type="button" size="sm" disabled={isSaving || (isReasonOnly ? !form.reason.trim() : !hasRequiredPayloadFields)} onClick={onSubmit}>{isSaving ? "Saving..." : "Save"}</Button>
         </div>
       </div>
     </Modal>
   );
 }
 
+function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"><span className="mb-1.5 block">{label}{required && <span className="ml-1 text-red-500">*</span>}</span>{children}</label>;
+}
+
+const responseRecord = (data: unknown): Record<string, unknown> | null => {
+  if (!data || typeof data !== "object") return null;
+  const wrapper = data as { data?: unknown };
+  const value = wrapper.data && typeof wrapper.data === "object" ? wrapper.data : data;
+  return value as Record<string, unknown>;
+};
+
 function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () => void }) {
+  const record = responseRecord(data);
+  const fieldEntries = Object.entries(record || {}).filter(([, value]) => !Array.isArray(value) && (value === null || typeof value !== "object"));
+  const lines = Array.isArray(record?.lines) ? record.lines as Record<string, unknown>[] : [];
+  const lineKeys = ["line_number", "category", "item_id", "location", "stock_uom_id", "adjustment_quantity", "direction", "lot_status"];
+
   return (
-    <Modal isOpen={!!data} onClose={onClose} className="m-4 max-w-[820px]">
+    <Modal isOpen={!!data} onClose={onClose} className="m-4 max-w-5xl">
       <div className="space-y-4 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Saved API Response</h2>
-        <pre className="max-h-[520px] overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-100">
-          {JSON.stringify(data, null, 2)}
-        </pre>
+        {!record ? (
+          <p className="text-sm text-gray-500">No response data found.</p>
+        ) : (
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {fieldEntries.map(([key, value]) => (
+                <FormField key={key} label={key}>
+                  <Input value={formatValue(value)} disabled />
+                </FormField>
+              ))}
+            </section>
+
+            {lines.length > 0 && (
+              <section className="rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="border-b border-gray-100 px-4 py-3 text-sm font-bold text-gray-800 dark:border-gray-800 dark:text-white">Lines</div>
+                <div className="max-w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                      <TableRow>
+                        {lineKeys.map((key) => (
+                          <TableCell key={key} isHeader className="px-4 py-3 text-start text-xs font-medium text-gray-500">{key}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                      {lines.map((line, index) => (
+                        <TableRow key={String(line.id || index)}>
+                          {lineKeys.map((key) => (
+                            <TableCell key={key} className="px-4 py-3 text-sm text-gray-500">{formatValue(line[key])}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
     </Modal>
   );

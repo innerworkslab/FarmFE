@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
@@ -8,12 +8,9 @@ import {
   LayoutDashboard,
   UserCheck,
   ShieldCheck,
-  History,
   Settings,
   ChevronDown,
-  ChevronRight,
   GitBranch,
-  Package,
   Pill,
   PawPrint,
   Wrench,
@@ -26,6 +23,7 @@ import {
   ScrollText,
   ClipboardCheck,
   ReceiptText,
+  Database,
 } from "lucide-react";
 
 type NavItem = {
@@ -40,31 +38,82 @@ type SetupChild = {
   icon: React.ReactNode;
 };
 
+type NavGroup = {
+  name: string;
+  icon: React.ReactNode;
+  children: SetupChild[];
+};
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
-  const [setupOpen, setSetupOpen] = useState(pathname.startsWith("/setup"));
+  const [coreSetupOpen, setCoreSetupOpen] = useState(
+    pathname.startsWith("/setup/branches") ||
+      pathname.startsWith("/setup/roles") ||
+      pathname.startsWith("/setup/admins") ||
+      pathname.startsWith("/setup/activity-logs"),
+  );
+  const [businessMastersOpen, setBusinessMastersOpen] = useState(
+    pathname.startsWith("/setup/") &&
+      !pathname.startsWith("/setup/branches") &&
+      !pathname.startsWith("/setup/roles") &&
+      !pathname.startsWith("/setup/admins") &&
+      !pathname.startsWith("/setup/activity-logs"),
+  );
+
+  useEffect(() => {
+    if (
+      pathname.startsWith("/setup/branches") ||
+      pathname.startsWith("/setup/roles") ||
+      pathname.startsWith("/setup/admins") ||
+      pathname.startsWith("/setup/activity-logs")
+    ) {
+      setCoreSetupOpen(true);
+    }
+
+    if (
+      pathname.startsWith("/setup/") &&
+      !pathname.startsWith("/setup/branches") &&
+      !pathname.startsWith("/setup/roles") &&
+      !pathname.startsWith("/setup/admins") &&
+      !pathname.startsWith("/setup/activity-logs")
+    ) {
+      setBusinessMastersOpen(true);
+    }
+  }, [pathname]);
 
   const mainNavItems: NavItem[] = useMemo(() => [
     { icon: <LayoutDashboard size={20} />, name: "Dashboard", path: "/" },
-    { icon: <ClipboardCheck size={20} />, name: "Inventory", path: "/inventory" },
-    { icon: <ReceiptText size={20} />, name: "Purchasing", path: "/purchasing" },
+    { icon: <ClipboardCheck size={20} />, name: "Inventory Foundation API", path: "/inventory" },
+    { icon: <ReceiptText size={20} />, name: "Purchasing Foundation API", path: "/purchasing" },
   ], []);
 
-  const setupChildren: SetupChild[] = useMemo(() => [
+  const navigationGroups: NavGroup[] = useMemo(() => [
+    {
+      name: "Setup Core Foundation API",
+      icon: <Settings size={20} />,
+      children: [
     { name: "Branches",         path: "/setup/branches",         icon: <GitBranch size={14} /> },
     { name: "Roles",            path: "/setup/roles",            icon: <ShieldCheck size={14} /> },
     { name: "Admins",           path: "/setup/admins",           icon: <UserCheck size={14} /> },
+    { name: "Audit Logs",       path: "/setup/activity-logs",    icon: <ScrollText size={14} /> },
+      ],
+    },
+    {
+      name: "Setup Business Masters API",
+      icon: <Database size={20} />,
+      children: [
     { name: "Customers",        path: "/setup/customers",        icon: <ShoppingCart size={14} /> },
     { name: "Suppliers",        path: "/setup/suppliers",        icon: <Truck size={14} /> },
     { name: "UOMs",             path: "/setup/uoms",             icon: <Ruler size={14} /> },
-    { name: "Foods & Feed",     path: "/setup/foods",            icon: <Wheat size={14} /> },
+    { name: "Foods",            path: "/setup/foods",            icon: <Wheat size={14} /> },
     { name: "Medicines",        path: "/setup/medicines",        icon: <Pill size={14} /> },
     { name: "Animals",          path: "/setup/animals",          icon: <PawPrint size={14} /> },
     { name: "Equipment",        path: "/setup/equipment",        icon: <Wrench size={14} /> },
     { name: "Farm Information", path: "/setup/farm-information", icon: <Home size={14} /> },
     { name: "Inventories",      path: "/setup/inventories",      icon: <Warehouse size={14} /> },
-    { name: "Activity Logs",    path: "/setup/activity-logs",    icon: <ScrollText size={14} /> },
+      ],
+    },
   ], []);
 
   const bottomNavItems: NavItem[] = useMemo(() => [
@@ -111,7 +160,7 @@ const AppSidebar: React.FC = () => {
       <div className="flex flex-col justify-between flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar pb-6">
         <nav className="space-y-1.5">
 
-          {/* Main nav */}
+          {showLabels && <p className="px-3.5 pb-1 pt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">Workspace</p>}
           {mainNavItems.map((item) => {
             const active = isActive(item.path);
             return (
@@ -122,74 +171,69 @@ const AppSidebar: React.FC = () => {
             );
           })}
 
-          {/* Setup collapsible */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setSetupOpen((o) => !o)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm transition-all duration-300 border-r-2 border-transparent text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200 ${!isExpanded && !isHovered ? "lg:justify-center lg:px-2" : "justify-between"}`}
-            >
-              <span className="flex items-center gap-3">
-                <Package size={20} className="text-gray-500 dark:text-gray-400 shrink-0" />
-                {showLabels && <span className="truncate">Setup</span>}
-              </span>
-              {showLabels && (setupOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}
-            </button>
+          {showLabels && <p className="px-3.5 pb-1 pt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">Postman API Modules</p>}
+          {navigationGroups.map((group) => {
+            const groupActive = group.children.some((child) => pathname.startsWith(child.path));
+            const isOpen = group.name === "Setup Core Foundation API" ? coreSetupOpen : businessMastersOpen;
+            const setOpen = group.name === "Setup Core Foundation API" ? setCoreSetupOpen : setBusinessMastersOpen;
 
-            {/* Expanded: labeled children */}
-            {setupOpen && showLabels && (
-              <div className="ml-9 mt-1 flex flex-col gap-0.5 border-l border-gray-200 pl-3 dark:border-gray-700">
-                {setupChildren.map((child) => {
-                  const childActive = pathname.startsWith(child.path);
-                  return (
-                    <Link
-                      key={child.name}
-                      href={child.path}
-                      className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold transition-colors ${
-                        childActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-                      }`}
-                    >
-                      <span className="shrink-0">{child.icon}</span>
-                      {child.name}
-                    </Link>
-                  );
-                })}
+            return (
+              <div key={group.name}>
+                <button
+                  type="button"
+                  onClick={() => setOpen((open) => !open)}
+                  title={!showLabels ? group.name : undefined}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm transition-all duration-300 border-r-2 text-sm font-semibold ${
+                    groupActive
+                      ? "bg-[#15803d]/10 dark:bg-[#15803d]/20 text-[#15803d] dark:text-emerald-400 border-[#15803d]"
+                      : "border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                  } ${!isExpanded && !isHovered ? "lg:justify-center lg:px-2" : "justify-between"}`}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className={`shrink-0 ${groupActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}`}>{group.icon}</span>
+                    {showLabels && <span className="min-w-0 truncate">{group.name}</span>}
+                  </span>
+                  {showLabels && (
+                    <ChevronDown
+                      size={16}
+                      className={`ml-2 shrink-0 text-gray-400 transition-transform duration-300 ease-in-out dark:text-gray-500 ${isOpen ? "rotate-180" : "rotate-0"}`}
+                    />
+                  )}
+                </button>
+
+                {showLabels && (
+                  <div
+                    className={`ml-9 grid overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="min-h-0">
+                      <div className="mt-1 flex flex-col gap-0.5 border-l border-gray-200 pl-3 dark:border-gray-700">
+                    {group.children.map((child) => {
+                      const childActive = pathname.startsWith(child.path);
+                      return (
+                        <Link key={child.name} href={child.path} className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}>
+                          <span className="shrink-0">{child.icon}</span>
+                          {child.name}
+                        </Link>
+                      );
+                    })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isOpen && !showLabels && (
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    {group.children.map((child) => {
+                      const childActive = pathname.startsWith(child.path);
+                      return <Link key={child.name} href={child.path} title={child.name} className={`flex justify-center rounded-md px-2 py-2 text-xs transition-colors ${childActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400"}`}>{child.icon}</Link>;
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Collapsed: icon-only children */}
-            {setupOpen && !showLabels && (
-              <div className="flex flex-col gap-0.5 mt-1">
-                {setupChildren.map((child) => {
-                  const childActive = pathname.startsWith(child.path);
-                  return (
-                    <Link
-                      key={child.name}
-                      href={child.path}
-                      title={child.name}
-                      className={`flex justify-center rounded-md px-2 py-2 text-xs transition-colors ${
-                        childActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
-                      }`}
-                    >
-                      {child.icon}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Admin Users quick link */}
-          <Link href="/admins" className={linkClass(isActive("/admins"))}>
-            <UserCheck size={20} className={isActive("/admins") ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500"} />
-            {showLabels && <span className="truncate">Admin Users</span>}
-          </Link>
-
-          {/* Audit Trail quick link */}
-          <Link href="/audit-trail" className={linkClass(isActive("/audit-trail"))}>
-            <History size={20} className={isActive("/audit-trail") ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500"} />
-            {showLabels && <span className="truncate">Audit Trail</span>}
-          </Link>
+            );
+          })}
 
         </nav>
 

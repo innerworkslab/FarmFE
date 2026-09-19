@@ -11,10 +11,12 @@ import {
   BranchPayload,
 } from "@/redux/features/setup/BranchApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import TextArea from "@/components/form/input/TextArea";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, GitBranch } from "lucide-react";
@@ -188,24 +190,12 @@ export default function BranchesPage() {
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-gray-600 hover:text-[#15803d] hover:bg-green-50 dark:hover:bg-green-950/20 rounded-md transition"
-                          title="Edit"
-                        >
-                          <Pencil size={16} />
-                        </button>
+                        <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
                         <Switch
                           checked={item.status === "active"}
                           onClick={() => handleToggle(item.id)}
                         />
-                        <button
-                          onClick={() => setDeletingId(item.id)}
-                          className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <TableActionButton label="Delete" tone="red" onClick={() => setDeletingId(item.id)} icon={<Trash2 size={14} />} />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -266,9 +256,9 @@ export default function BranchesPage() {
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Address
               </label>
-              <textarea
+              <TextArea
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#15803d]"
+                className="h-24"
                 placeholder="Full address details"
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}

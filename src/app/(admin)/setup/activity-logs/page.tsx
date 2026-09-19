@@ -6,10 +6,47 @@ import {
   ActivityLogItem,
 } from "@/redux/features/setup/ActivityLogApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import Input from "@/components/form/input/InputField";
 import Loading from "@/components/common/Loading";
 import { ScrollText, Eye } from "lucide-react";
+
+const formatLogValue = (value: unknown): string => {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (Array.isArray(value)) return value.map(formatLogValue).join(", ");
+  if (typeof value === "object") return "";
+  return String(value);
+};
+
+function LogProperties({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+  if (entries.length === 0) return <p className="text-sm text-gray-500">No properties recorded.</p>;
+
+  return (
+    <div className="space-y-3">
+      {entries.map(([key, value]) => (
+        <div key={key} className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{key}</div>
+          {value && typeof value === "object" && !Array.isArray(value) ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {Object.entries(value as Record<string, unknown>).map(([childKey, childValue]) => (
+                <label key={childKey} className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <span className="mb-1 block">{childKey}</span>
+                  <Input value={formatLogValue(childValue)} disabled />
+                </label>
+              ))}
+            </div>
+          ) : (
+            <Input value={formatLogValue(value)} disabled />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ActivityLogsPage() {
   const [logName, setLogName] = useState("setup");
@@ -90,13 +127,7 @@ export default function ActivityLogsPage() {
                       {item.created_at ? new Date(item.created_at).toLocaleString() : "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
-                      <button
-                        onClick={() => setSelectedLog(item)}
-                        className="p-1.5 text-gray-600 hover:text-[#15803d] hover:bg-green-50 dark:hover:bg-green-950/20 rounded-md transition"
-                        title="View Details"
-                      >
-                        <Eye size={16} />
-                      </button>
+                      <TableActionButton label="View" tone="neutral" onClick={() => setSelectedLog(item)} icon={<Eye size={14} />} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -125,9 +156,7 @@ export default function ActivityLogsPage() {
 
               <div>
                 <span className="text-gray-500 font-semibold block mb-1">Properties / Changes:</span>
-                <pre className="p-3 bg-gray-900 text-green-400 rounded-lg overflow-x-auto text-[11px] max-h-60">
-                  {JSON.stringify(selectedLog.properties || {}, null, 2)}
-                </pre>
+                <LogProperties data={selectedLog.properties || {}} />
               </div>
             </div>
           )}

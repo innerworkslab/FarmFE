@@ -17,14 +17,32 @@ import {
 } from "@/redux/features/purchasing/PurchasingFoundationApiSlice";
 import { useGetInventoryBalancesQuery, useGetInventoryLedgerQuery } from "@/redux/features/inventory/InventoryFoundationApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import Input from "@/components/form/input/InputField";
+import DatePicker from "@/components/form/date-picker";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { CheckCircle2, Eye, ReceiptText, XCircle } from "lucide-react";
 
 type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
 type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt";
+
+type InvoiceForm = {
+  invoice_number: string; invoice_date: string; supplier_id: string; branch_id: string; notes: string;
+  category: string; item_id: string; purchase_uom_id: string; stock_uom_id: string; conversion_factor: string;
+  quantity: string; unit_price: string; discount_type: string; discount_value: string; foc_type: string; foc_value: string;
+  tax_rate: string; target_inventory_id: string; target_location: string;
+};
+
+type ReceiptForm = {
+  receipt_number: string; purchase_invoice_id: string; receipt_date: string; idempotency_key: string; notes: string;
+  purchase_invoice_line_id: string; accepted_quantity: string; accepted_foc_quantity: string; rejected_quantity: string;
+  target_inventory_id: string; target_location: string; supplier_batch_number: string; receipt_lot_number: string;
+  manufacturing_date: string; expiry_date: string; cold_chain_required: boolean; cold_chain_status: string;
+  observed_temperature: string; temperature_uom: string; exception_reason: string;
+};
 
 const foodInvoiceSample: PurchaseInvoicePayload = {
   invoice_number: `PINV-POSTMAN-${Date.now()}`,
@@ -132,6 +150,73 @@ const medicineReceiptSample: PurchaseReceiptPayload = {
   ],
 };
 
+const invoiceFormFromPayload = (payload: PurchaseInvoicePayload): InvoiceForm => {
+  const line = payload.lines[0];
+  return {
+    invoice_number: payload.invoice_number || "", invoice_date: payload.invoice_date, supplier_id: String(payload.supplier_id), branch_id: String(payload.branch_id), notes: payload.notes || "",
+    category: line.category, item_id: String(line.item_id), purchase_uom_id: String(line.purchase_uom_id), stock_uom_id: String(line.stock_uom_id), conversion_factor: String(line.conversion_factor),
+    quantity: String(line.quantity), unit_price: String(line.unit_price), discount_type: line.discount_type || "", discount_value: line.discount_value !== undefined ? String(line.discount_value) : "",
+    foc_type: line.foc_type || "", foc_value: line.foc_value !== undefined ? String(line.foc_value) : "", tax_rate: line.tax_rate !== undefined ? String(line.tax_rate) : "",
+    target_inventory_id: line.target_inventory_id ? String(line.target_inventory_id) : "", target_location: line.target_location || "",
+  };
+};
+
+const invoiceFormFromRecord = (invoice: PurchaseInvoice): InvoiceForm => invoiceFormFromPayload({
+  invoice_number: invoice.invoice_number,
+  invoice_date: invoice.invoice_date,
+  supplier_id: invoice.supplier_id,
+  branch_id: invoice.branch_id,
+  notes: invoice.notes,
+  lines: invoice.lines?.length ? invoice.lines : foodInvoiceSample.lines,
+});
+
+const toInvoicePayload = (form: InvoiceForm, includeInvoiceNumber: boolean): PurchaseInvoicePayload => ({
+  ...(includeInvoiceNumber && form.invoice_number ? { invoice_number: form.invoice_number } : {}),
+  invoice_date: form.invoice_date, supplier_id: Number(form.supplier_id), branch_id: Number(form.branch_id),
+  ...(form.notes ? { notes: form.notes } : {}),
+  lines: [{
+    category: form.category, item_id: Number(form.item_id), purchase_uom_id: Number(form.purchase_uom_id), stock_uom_id: Number(form.stock_uom_id),
+    conversion_factor: Number(form.conversion_factor), quantity: Number(form.quantity), unit_price: Number(form.unit_price),
+    ...(form.discount_type ? { discount_type: form.discount_type } : {}), ...(form.discount_value ? { discount_value: Number(form.discount_value) } : {}),
+    ...(form.foc_type ? { foc_type: form.foc_type } : {}), ...(form.foc_value ? { foc_value: Number(form.foc_value) } : {}),
+    ...(form.tax_rate ? { tax_rate: Number(form.tax_rate) } : {}), ...(form.target_inventory_id ? { target_inventory_id: Number(form.target_inventory_id) } : {}),
+    ...(form.target_location ? { target_location: form.target_location } : {}),
+  }],
+});
+
+const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm => {
+  const line = payload.lines[0];
+  return {
+    receipt_number: payload.receipt_number || "", purchase_invoice_id: String(payload.purchase_invoice_id), receipt_date: payload.receipt_date, idempotency_key: payload.idempotency_key, notes: payload.notes || "",
+    purchase_invoice_line_id: String(line.purchase_invoice_line_id), accepted_quantity: String(line.accepted_quantity), accepted_foc_quantity: line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
+    rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "", target_inventory_id: String(line.target_inventory_id), target_location: line.target_location,
+    supplier_batch_number: line.supplier_batch_number || "", receipt_lot_number: line.receipt_lot_number || "", manufacturing_date: line.manufacturing_date || "", expiry_date: line.expiry_date || "",
+    cold_chain_required: Boolean(line.cold_chain_required), cold_chain_status: line.cold_chain_status || "", observed_temperature: line.observed_temperature !== undefined ? String(line.observed_temperature) : "",
+    temperature_uom: line.temperature_uom || "", exception_reason: line.exception_reason || "",
+  };
+};
+
+const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
+  ...(form.receipt_number ? { receipt_number: form.receipt_number } : {}),
+  purchase_invoice_id: Number(form.purchase_invoice_id), receipt_date: form.receipt_date, idempotency_key: form.idempotency_key,
+  ...(form.notes ? { notes: form.notes } : {}),
+  lines: [{
+    purchase_invoice_line_id: Number(form.purchase_invoice_line_id), accepted_quantity: Number(form.accepted_quantity),
+    ...(form.accepted_foc_quantity ? { accepted_foc_quantity: Number(form.accepted_foc_quantity) } : {}),
+    ...(form.rejected_quantity ? { rejected_quantity: Number(form.rejected_quantity) } : {}),
+    target_inventory_id: Number(form.target_inventory_id), target_location: form.target_location,
+    ...(form.supplier_batch_number ? { supplier_batch_number: form.supplier_batch_number } : {}),
+    ...(form.receipt_lot_number ? { receipt_lot_number: form.receipt_lot_number } : {}),
+    ...(form.manufacturing_date ? { manufacturing_date: form.manufacturing_date } : {}),
+    ...(form.expiry_date ? { expiry_date: form.expiry_date } : {}),
+    ...(form.cold_chain_required ? { cold_chain_required: true } : {}),
+    ...(form.cold_chain_status ? { cold_chain_status: form.cold_chain_status } : {}),
+    ...(form.observed_temperature ? { observed_temperature: Number(form.observed_temperature) } : {}),
+    ...(form.temperature_uom ? { temperature_uom: form.temperature_uom } : {}),
+    ...(form.exception_reason ? { exception_reason: form.exception_reason } : {}),
+  }],
+});
+
 const formatValue = (value: unknown) => {
   if (value === null || value === undefined || value === "") return "-";
   if (typeof value === "object") return JSON.stringify(value);
@@ -144,12 +229,18 @@ const statusClass = (status?: string) => {
   return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
 };
 
+const canEditInvoice = (status?: string) => !status || ["open", "draft"].includes(status);
+const canCancelInvoice = (status?: string) => !status || ["open", "draft"].includes(status);
+const canConfirmReceipt = (status?: string) => !status || ["draft", "open"].includes(status);
+
 export default function PurchasingPage() {
   const [tab, setTab] = useState<PurchasingTab>("invoices");
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetInvoice, setTargetInvoice] = useState<PurchaseInvoice | null>(null);
-  const [jsonText, setJsonText] = useState("");
+  const [invoiceForm, setInvoiceForm] = useState<InvoiceForm>(() => invoiceFormFromPayload(foodInvoiceSample));
+  const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() => receiptFormFromPayload(receiptSample));
+  const [cancelReason, setCancelReason] = useState("Supplier cancelled before any receipt.");
 
   const { data: invoicesData, isLoading: invoicesLoading } = useGetPurchaseInvoicesQuery({ per_page: 15 });
   const { data: receiptsData, isLoading: receiptsLoading } = useGetPurchaseReceiptsQuery({ per_page: 15 });
@@ -190,26 +281,27 @@ export default function PurchasingPage() {
     [balances.length, invoices.length, ledger.length, receipts.length]
   );
 
-  const openJsonAction = (action: JsonAction, sample: unknown, invoice?: PurchaseInvoice) => {
+  const openFormAction = (action: JsonAction, sample?: PurchaseInvoicePayload | PurchaseReceiptPayload, invoice?: PurchaseInvoice) => {
     setJsonAction(action);
     setTargetInvoice(invoice || null);
-    setJsonText(JSON.stringify(sample, null, 2));
+    if (action === "createInvoice" && sample) setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
+    if (action === "updateInvoice" && invoice) setInvoiceForm(invoiceFormFromRecord(invoice));
+    if (action === "updateInvoice" && !invoice && sample) setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
+    if (action === "createReceipt" && sample) setReceiptForm(receiptFormFromPayload(sample as PurchaseReceiptPayload));
+    if (action === "cancelInvoice") setCancelReason("Supplier cancelled before any receipt.");
   };
 
-  const runJsonAction = async () => {
+  const runFormAction = async () => {
     if (!jsonAction) return;
     try {
-      const parsed = JSON.parse(jsonText);
-      let result: unknown;
-      if (jsonAction === "createInvoice") result = await createInvoice(parsed).unwrap();
+      if (jsonAction === "createInvoice") await createInvoice(toInvoicePayload(invoiceForm, true)).unwrap();
       if (jsonAction === "updateInvoice" && targetInvoice) {
-        result = await updateInvoice({ id: targetInvoice.id, body: parsed }).unwrap();
+        await updateInvoice({ id: targetInvoice.id, body: toInvoicePayload(invoiceForm, false) }).unwrap();
       }
       if (jsonAction === "cancelInvoice" && targetInvoice) {
-        result = await cancelInvoice({ id: targetInvoice.id, reason: parsed.reason }).unwrap();
+        await cancelInvoice({ id: targetInvoice.id, reason: cancelReason }).unwrap();
       }
-      if (jsonAction === "createReceipt") result = await createReceipt(parsed).unwrap();
-      setSelectedJson(result);
+      if (jsonAction === "createReceipt") await createReceipt(toReceiptPayload(receiptForm)).unwrap();
       setJsonAction(null);
       toast.success("Purchasing API request saved successfully");
     } catch (error: unknown) {
@@ -220,8 +312,7 @@ export default function PurchasingPage() {
 
   const runConfirmReceipt = async (id: number) => {
     try {
-      const result = await confirmReceipt(id).unwrap();
-      setSelectedJson(result);
+      await confirmReceipt(id).unwrap();
       toast.success("Purchase receipt confirmed and posted");
     } catch (error: unknown) {
       const err = error as { data?: { message?: string } };
@@ -256,10 +347,10 @@ export default function PurchasingPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => openJsonAction("createInvoice", foodInvoiceSample)}>Food Invoice</Button>
-          <Button size="sm" variant="outline" onClick={() => openJsonAction("createInvoice", medicineInvoiceSample)}>Medicine Invoice</Button>
-          <Button size="sm" variant="outline" onClick={() => openJsonAction("createReceipt", receiptSample)}>Food Receipt</Button>
-          <Button size="sm" variant="outline" onClick={() => openJsonAction("createReceipt", medicineReceiptSample)}>Medicine Receipt</Button>
+          <Button size="sm" onClick={() => openFormAction("createInvoice", foodInvoiceSample)}>Food Invoice</Button>
+          <Button size="sm" variant="outline" onClick={() => openFormAction("createInvoice", medicineInvoiceSample)}>Medicine Invoice</Button>
+          <Button size="sm" variant="outline" onClick={() => openFormAction("createReceipt", receiptSample)}>Food Receipt</Button>
+          <Button size="sm" variant="outline" onClick={() => openFormAction("createReceipt", medicineReceiptSample)}>Medicine Receipt</Button>
         </div>
       </div>
 
@@ -301,9 +392,9 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <div className="flex flex-wrap gap-1.5">
-                      <IconButton title="Show purchase invoice" onClick={() => showSavedResponse("invoice", item.id, item)} icon={<Eye size={15} />} />
-                      <IconButton title="Update invoice" onClick={() => openJsonAction("updateInvoice", foodInvoiceUpdateSample, item)} icon={<ReceiptText size={15} />} />
-                      <IconButton title="Cancel invoice" onClick={() => openJsonAction("cancelInvoice", { reason: "Supplier cancelled before any receipt." }, item)} icon={<XCircle size={15} />} />
+                      <TableActionButton label="View" tone="neutral" onClick={() => showSavedResponse("invoice", item.id, item)} icon={<Eye size={14} />} />
+                      {canEditInvoice(item.status) && <TableActionButton label="Update" tone="neutral" onClick={() => openFormAction("updateInvoice", foodInvoiceUpdateSample, item)} icon={<ReceiptText size={14} />} />}
+                      {canCancelInvoice(item.status) && <TableActionButton label="Cancel" tone="red" onClick={() => openFormAction("cancelInvoice", undefined, item)} icon={<XCircle size={14} />} />}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -334,8 +425,8 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">{item.lines?.length || 0}</TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <div className="flex flex-wrap gap-1.5">
-                      <IconButton title="Show purchase receipt" onClick={() => showSavedResponse("receipt", item.id, item)} icon={<Eye size={15} />} />
-                      <IconButton title="Confirm and post stock" onClick={() => runConfirmReceipt(item.id)} icon={<CheckCircle2 size={15} />} />
+                      <TableActionButton label="View" tone="neutral" onClick={() => showSavedResponse("receipt", item.id, item)} icon={<Eye size={14} />} />
+                      {canConfirmReceipt(item.status) && <TableActionButton label="Confirm" tone="green" onClick={() => runConfirmReceipt(item.id)} icon={<CheckCircle2 size={14} />} />}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -353,31 +444,22 @@ export default function PurchasingPage() {
         <SimpleObjectTable loading={ledgerLoading} empty="No purchase ledger entries found." rows={ledger} preferredKeys={["transaction_date", "transaction_type", "source_type", "source_id", "item_id", "quantity", "balance_after"]} onView={setSelectedJson} />
       )}
 
-      <JsonModal
-        title={jsonAction?.includes("Invoice") ? "Postman Invoice Payload" : jsonAction === "cancelInvoice" ? "Cancel Reason Payload" : "Postman Receipt Payload"}
+      <PurchasingActionModal
+        action={jsonAction}
         isOpen={!!jsonAction}
-        jsonText={jsonText}
+        invoiceForm={invoiceForm}
+        receiptForm={receiptForm}
+        cancelReason={cancelReason}
         isSaving={isMutating}
-        onChange={setJsonText}
+        onInvoiceChange={setInvoiceForm}
+        onReceiptChange={setReceiptForm}
+        onCancelReasonChange={setCancelReason}
         onClose={() => setJsonAction(null)}
-        onSubmit={runJsonAction}
+        onSubmit={runFormAction}
       />
 
       <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} />
     </div>
-  );
-}
-
-function IconButton({ title, icon, onClick }: { title: string; icon: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className="rounded-md p-1.5 text-gray-600 transition hover:bg-green-50 hover:text-[#15803d] dark:text-gray-300 dark:hover:bg-green-950/20"
-    >
-      {icon}
-    </button>
   );
 }
 
@@ -432,7 +514,7 @@ function SimpleObjectTable({
                   <TableCell key={key} className="max-w-[220px] truncate px-5 py-3.5 text-sm text-gray-500">{formatValue(row[key])}</TableCell>
                 ))}
                 <TableCell className="px-5 py-3.5 text-sm">
-                  <IconButton title="View saved response" onClick={() => onView(row)} icon={<Eye size={15} />} />
+                  <TableActionButton label="View" tone="neutral" onClick={() => onView(row)} icon={<Eye size={14} />} />
                 </TableCell>
               </TableRow>
             ))}
@@ -443,49 +525,192 @@ function SimpleObjectTable({
   );
 }
 
-function JsonModal({
-  title,
+function PurchasingActionModal({
+  action,
   isOpen,
-  jsonText,
+  invoiceForm,
+  receiptForm,
+  cancelReason,
   isSaving,
-  onChange,
+  onInvoiceChange,
+  onReceiptChange,
+  onCancelReasonChange,
   onClose,
   onSubmit,
 }: {
-  title: string;
+  action: JsonAction | null;
   isOpen: boolean;
-  jsonText: string;
+  invoiceForm: InvoiceForm;
+  receiptForm: ReceiptForm;
+  cancelReason: string;
   isSaving: boolean;
-  onChange: (value: string) => void;
+  onInvoiceChange: React.Dispatch<React.SetStateAction<InvoiceForm>>;
+  onReceiptChange: React.Dispatch<React.SetStateAction<ReceiptForm>>;
+  onCancelReasonChange: (value: string) => void;
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const setInvoiceField = (key: keyof InvoiceForm, value: string) => onInvoiceChange((current) => ({ ...current, [key]: value }));
+  const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => onReceiptChange((current) => ({ ...current, [key]: value }));
+  const selectClass = "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
+  const title = action === "createInvoice" ? "Create Purchase Invoice" : action === "updateInvoice" ? "Update Purchase Invoice" : action === "cancelInvoice" ? "Cancel Purchase Invoice" : "Create Purchase Receipt";
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-[820px]">
+    <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-4xl">
       <div className="space-y-4 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
-        <textarea
-          value={jsonText}
-          onChange={(event) => onChange(event.target.value)}
-          className="min-h-[360px] w-full rounded-lg border border-gray-300 bg-white p-4 font-mono text-xs text-gray-800 outline-none focus:border-[#15803d] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-        />
+        <p className="text-sm text-gray-500">These fields produce the required Postman request payload.</p>
+
+        {action === "cancelInvoice" && (
+          <FormField label="Reason" required>
+            <Input value={cancelReason} onChange={(event) => onCancelReasonChange(event.target.value)} />
+          </FormField>
+        )}
+
+        {(action === "createInvoice" || action === "updateInvoice") && (
+          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-2">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {action === "createInvoice" && <FormField label="Invoice Number"><Input value={invoiceForm.invoice_number} onChange={(event) => setInvoiceField("invoice_number", event.target.value)} /></FormField>}
+              <FormField label="Invoice Date" required><DatePicker id="purchase-invoice-date" defaultDate={invoiceForm.invoice_date || undefined} placeholder="Select invoice date" onChange={(_, dateStr) => setInvoiceField("invoice_date", dateStr)} /></FormField>
+              <FormField label="Supplier ID" required><Input type="number" min="1" value={invoiceForm.supplier_id} onChange={(event) => setInvoiceField("supplier_id", event.target.value)} /></FormField>
+              <FormField label="Branch ID" required><Input type="number" min="1" value={invoiceForm.branch_id} onChange={(event) => setInvoiceField("branch_id", event.target.value)} /></FormField>
+              <FormField label="Notes"><Input value={invoiceForm.notes} onChange={(event) => setInvoiceField("notes", event.target.value)} /></FormField>
+            </section>
+
+            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Invoice Line</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField label="Category" required><select value={invoiceForm.category} onChange={(event) => setInvoiceField("category", event.target.value)} className={selectClass}><option value="food">food</option><option value="medicine">medicine</option></select></FormField>
+                <FormField label="Item ID" required><Input type="number" min="1" value={invoiceForm.item_id} onChange={(event) => setInvoiceField("item_id", event.target.value)} /></FormField>
+                <FormField label="Purchase UOM ID" required><Input type="number" min="1" value={invoiceForm.purchase_uom_id} onChange={(event) => setInvoiceField("purchase_uom_id", event.target.value)} /></FormField>
+                <FormField label="Stock UOM ID" required><Input type="number" min="1" value={invoiceForm.stock_uom_id} onChange={(event) => setInvoiceField("stock_uom_id", event.target.value)} /></FormField>
+                <FormField label="Conversion Factor" required><Input type="number" step="any" value={invoiceForm.conversion_factor} onChange={(event) => setInvoiceField("conversion_factor", event.target.value)} /></FormField>
+                <FormField label="Quantity" required><Input type="number" step="any" value={invoiceForm.quantity} onChange={(event) => setInvoiceField("quantity", event.target.value)} /></FormField>
+                <FormField label="Unit Price" required><Input type="number" step="any" value={invoiceForm.unit_price} onChange={(event) => setInvoiceField("unit_price", event.target.value)} /></FormField>
+                <FormField label="Discount Type"><select value={invoiceForm.discount_type} onChange={(event) => setInvoiceField("discount_type", event.target.value)} className={selectClass}><option value="">none</option><option value="percentage">percentage</option><option value="amount">amount</option></select></FormField>
+                <FormField label="Discount Value"><Input type="number" step="any" value={invoiceForm.discount_value} onChange={(event) => setInvoiceField("discount_value", event.target.value)} /></FormField>
+                <FormField label="FOC Type"><select value={invoiceForm.foc_type} onChange={(event) => setInvoiceField("foc_type", event.target.value)} className={selectClass}><option value="">none</option><option value="quantity">quantity</option><option value="amount">amount</option></select></FormField>
+                <FormField label="FOC Value"><Input type="number" step="any" value={invoiceForm.foc_value} onChange={(event) => setInvoiceField("foc_value", event.target.value)} /></FormField>
+                <FormField label="Tax Rate"><Input type="number" step="any" value={invoiceForm.tax_rate} onChange={(event) => setInvoiceField("tax_rate", event.target.value)} /></FormField>
+                <FormField label="Target Inventory ID"><Input type="number" min="1" value={invoiceForm.target_inventory_id} onChange={(event) => setInvoiceField("target_inventory_id", event.target.value)} /></FormField>
+                <FormField label="Target Location"><Input value={invoiceForm.target_location} onChange={(event) => setInvoiceField("target_location", event.target.value)} /></FormField>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {action === "createReceipt" && (
+          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-2">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="Receipt Number"><Input value={receiptForm.receipt_number} onChange={(event) => setReceiptField("receipt_number", event.target.value)} /></FormField>
+              <FormField label="Purchase Invoice ID" required><Input type="number" min="1" value={receiptForm.purchase_invoice_id} onChange={(event) => setReceiptField("purchase_invoice_id", event.target.value)} /></FormField>
+              <FormField label="Receipt Date" required><DatePicker id="purchase-receipt-date" defaultDate={receiptForm.receipt_date || undefined} placeholder="Select receipt date" onChange={(_, dateStr) => setReceiptField("receipt_date", dateStr)} /></FormField>
+              <FormField label="Idempotency Key" required><Input value={receiptForm.idempotency_key} onChange={(event) => setReceiptField("idempotency_key", event.target.value)} /></FormField>
+              <FormField label="Notes"><Input value={receiptForm.notes} onChange={(event) => setReceiptField("notes", event.target.value)} /></FormField>
+            </section>
+
+            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Receipt Line</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField label="Purchase Invoice Line ID" required><Input type="number" min="1" value={receiptForm.purchase_invoice_line_id} onChange={(event) => setReceiptField("purchase_invoice_line_id", event.target.value)} /></FormField>
+                <FormField label="Accepted Quantity" required><Input type="number" step="any" value={receiptForm.accepted_quantity} onChange={(event) => setReceiptField("accepted_quantity", event.target.value)} /></FormField>
+                <FormField label="Accepted FOC Quantity"><Input type="number" step="any" value={receiptForm.accepted_foc_quantity} onChange={(event) => setReceiptField("accepted_foc_quantity", event.target.value)} /></FormField>
+                <FormField label="Rejected Quantity"><Input type="number" step="any" value={receiptForm.rejected_quantity} onChange={(event) => setReceiptField("rejected_quantity", event.target.value)} /></FormField>
+                <FormField label="Target Inventory ID" required><Input type="number" min="1" value={receiptForm.target_inventory_id} onChange={(event) => setReceiptField("target_inventory_id", event.target.value)} /></FormField>
+                <FormField label="Target Location" required><Input value={receiptForm.target_location} onChange={(event) => setReceiptField("target_location", event.target.value)} /></FormField>
+                <FormField label="Supplier Batch Number"><Input value={receiptForm.supplier_batch_number} onChange={(event) => setReceiptField("supplier_batch_number", event.target.value)} /></FormField>
+                <FormField label="Receipt Lot Number"><Input value={receiptForm.receipt_lot_number} onChange={(event) => setReceiptField("receipt_lot_number", event.target.value)} /></FormField>
+                <FormField label="Manufacturing Date"><DatePicker id="purchase-receipt-manufacturing-date" defaultDate={receiptForm.manufacturing_date || undefined} placeholder="Select manufacturing date" onChange={(_, dateStr) => setReceiptField("manufacturing_date", dateStr)} /></FormField>
+                <FormField label="Expiry Date"><DatePicker id="purchase-receipt-expiry-date" defaultDate={receiptForm.expiry_date || undefined} placeholder="Select expiry date" onChange={(_, dateStr) => setReceiptField("expiry_date", dateStr)} /></FormField>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"><input type="checkbox" checked={receiptForm.cold_chain_required} onChange={(event) => setReceiptField("cold_chain_required", event.target.checked)} /> Cold chain required</label>
+                <FormField label="Cold Chain Status"><select value={receiptForm.cold_chain_status} onChange={(event) => setReceiptField("cold_chain_status", event.target.value)} className={selectClass}><option value="">none</option><option value="breached">breached</option><option value="ok">ok</option></select></FormField>
+                <FormField label="Observed Temperature"><Input type="number" step="any" value={receiptForm.observed_temperature} onChange={(event) => setReceiptField("observed_temperature", event.target.value)} /></FormField>
+                <FormField label="Temperature UOM"><Input value={receiptForm.temperature_uom} onChange={(event) => setReceiptField("temperature_uom", event.target.value)} /></FormField>
+                <FormField label="Exception Reason"><Input value={receiptForm.exception_reason} onChange={(event) => setReceiptField("exception_reason", event.target.value)} /></FormField>
+              </div>
+            </section>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
           <Button type="button" size="sm" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="button" size="sm" disabled={isSaving} onClick={onSubmit}>{isSaving ? "Saving..." : "Save Response"}</Button>
+          <Button type="button" size="sm" disabled={isSaving || (action === "cancelInvoice" && !cancelReason.trim())} onClick={onSubmit}>{isSaving ? "Saving..." : "Save"}</Button>
         </div>
       </div>
     </Modal>
   );
 }
 
+function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"><span className="mb-1.5 block">{label}{required && <span className="ml-1 text-red-500">*</span>}</span>{children}</label>;
+}
+
+const responseRecord = (data: unknown): Record<string, unknown> | null => {
+  if (!data || typeof data !== "object") return null;
+  const wrapper = data as { data?: unknown };
+  const value = wrapper.data && typeof wrapper.data === "object" ? wrapper.data : data;
+  return value as Record<string, unknown>;
+};
+
 function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () => void }) {
+  const record = responseRecord(data);
+  const fieldEntries = Object.entries(record || {}).filter(([, value]) => !Array.isArray(value) && (value === null || typeof value !== "object"));
+  const lines = Array.isArray(record?.lines) ? record.lines as Record<string, unknown>[] : [];
+  const lineKeys = [
+    "line_number",
+    "category",
+    "item_id",
+    "quantity",
+    "accepted_quantity",
+    "target_inventory_id",
+    "target_location",
+    "receipt_lot_number",
+    "cold_chain_status",
+  ];
+
   return (
-    <Modal isOpen={!!data} onClose={onClose} className="m-4 max-w-[820px]">
+    <Modal isOpen={!!data} onClose={onClose} className="m-4 max-w-5xl">
       <div className="space-y-4 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Saved API Response</h2>
-        <pre className="max-h-[520px] overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-100">
-          {JSON.stringify(data, null, 2)}
-        </pre>
+        {!record ? (
+          <p className="text-sm text-gray-500">No response data found.</p>
+        ) : (
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {fieldEntries.map(([key, value]) => (
+                <FormField key={key} label={key}>
+                  <Input value={formatValue(value)} disabled />
+                </FormField>
+              ))}
+            </section>
+
+            {lines.length > 0 && (
+              <section className="rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="border-b border-gray-100 px-4 py-3 text-sm font-bold text-gray-800 dark:border-gray-800 dark:text-white">Lines</div>
+                <div className="max-w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                      <TableRow>
+                        {lineKeys.map((key) => (
+                          <TableCell key={key} isHeader className="px-4 py-3 text-start text-xs font-medium text-gray-500">{key}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                      {lines.map((line, index) => (
+                        <TableRow key={String(line.id || index)}>
+                          {lineKeys.map((key) => (
+                            <TableCell key={key} className="px-4 py-3 text-sm text-gray-500">{formatValue(line[key])}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
     </Modal>
   );

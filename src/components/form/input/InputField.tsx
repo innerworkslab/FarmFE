@@ -1,4 +1,5 @@
 import React from "react";
+import { CalendarDays } from "lucide-react";
 
 // Extend the standard input attributes
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -22,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const isDateInput = props.type === "date" || props.type === "datetime-local";
 
     // Determine input styles based on state (disabled, success, error)
-    let inputClasses = `h-11 w-full rounded-lg border ${isDateInput ? "" : "appearance-none"} px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
+    let inputClasses = `h-11 w-full rounded-lg border ${isDateInput ? "" : "appearance-none"} px-4 py-2.5 ${isDateInput ? "pr-11" : ""} text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
 
     // Add styles for the different states
     if (disabled) {
@@ -43,6 +44,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={inputClasses}
           {...props} // Spread all other props
         />
+
+        {isDateInput && (
+          <CalendarDays
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+          />
+        )}
 
         {/* Optional Hint Text */}
         {hint && (

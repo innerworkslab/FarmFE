@@ -11,6 +11,7 @@ import {
 } from "@/redux/features/setup/EquipmentApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
@@ -183,20 +184,8 @@ export default function EquipmentPage() {
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.supplier?.name || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-gray-600 hover:text-[#15803d] hover:bg-green-50 dark:hover:bg-green-950/20 rounded-md transition"
-                          title="Edit"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => setDeletingId(item.id)}
-                          className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
+                        <TableActionButton label="Delete" tone="red" onClick={() => setDeletingId(item.id)} icon={<Trash2 size={14} />} />
                       </div>
                     </TableCell>
                   </TableRow>
