@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   PurchaseInvoice,
   PurchaseInvoicePayload,
@@ -234,7 +235,11 @@ const canCancelInvoice = (status?: string) => !status || ["open", "draft"].inclu
 const canConfirmReceipt = (status?: string) => !status || ["draft", "open"].includes(status);
 
 export default function PurchasingPage() {
-  const [tab, setTab] = useState<PurchasingTab>("invoices");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: PurchasingTab =
+    tabParam === "receipts" || tabParam === "balances" || tabParam === "ledger" ? tabParam : "invoices";
+  const [tab, setTab] = useState<PurchasingTab>(initialTab);
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetInvoice, setTargetInvoice] = useState<PurchaseInvoice | null>(null);
@@ -280,6 +285,12 @@ export default function PurchasingPage() {
     ],
     [balances.length, invoices.length, ledger.length, receipts.length]
   );
+
+  React.useEffect(() => {
+    if (tabParam === "invoices" || tabParam === "receipts" || tabParam === "balances" || tabParam === "ledger") {
+      setTab(tabParam);
+    }
+  }, [tabParam]);
 
   const openFormAction = (action: JsonAction, sample?: PurchaseInvoicePayload | PurchaseReceiptPayload, invoice?: PurchaseInvoice) => {
     setJsonAction(action);

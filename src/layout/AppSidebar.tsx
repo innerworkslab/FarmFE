@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
   LayoutDashboard,
@@ -47,6 +47,10 @@ type NavGroup = {
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
+  const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith("/inventory"));
+  const [purchasingOpen, setPurchasingOpen] = useState(pathname.startsWith("/purchasing"));
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
       pathname.startsWith("/setup/roles") ||
@@ -62,6 +66,9 @@ const AppSidebar: React.FC = () => {
   );
 
   useEffect(() => {
+    if (pathname.startsWith("/inventory")) setInventoryOpen(true);
+    if (pathname.startsWith("/purchasing")) setPurchasingOpen(true);
+
     if (
       pathname.startsWith("/setup/branches") ||
       pathname.startsWith("/setup/roles") ||
@@ -84,8 +91,29 @@ const AppSidebar: React.FC = () => {
 
   const mainNavItems: NavItem[] = useMemo(() => [
     { icon: <LayoutDashboard size={20} />, name: "Dashboard", path: "/" },
-    { icon: <ClipboardCheck size={20} />, name: "Inventory Foundation API", path: "/inventory" },
-    { icon: <ReceiptText size={20} />, name: "Purchasing Foundation API", path: "/purchasing" },
+  ], []);
+
+  const foundationGroups: NavGroup[] = useMemo(() => [
+    {
+      name: "Inventory Foundation API",
+      icon: <ClipboardCheck size={20} />,
+      children: [
+        { name: "Adjustments", path: "/inventory?tab=adjustments", icon: <ClipboardCheck size={14} /> },
+        { name: "Balances", path: "/inventory?tab=balances", icon: <Database size={14} /> },
+        { name: "Ledger", path: "/inventory?tab=ledger", icon: <ScrollText size={14} /> },
+        { name: "Confirmations", path: "/inventory?tab=confirmations", icon: <ShieldCheck size={14} /> },
+      ],
+    },
+    {
+      name: "Purchasing Foundation API",
+      icon: <ReceiptText size={20} />,
+      children: [
+        { name: "Purchase Invoices", path: "/purchasing?tab=invoices", icon: <ReceiptText size={14} /> },
+        { name: "Receipts", path: "/purchasing?tab=receipts", icon: <ClipboardCheck size={14} /> },
+        { name: "Inventory Checks", path: "/purchasing?tab=balances", icon: <Database size={14} /> },
+        { name: "Purchase Ledger", path: "/purchasing?tab=ledger", icon: <ScrollText size={14} /> },
+      ],
+    },
   ], []);
 
   const navigationGroups: NavGroup[] = useMemo(() => [
@@ -124,6 +152,18 @@ const AppSidebar: React.FC = () => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   }, [pathname]);
+
+  const isChildActive = useCallback((path: string) => {
+    const [childPath, query] = path.split("?");
+    if (pathname !== childPath) return false;
+    if (!query) return true;
+    const params = new URLSearchParams(query);
+    const tab = params.get("tab");
+    if (!currentTab && ((childPath === "/inventory" && tab === "adjustments") || (childPath === "/purchasing" && tab === "invoices"))) {
+      return true;
+    }
+    return tab === currentTab;
+  }, [currentTab, pathname]);
 
   const showLabels = isExpanded || isHovered || isMobileOpen;
 
@@ -168,6 +208,69 @@ const AppSidebar: React.FC = () => {
                 <span className={active ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}>{item.icon}</span>
                 {showLabels && <span className="truncate">{item.name}</span>}
               </Link>
+            );
+          })}
+
+          {foundationGroups.map((group) => {
+            const groupActive = group.children.some((child) => isChildActive(child.path)) || pathname.startsWith(group.children[0].path.split("?")[0]);
+            const isOpen = group.name === "Inventory Foundation API" ? inventoryOpen : purchasingOpen;
+            const setOpen = group.name === "Inventory Foundation API" ? setInventoryOpen : setPurchasingOpen;
+
+            return (
+              <div key={group.name}>
+                <button
+                  type="button"
+                  onClick={() => setOpen((open) => !open)}
+                  title={!showLabels ? group.name : undefined}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm transition-all duration-300 border-r-2 text-sm font-semibold ${
+                    groupActive
+                      ? "bg-[#15803d]/10 dark:bg-[#15803d]/20 text-[#15803d] dark:text-emerald-400 border-[#15803d]"
+                      : "border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-gray-900 dark:hover:text-gray-200"
+                  } ${!isExpanded && !isHovered ? "lg:justify-center lg:px-2" : "justify-between"}`}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className={`shrink-0 ${groupActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}`}>{group.icon}</span>
+                    {showLabels && <span className="min-w-0 truncate">{group.name}</span>}
+                  </span>
+                  {showLabels && (
+                    <ChevronDown
+                      size={16}
+                      className={`ml-2 shrink-0 text-gray-400 transition-transform duration-300 ease-in-out dark:text-gray-500 ${isOpen ? "rotate-180" : "rotate-0"}`}
+                    />
+                  )}
+                </button>
+
+                {showLabels && (
+                  <div
+                    className={`ml-9 grid overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="min-h-0">
+                      <div className="mt-1 flex flex-col gap-0.5 border-l border-gray-200 pl-3 dark:border-gray-700">
+                        {group.children.map((child) => {
+                          const childActive = isChildActive(child.path);
+                          return (
+                            <Link key={child.name} href={child.path} className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}>
+                              <span className="shrink-0">{child.icon}</span>
+                              {child.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isOpen && !showLabels && (
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    {group.children.map((child) => {
+                      const childActive = isChildActive(child.path);
+                      return <Link key={child.name} href={child.path} title={child.name} className={`flex justify-center rounded-md px-2 py-2 text-xs transition-colors ${childActive ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400"}`}>{child.icon}</Link>;
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   InventoryAdjustment,
   InventoryAdjustmentPayload,
@@ -34,7 +35,7 @@ import { useGetEquipmentListQuery } from "@/redux/features/setup/EquipmentApiSli
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
 import { toast } from "sonner";
-import { CheckCircle2, ClipboardCheck, Eye, RotateCcw, Send, XCircle } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, Plus, RotateCcw, Send, XCircle } from "lucide-react";
 
 type InventoryTab = "adjustments" | "balances" | "ledger" | "confirmations";
 type JsonAction = "create" | "update" | "reverse" | "reject";
@@ -201,7 +202,11 @@ const formatValue = (value: unknown) => {
 };
 
 export default function InventoryPage() {
-  const [tab, setTab] = useState<InventoryTab>("adjustments");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: InventoryTab =
+    tabParam === "balances" || tabParam === "ledger" || tabParam === "confirmations" ? tabParam : "adjustments";
+  const [tab, setTab] = useState<InventoryTab>(initialTab);
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetAdjustment, setTargetAdjustment] = useState<InventoryAdjustment | null>(null);
@@ -252,15 +257,30 @@ export default function InventoryPage() {
     reverseState.isLoading ||
     rejectState.isLoading;
 
-  const tabs = useMemo(
-    () => [
-      { key: "adjustments" as const, label: "Adjustments", count: adjustments.length },
-      { key: "balances" as const, label: "Balances", count: balances.length },
-      { key: "ledger" as const, label: "Ledger", count: ledger.length },
-      { key: "confirmations" as const, label: "Confirmations", count: confirmations.length },
-    ],
-    [adjustments.length, balances.length, confirmations.length, ledger.length]
-  );
+  const pageMeta = {
+    adjustments: {
+      title: "Inventory Adjustments",
+      description: "Create drafts, submit checker requests, confirm postings, reject submissions, and reverse confirmed adjustments.",
+    },
+    balances: {
+      title: "Inventory Balances",
+      description: "Review saved stock balances by item, inventory, location, and lot.",
+    },
+    ledger: {
+      title: "Inventory Ledger",
+      description: "Review posted inventory movements and balance-after history.",
+    },
+    confirmations: {
+      title: "Inventory Confirmations",
+      description: "Review pending, confirmed, and rejected inventory confirmation records.",
+    },
+  }[tab];
+
+  React.useEffect(() => {
+    if (tabParam === "adjustments" || tabParam === "balances" || tabParam === "ledger" || tabParam === "confirmations") {
+      setTab(tabParam);
+    }
+  }, [tabParam]);
 
   const openFormAction = (action: JsonAction, adjustment?: InventoryAdjustment, sample?: InventoryAdjustmentPayload) => {
     setJsonAction(action);
@@ -321,40 +341,29 @@ export default function InventoryPage() {
           <div className="flex items-center gap-2">
             <ClipboardCheck className="text-[#15803d] dark:text-emerald-400" size={26} />
             <h1 className="text-2xl font-extrabold tracking-tight text-[#1E293B] dark:text-white">
-              Inventory
+              {pageMeta.title}
             </h1>
           </div>
           <p className="mt-1 text-sm text-[#64748B] dark:text-gray-400">
-            Adjustment workflow, saved balances, ledger entries, and confirmations from the Postman inventory collection.
+            {pageMeta.description}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => openFormAction("create", undefined, createAdjustmentSample)}>
-            Create Opening Balance
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => openFormAction("create", undefined, stockOutSample)}>
-            Create Stock Out
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => openFormAction("create", undefined, rejectDraftSample)}>
-            Create Reject Draft
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setTab(item.key)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-              tab === item.key
-                ? "bg-[#15803d] text-white"
-                : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-            }`}
-          >
-            {item.label} <span className="ml-1 opacity-75">{item.count}</span>
-          </button>
-        ))}
+        {tab === "adjustments" && (
+          <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
+            <Button size="sm" className="justify-center gap-2 whitespace-nowrap" onClick={() => openFormAction("create", undefined, createAdjustmentSample)}>
+              <Plus size={15} />
+              Opening Balance
+            </Button>
+            <Button size="sm" variant="outline" className="justify-center gap-2 whitespace-nowrap" onClick={() => openFormAction("create", undefined, stockOutSample)}>
+              <Send size={15} />
+              Stock Out
+            </Button>
+            <Button size="sm" variant="outline" className="justify-center gap-2 whitespace-nowrap" onClick={() => openFormAction("create", undefined, rejectDraftSample)}>
+              <XCircle size={15} />
+              Reject Draft
+            </Button>
+          </div>
+        )}
       </div>
 
       {tab === "adjustments" && (
