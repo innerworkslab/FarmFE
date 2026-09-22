@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, HeartPulse, Pill, Search, Skull, Users } from "lucide-react";
+import { Eye, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
@@ -345,27 +345,6 @@ export default function FarmAnimalViewPage() {
                         icon={<Eye size={14} />}
                         onClick={() => showDetail(animal)}
                       />
-                      <TableActionButton
-                        label="Food"
-                        tone="green"
-                        icon={<HeartPulse size={14} />}
-                        disabled
-                        title="No matching POST API in this Postman collection"
-                      />
-                      <TableActionButton
-                        label="Medicine"
-                        tone="blue"
-                        icon={<Pill size={14} />}
-                        disabled
-                        title="No matching POST API in this Postman collection"
-                      />
-                      <TableActionButton
-                        label="Defect / Death"
-                        tone="red"
-                        icon={<Skull size={14} />}
-                        disabled
-                        title="No matching POST API in this Postman collection"
-                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -430,19 +409,16 @@ function AnimalDetailModal({
         {isLoading ? (
           <Loading />
         ) : (
-          <div className="grid max-h-[65vh] gap-4 overflow-y-auto pr-1 sm:grid-cols-2">
+          <dl className="grid max-h-[65vh] overflow-y-auto border-t border-gray-100 pr-1 dark:border-white/[0.06] sm:grid-cols-2 sm:gap-x-8">
             {fields.map(([label, fieldValue]) => (
-              <div
-                key={label}
-                className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900"
-              >
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+              <div key={label} className="border-b border-gray-100 py-3.5 dark:border-white/[0.06]">
+                <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</dt>
+                <dd className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                   {value(fieldValue as string | number | null)}
-                </p>
+                </dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
       </div>
     </Modal>
