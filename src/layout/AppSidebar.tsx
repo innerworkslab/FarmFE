@@ -24,6 +24,7 @@ import {
   ClipboardCheck,
   ReceiptText,
   Database,
+  MapPin,
 } from "lucide-react";
 
 type NavItem = {
@@ -55,6 +56,7 @@ const AppSidebar: React.FC = () => {
     pathname.startsWith("/farms/animal-view")
   );
   const [farmFeedingOpen, setFarmFeedingOpen] = useState(pathname.startsWith("/farms/feedings"));
+  const [farmNavigationOpen, setFarmNavigationOpen] = useState(pathname === "/farms");
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
       pathname.startsWith("/setup/roles") ||
@@ -74,6 +76,7 @@ const AppSidebar: React.FC = () => {
     if (pathname.startsWith("/purchasing")) setPurchasingOpen(true);
     if (pathname.startsWith("/farms/animal-view")) setFarmAnimalViewOpen(true);
     if (pathname.startsWith("/farms/feedings")) setFarmFeedingOpen(true);
+    if (pathname === "/farms") setFarmNavigationOpen(true);
 
     if (
       pathname.startsWith("/setup/branches") ||
@@ -145,6 +148,11 @@ const AppSidebar: React.FC = () => {
             icon: <ScrollText size={14} />,
           },
         ],
+      },
+      {
+        name: "Farm Navigation API",
+        icon: <MapPin size={20} />,
+        children: [{ name: "Farms", path: "/farms", icon: <Home size={14} /> }],
       },
       {
         name: "Farm Animal View API",
@@ -312,25 +320,32 @@ const AppSidebar: React.FC = () => {
           })}
 
           {foundationGroups.map((group) => {
+            const groupBasePath = group.children[0].path.split("?")[0];
             const groupActive =
               group.children.some((child) => isChildActive(child.path)) ||
-              pathname.startsWith(group.children[0].path.split("?")[0]);
+              (groupBasePath === "/farms"
+                ? pathname === "/farms"
+                : pathname.startsWith(groupBasePath));
             const isOpen =
               group.name === "Inventory Foundation API"
                 ? inventoryOpen
                 : group.name === "Purchasing Foundation API"
                   ? purchasingOpen
-                  : group.name === "Farm Animal View API"
-                    ? farmAnimalViewOpen
-                    : farmFeedingOpen;
+                  : group.name === "Farm Navigation API"
+                    ? farmNavigationOpen
+                    : group.name === "Farm Animal View API"
+                      ? farmAnimalViewOpen
+                      : farmFeedingOpen;
             const setOpen =
               group.name === "Inventory Foundation API"
                 ? setInventoryOpen
                 : group.name === "Purchasing Foundation API"
                   ? setPurchasingOpen
-                  : group.name === "Farm Animal View API"
-                    ? setFarmAnimalViewOpen
-                    : setFarmFeedingOpen;
+                  : group.name === "Farm Navigation API"
+                    ? setFarmNavigationOpen
+                    : group.name === "Farm Animal View API"
+                      ? setFarmAnimalViewOpen
+                      : setFarmFeedingOpen;
 
             return (
               <div key={group.name}>

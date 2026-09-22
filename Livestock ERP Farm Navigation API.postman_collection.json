@@ -1,0 +1,514 @@
+{
+  "info": {
+    "_postman_id": "f3a3e5ee-da16-41b6-898f-5d1b31fb3a95",
+    "name": "Livestock ERP Farm Navigation API",
+    "description": "Postman collection for the first Farm Operations read APIs. Covers authenticated farm navigation, farm page summary, and farm animal list support for FARM-US-001 through FARM-US-007. All endpoints use /api/v1 and require the farms.view permission.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-f3a3e5ee-da16-41b6-898f-5d1b31fb3a95?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('access_token', json.token); }",
+                  "if (json.access_token) { pm.collectionVariables.set('access_token', json.access_token); }",
+                  "if (json.data && json.data.token) { pm.collectionVariables.set('access_token', json.data.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in and stores the bearer token in access_token when the response contains token, access_token, or data.token."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Logs in and stores the bearer token in access_token when the response contains token, access_token, or data.token."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\r\n  \"token_type\": \"Bearer\",\r\n  \"access_token\": \"example-token-redacted\",\r\n  \"user\": {\r\n    \"id\": 2,\r\n    \"name\": \"Demo Admin\",\r\n    \"email\": \"admin@example.com\",\r\n    \"username\": \"admin\",\r\n    \"account_status\": \"active\",\r\n    \"last_login_at\": \"2026-09-21T15:50:46Z\",\r\n    \"two_factor_enabled\": false,\r\n    \"roles\": [\r\n      \"admin\"\r\n    ],\r\n    \"permissions\": [\r\n      \"authorization.permissions.view\",\r\n      \"setup.view\",\r\n      \"setup.branches.view\",\r\n      \"setup.roles.view\",\r\n      \"setup.admins.view\",\r\n      \"setup.audit.view\",\r\n      \"setup.customers.view\",\r\n      \"setup.customers.create\",\r\n      \"setup.customers.update\",\r\n      \"setup.customers.delete\",\r\n      \"setup.suppliers.view\",\r\n      \"setup.suppliers.create\",\r\n      \"setup.suppliers.update\",\r\n      \"setup.suppliers.delete\",\r\n      \"setup.foods.view\",\r\n      \"setup.foods.create\",\r\n      \"setup.foods.update\",\r\n      \"setup.foods.delete\",\r\n      \"setup.medicines.view\",\r\n      \"setup.medicines.create\",\r\n      \"setup.medicines.update\",\r\n      \"setup.medicines.delete\",\r\n      \"setup.animals.view\",\r\n      \"setup.animals.create\",\r\n      \"setup.animals.update\",\r\n      \"setup.animals.delete\",\r\n      \"setup.equipment.view\",\r\n      \"setup.equipment.create\",\r\n      \"setup.equipment.update\",\r\n      \"setup.equipment.delete\",\r\n      \"setup.inventories.view\",\r\n      \"setup.inventories.create\",\r\n      \"setup.inventories.update\",\r\n      \"setup.inventories.delete\",\r\n      \"setup.uoms.view\",\r\n      \"setup.uoms.create\",\r\n      \"setup.uoms.update\",\r\n      \"setup.uoms.delete\",\r\n      \"setup.farm-information.view\",\r\n      \"setup.farm-information.create\",\r\n      \"setup.farm-information.update\",\r\n      \"setup.farm-information.delete\",\r\n      \"purchasing.view\",\r\n      \"inventory.view\",\r\n      \"inventory.manage\",\r\n      \"inventory.items.view\",\r\n      \"inventory.balances.view\",\r\n      \"inventory.ledger.view\",\r\n      \"inventory.confirmations.view\",\r\n      \"inventory.adjustments.view\",\r\n      \"inventory.adjustments.create\",\r\n      \"inventory.adjustments.update\",\r\n      \"inventory.adjustments.submit\",\r\n      \"inventory.adjustments.confirm\",\r\n      \"inventory.adjustments.reverse\",\r\n      \"farms.view\",\r\n      \"sales.view\",\r\n      \"financial.view\",\r\n      \"purchasing.receipts.confirm\",\r\n      \"purchasing.receipts.create\",\r\n      \"purchasing.receipts.view\",\r\n      \"purchasing.invoices.cancel\",\r\n      \"purchasing.invoices.update\",\r\n      \"purchasing.invoices.create\",\r\n      \"purchasing.invoices.view\"\r\n    ]\r\n  }\r\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Farm Navigation",
+      "item": [
+        {
+          "name": "List Farms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/farms?branch_id={{branch_id}}&search={{farm_search}}&animal_type={{animal_type}}&farm_type={{farm_type}}&status=active&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "farms"
+              ],
+              "query": [
+                {
+                  "key": "branch_id",
+                  "value": "{{branch_id}}",
+                  "description": "Optional Branch filter."
+                },
+                {
+                  "key": "search",
+                  "value": "{{farm_search}}",
+                  "description": "Searches farm name, house/barn, pen/cage/pond, or numeric farm id."
+                },
+                {
+                  "key": "animal_type",
+                  "value": "{{animal_type}}",
+                  "description": "Optional current animal type filter."
+                },
+                {
+                  "key": "farm_type",
+                  "value": "{{farm_type}}",
+                  "description": "Alias for current animal type until a dedicated farm type field exists."
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Only active farms are currently returned."
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Returns farms authorized for the current user with branch details, generated farm_code, animal count, active batch count, individual animal count, manager, and active status. Supports FARM-US-001 and FARM-US-002."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Farms",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/farms?branch_id={{branch_id}}&search={{farm_search}}&animal_type={{animal_type}}&farm_type={{farm_type}}&status=active&per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "farms"
+                  ],
+                  "query": [
+                    {
+                      "key": "branch_id",
+                      "value": "{{branch_id}}",
+                      "description": "Optional Branch filter."
+                    },
+                    {
+                      "key": "search",
+                      "value": "{{farm_search}}",
+                      "description": "Searches farm name, house/barn, pen/cage/pond, or numeric farm id."
+                    },
+                    {
+                      "key": "animal_type",
+                      "value": "{{animal_type}}",
+                      "description": "Optional current animal type filter."
+                    },
+                    {
+                      "key": "farm_type",
+                      "value": "{{farm_type}}",
+                      "description": "Alias for current animal type until a dedicated farm type field exists."
+                    },
+                    {
+                      "key": "status",
+                      "value": "active",
+                      "description": "Only active farms are currently returned."
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Returns farms authorized for the current user with branch details, generated farm_code, animal count, active batch count, individual animal count, manager, and active status. Supports FARM-US-001 and FARM-US-002."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\r\n  \"data\": [\r\n    {\r\n      \"id\": 1,\r\n      \"farm_code\": \"FRM-00001\",\r\n      \"name\": \"Yangon Barn A\",\r\n      \"farm_type\": \"cattle\",\r\n      \"animal_type\": \"cattle\",\r\n      \"branch\": {\r\n        \"id\": 1,\r\n        \"code\": \"BR-YGN\",\r\n        \"name\": \"Yangon Main Farm\",\r\n        \"status\": \"active\"\r\n      },\r\n      \"house_barn\": \"Barn A\",\r\n      \"pen_cage_pond\": \"Pen 1\",\r\n      \"animal_count\": 0,\r\n      \"active_batch_count\": 0,\r\n      \"individual_animal_count\": 0,\r\n      \"farm_manager\": {\r\n        \"id\": 2,\r\n        \"name\": \"Demo Admin\",\r\n        \"email\": \"admin@example.com\"\r\n      },\r\n      \"status\": \"active\",\r\n      \"created_at\": \"2026-09-18T15:33:08Z\",\r\n      \"updated_at\": \"2026-09-18T15:33:08Z\"\r\n    }\r\n  ],\r\n  \"links\": {\r\n    \"first\": \"http://127.0.0.1:8021/api/v1/farms?page=1\",\r\n    \"last\": \"http://127.0.0.1:8021/api/v1/farms?page=1\",\r\n    \"prev\": null,\r\n    \"next\": null\r\n  },\r\n  \"meta\": {\r\n    \"current_page\": 1,\r\n    \"from\": 1,\r\n    \"last_page\": 1,\r\n    \"links\": [\r\n      {\r\n        \"url\": null,\r\n        \"label\": \"&laquo; Previous\",\r\n        \"page\": null,\r\n        \"active\": false\r\n      },\r\n      {\r\n        \"url\": \"http://127.0.0.1:8021/api/v1/farms?page=1\",\r\n        \"label\": \"1\",\r\n        \"page\": 1,\r\n        \"active\": true\r\n      },\r\n      {\r\n        \"url\": null,\r\n        \"label\": \"Next &raquo;\",\r\n        \"page\": null,\r\n        \"active\": false\r\n      }\r\n    ],\r\n    \"path\": \"http://127.0.0.1:8021/api/v1/farms\",\r\n    \"per_page\": 15,\r\n    \"to\": 1,\r\n    \"total\": 1\r\n  }\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "Show Farm Page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/farms/{{farm_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "farms",
+                "{{farm_id}}"
+              ]
+            },
+            "description": "Returns the Farm page payload: farm identity, branch, farm manager, house/pen, current animal setup, summary metrics, empty future-ready feed/medicine metrics, and the first 25 active animal stock rows. Supports FARM-US-003."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - Show Farm Page",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/farms/{{farm_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "farms",
+                    "{{farm_id}}"
+                  ]
+                },
+                "description": "Returns the Farm page payload: farm identity, branch, farm manager, house/pen, current animal setup, summary metrics, empty future-ready feed/medicine metrics, and the first 25 active animal stock rows. Supports FARM-US-003."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\r\n  \"data\": {\r\n    \"id\": 1,\r\n    \"farm_code\": \"FRM-00001\",\r\n    \"name\": \"Yangon Barn A\",\r\n    \"farm_type\": \"cattle\",\r\n    \"branch\": {\r\n      \"id\": 1,\r\n      \"code\": \"BR-YGN\",\r\n      \"name\": \"Yangon Main Farm\",\r\n      \"status\": \"active\"\r\n    },\r\n    \"farm_manager\": {\r\n      \"id\": 2,\r\n      \"name\": \"Demo Admin\",\r\n      \"email\": \"admin@example.com\"\r\n    },\r\n    \"house_barn\": \"Barn A\",\r\n    \"pen_cage_pond\": \"Pen 1\",\r\n    \"current_animal\": {\r\n      \"id\": 1,\r\n      \"code\": \"ANI-CATTLE-BATCH-001\",\r\n      \"name\": \"Cattle Batch 001\",\r\n      \"tracking_type\": \"batch\",\r\n      \"type\": \"cattle\",\r\n      \"category\": \"beef\",\r\n      \"breed\": \"Brahman Cross\"\r\n    },\r\n    \"status\": \"active\",\r\n    \"metrics\": {\r\n      \"total_animal_count\": 0,\r\n      \"active_batch_count\": 0,\r\n      \"individual_animal_count\": 0,\r\n      \"sick_animal_count\": 0,\r\n      \"death_count\": 0,\r\n      \"feed_consumption_summary\": {\r\n        \"today_quantity\": 0,\r\n        \"today_cost\": 0,\r\n        \"records_today\": 0\r\n      },\r\n      \"medicine_usage_summary\": {\r\n        \"today_quantity\": 0,\r\n        \"records_today\": 0,\r\n        \"follow_ups_due\": 0\r\n      }\r\n    },\r\n    \"animals\": [],\r\n    \"created_at\": \"2026-09-18T15:33:08Z\",\r\n    \"updated_at\": \"2026-09-18T15:33:08Z\"\r\n  }\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Farm Animals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/farms/{{farm_id}}/animals?tracking_type={{tracking_type}}&search={{animal_search}}&animal_type={{animal_type}}&breed={{breed}}&location={{location}}&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "farms",
+                "{{farm_id}}",
+                "animals"
+              ],
+              "query": [
+                {
+                  "key": "tracking_type",
+                  "value": "{{tracking_type}}",
+                  "description": "Optional: batch or individual."
+                },
+                {
+                  "key": "search",
+                  "value": "{{animal_search}}",
+                  "description": "Searches animal code, name, batch/flock number, RFID, or ear tag."
+                },
+                {
+                  "key": "animal_type",
+                  "value": "{{animal_type}}",
+                  "description": "Optional animal type filter."
+                },
+                {
+                  "key": "breed",
+                  "value": "{{breed}}",
+                  "description": "Optional breed filter."
+                },
+                {
+                  "key": "location",
+                  "value": "{{location}}",
+                  "description": "Optional inventory/farm location filter."
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Returns active animal stock rows for a selected farm. Batch animals are ordered before individual animals and each row exposes the action-ready identifiers needed for Add Food, Add Medicine, History, and Defect/Death screens. Supports FARM-US-004 through FARM-US-007."
+          },
+          "response": [
+            {
+              "name": "Sample 200 - List Farm Animals",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/farms/{{farm_id}}/animals?tracking_type={{tracking_type}}&search={{animal_search}}&animal_type={{animal_type}}&breed={{breed}}&location={{location}}&per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "farms",
+                    "{{farm_id}}",
+                    "animals"
+                  ],
+                  "query": [
+                    {
+                      "key": "tracking_type",
+                      "value": "{{tracking_type}}",
+                      "description": "Optional: batch or individual."
+                    },
+                    {
+                      "key": "search",
+                      "value": "{{animal_search}}",
+                      "description": "Searches animal code, name, batch/flock number, RFID, or ear tag."
+                    },
+                    {
+                      "key": "animal_type",
+                      "value": "{{animal_type}}",
+                      "description": "Optional animal type filter."
+                    },
+                    {
+                      "key": "breed",
+                      "value": "{{breed}}",
+                      "description": "Optional breed filter."
+                    },
+                    {
+                      "key": "location",
+                      "value": "{{location}}",
+                      "description": "Optional inventory/farm location filter."
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Returns active animal stock rows for a selected farm. Batch animals are ordered before individual animals and each row exposes the action-ready identifiers needed for Add Food, Add Medicine, History, and Defect/Death screens. Supports FARM-US-004 through FARM-US-007."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\r\n  \"data\": [],\r\n  \"links\": {\r\n    \"first\": \"http://127.0.0.1:8021/api/v1/farms/1/animals?page=1\",\r\n    \"last\": \"http://127.0.0.1:8021/api/v1/farms/1/animals?page=1\",\r\n    \"prev\": null,\r\n    \"next\": null\r\n  },\r\n  \"meta\": {\r\n    \"current_page\": 1,\r\n    \"from\": null,\r\n    \"last_page\": 1,\r\n    \"links\": [\r\n      {\r\n        \"url\": null,\r\n        \"label\": \"&laquo; Previous\",\r\n        \"page\": null,\r\n        \"active\": false\r\n      },\r\n      {\r\n        \"url\": \"http://127.0.0.1:8021/api/v1/farms/1/animals?page=1\",\r\n        \"label\": \"1\",\r\n        \"page\": 1,\r\n        \"active\": true\r\n      },\r\n      {\r\n        \"url\": null,\r\n        \"label\": \"Next &raquo;\",\r\n        \"page\": null,\r\n        \"active\": false\r\n      }\r\n    ],\r\n    \"path\": \"http://127.0.0.1:8021/api/v1/farms/1/animals\",\r\n    \"per_page\": 15,\r\n    \"to\": null,\r\n    \"total\": 0\r\n  }\r\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "branch_id",
+      "value": "1"
+    },
+    {
+      "key": "farm_id",
+      "value": "1"
+    },
+    {
+      "key": "farm_search",
+      "value": ""
+    },
+    {
+      "key": "animal_search",
+      "value": ""
+    },
+    {
+      "key": "animal_type",
+      "value": ""
+    },
+    {
+      "key": "farm_type",
+      "value": ""
+    },
+    {
+      "key": "tracking_type",
+      "value": ""
+    },
+    {
+      "key": "breed",
+      "value": ""
+    },
+    {
+      "key": "location",
+      "value": ""
+    }
+  ]
+}

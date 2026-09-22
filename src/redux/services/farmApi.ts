@@ -69,6 +69,8 @@ export const farmApi = createApi({
     "farmAnimalViews",
     // Farm Feeding
     "farmFeedings",
+    // Farm Navigation
+    "farmNavigation",
   ],
   endpoints: () => ({}),
 });
