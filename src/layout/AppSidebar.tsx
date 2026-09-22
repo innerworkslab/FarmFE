@@ -51,6 +51,7 @@ const AppSidebar: React.FC = () => {
   const currentTab = searchParams.get("tab");
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith("/inventory"));
   const [purchasingOpen, setPurchasingOpen] = useState(pathname.startsWith("/purchasing"));
+  const [farmAnimalViewOpen, setFarmAnimalViewOpen] = useState(pathname.startsWith("/farms/animal-view"));
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
     pathname.startsWith("/setup/roles") ||
@@ -68,6 +69,7 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     if (pathname.startsWith("/inventory")) setInventoryOpen(true);
     if (pathname.startsWith("/purchasing")) setPurchasingOpen(true);
+    if (pathname.startsWith("/farms/animal-view")) setFarmAnimalViewOpen(true);
 
     if (
       pathname.startsWith("/setup/branches") ||
@@ -112,6 +114,15 @@ const AppSidebar: React.FC = () => {
         { name: "Receipts", path: "/purchasing?tab=receipts", icon: <ClipboardCheck size={14} /> },
         { name: "Inventory Checks", path: "/purchasing?tab=balances", icon: <Database size={14} /> },
         { name: "Purchase Ledger", path: "/purchasing?tab=ledger", icon: <ScrollText size={14} /> },
+      ],
+    },
+    {
+      name: "Farm Animal View API",
+      icon: <PawPrint size={20} />,
+      children: [
+        { name: "All Animals", path: "/farms/animal-view?view=all", icon: <PawPrint size={14} /> },
+        { name: "Batch Animals", path: "/farms/animal-view?view=batch", icon: <Warehouse size={14} /> },
+        { name: "Individual Animals", path: "/farms/animal-view?view=individual", icon: <UserCheck size={14} /> },
       ],
     },
   ], []);
@@ -162,8 +173,8 @@ const AppSidebar: React.FC = () => {
     if (!currentTab && ((childPath === "/inventory" && tab === "adjustments") || (childPath === "/purchasing" && tab === "invoices"))) {
       return true;
     }
-    return tab === currentTab;
-  }, [currentTab, pathname]);
+    return Array.from(params.entries()).every(([key, itemValue]) => searchParams.get(key) === itemValue || (!searchParams.get(key) && childPath === "/farms/animal-view" && key === "view" && itemValue === "all"));
+  }, [currentTab, pathname, searchParams]);
 
   const showLabels = isExpanded || isHovered || isMobileOpen;
 
@@ -212,8 +223,8 @@ const AppSidebar: React.FC = () => {
 
           {foundationGroups.map((group) => {
             const groupActive = group.children.some((child) => isChildActive(child.path)) || pathname.startsWith(group.children[0].path.split("?")[0]);
-            const isOpen = group.name === "Inventory Foundation API" ? inventoryOpen : purchasingOpen;
-            const setOpen = group.name === "Inventory Foundation API" ? setInventoryOpen : setPurchasingOpen;
+            const isOpen = group.name === "Inventory Foundation API" ? inventoryOpen : group.name === "Purchasing Foundation API" ? purchasingOpen : farmAnimalViewOpen;
+            const setOpen = group.name === "Inventory Foundation API" ? setInventoryOpen : group.name === "Purchasing Foundation API" ? setPurchasingOpen : setFarmAnimalViewOpen;
 
             return (
               <div key={group.name}>

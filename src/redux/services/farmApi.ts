@@ -65,6 +65,8 @@ export const farmApi = createApi({
     // Purchasing Foundation
     "purchaseInvoices",
     "purchaseReceipts",
+    // Farm Animal View
+    "farmAnimalViews",
   ],
   endpoints: () => ({}),
 });
