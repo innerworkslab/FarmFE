@@ -214,7 +214,11 @@ export default function FarmFeedingsPage() {
     () =>
       (balances?.data || [])
         .filter(
-          (raw) => !form.inventory_id || Number(raw.inventory_id) === Number(form.inventory_id)
+          (raw) =>
+            (!form.food_item_id || Number(raw.item_id) === Number(form.food_item_id)) &&
+            (!form.branch_id || Number(raw.branch_id) === Number(form.branch_id)) &&
+            (!form.inventory_id || Number(raw.inventory_id) === Number(form.inventory_id)) &&
+            Number(raw.available_quantity || 0) > 0
         )
         .map((raw) => {
           const item = raw as Record<string, unknown>;
@@ -232,7 +236,7 @@ export default function FarmFeedingsPage() {
           };
         })
         .filter((option) => option.value !== "0"),
-    [balances, form.inventory_id]
+    [balances, form.branch_id, form.food_item_id, form.inventory_id]
   );
 
   const setField = (key: keyof FeedingForm, fieldValue: string) =>
@@ -337,10 +341,28 @@ export default function FarmFeedingsPage() {
     }
   };
 
-  const valid = Object.entries(form).every(
-    ([key, fieldValue]) =>
-      key === "notes" || key === "line_notes" || key === "wastage_quantity" || Boolean(fieldValue)
+  const selectedBalance = balances?.data.find(
+    (item) =>
+      Number(item.stock_lot_id) === Number(form.stock_lot_id) &&
+      Number(item.item_id) === Number(form.food_item_id) &&
+      Number(item.branch_id) === Number(form.branch_id) &&
+      Number(item.inventory_id) === Number(form.inventory_id) &&
+      String(item.location) === form.source_location &&
+      Number(item.stock_uom_id) === Number(form.stock_uom_id)
   );
+  const availableQuantity = selectedBalance
+    ? Number(selectedBalance.available_quantity || 0)
+    : null;
+  const quantityExceedsStock =
+    availableQuantity !== null && Number(form.quantity) > availableQuantity;
+  const valid =
+    Object.entries(form).every(
+      ([key, fieldValue]) =>
+        key === "notes" || key === "line_notes" || key === "wastage_quantity" || Boolean(fieldValue)
+    ) &&
+    Number(form.quantity) > 0 &&
+    Number(form.wastage_quantity || 0) >= 0 &&
+    !quantityExceedsStock;
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -569,6 +591,8 @@ export default function FarmFeedingsPage() {
         form={form}
         saving={saving}
         valid={valid}
+        availableQuantity={availableQuantity}
+        quantityExceedsStock={quantityExceedsStock}
         branchOptions={(branches?.data || []).map(named)}
         farmOptions={farmOptions}
         animalOptions={animalOptions}
@@ -605,6 +629,8 @@ function FeedingFormModal({
   form,
   saving,
   valid,
+  availableQuantity,
+  quantityExceedsStock,
   branchOptions,
   farmOptions,
   animalOptions,
@@ -624,6 +650,8 @@ function FeedingFormModal({
   form: FeedingForm;
   saving: boolean;
   valid: boolean;
+  availableQuantity: number | null;
+  quantityExceedsStock: boolean;
   branchOptions: Option[];
   farmOptions: Option[];
   animalOptions: Option[];
@@ -739,6 +767,13 @@ function FeedingFormModal({
               value={form.quantity}
               onChange={(e) => onChange("quantity", e.target.value)}
             />
+            {availableQuantity !== null && (
+              <p
+                className={`mt-1.5 text-xs ${quantityExceedsStock ? "text-red-600 dark:text-red-400" : "text-gray-500"}`}
+              >
+                Eligible available stock: {availableQuantity}. Quantity cannot exceed this amount.
+              </p>
+            )}
           </Field>
           <Field label="Wastage Quantity">
             <Input
