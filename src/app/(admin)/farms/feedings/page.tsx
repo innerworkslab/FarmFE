@@ -210,6 +210,14 @@ export default function FarmFeedingsPage() {
       .filter(Boolean)
       .join(" · "),
   }));
+  const inventoryOptions = (inventories?.data || [])
+    .filter(
+      (inventory) =>
+        (!form.branch_id || inventory.branch_id === Number(form.branch_id)) &&
+        inventory.status === "active" &&
+        (inventory.type === "feed" || inventory.allowed_item_categories?.includes("food"))
+    )
+    .map(named);
   const lotOptions = useMemo(
     () =>
       (balances?.data || [])
@@ -597,7 +605,7 @@ export default function FarmFeedingsPage() {
         farmOptions={farmOptions}
         animalOptions={animalOptions}
         foodOptions={(foods?.data || []).map(named)}
-        inventoryOptions={(inventories?.data || []).map(named)}
+        inventoryOptions={inventoryOptions}
         lotOptions={lotOptions}
         uomOptions={(uoms?.data || []).map((item) => ({
           value: String(item.id),
@@ -749,6 +757,7 @@ function FeedingFormModal({
               value={form.source_location}
               onChange={(e) => onChange("source_location", e.target.value)}
               placeholder="e.g. Pen F1"
+              disabled={Boolean(form.stock_lot_id)}
             />
           </Field>
           <Field label="Stock UOM" required>
@@ -757,6 +766,7 @@ function FeedingFormModal({
               onChange={(e) => onChange("stock_uom_id", e.target.value)}
               options={uomOptions}
               placeholder="Select UOM"
+              disabled={Boolean(form.stock_lot_id)}
             />
           </Field>
           <Field label="Quantity" required>
