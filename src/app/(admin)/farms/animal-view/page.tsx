@@ -11,6 +11,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
+import { useGetFarmInformationListQuery } from "@/redux/features/setup/FarmInformationApiSlice";
 import {
   FarmAnimalView,
   FarmAnimalViewRow,
@@ -53,14 +54,20 @@ export default function FarmAnimalViewPage() {
   const requestedView = searchParams.get("view");
   const view: FarmAnimalView =
     requestedView === "batch" || requestedView === "individual" ? requestedView : "all";
-  const [farmId, setFarmId] = useState(searchParams.get("farm_id") || "1");
+  const [farmId, setFarmId] = useState(searchParams.get("farm_id") || "");
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [animalType, setAnimalType] = useState(searchParams.get("animal_type") || "");
   const [breed, setBreed] = useState(searchParams.get("breed") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [selectedAnimal, setSelectedAnimal] = useState<FarmAnimalViewRow | null>(null);
-  const numericFarmId = Number(farmId) || 1;
-  const activeFarmId = Number(searchParams.get("farm_id")) || 1;
+  const { data: farmsResponse, isLoading: farmsLoading } = useGetFarmInformationListQuery({
+    per_page: 100,
+  });
+  const farms = farmsResponse?.data || [];
+  const defaultFarmId = farmsResponse?.data?.[0]?.id;
+  const urlFarmId = Number(searchParams.get("farm_id")) || 0;
+  const activeFarmId = urlFarmId || defaultFarmId || 0;
+  const numericFarmId = Number(farmId) || activeFarmId;
   const activeSearch = searchParams.get("search") || "";
   const activeAnimalType = searchParams.get("animal_type") || "";
   const activeBreed = searchParams.get("breed") || "";
@@ -85,27 +92,33 @@ export default function FarmAnimalViewPage() {
     isLoading: summaryLoading,
     isFetching: summaryFetching,
     isError: summaryError,
-  } = useGetFarmAnimalViewSummaryQuery(summaryQuery);
+  } = useGetFarmAnimalViewSummaryQuery(summaryQuery, { skip: !activeFarmId });
   const {
     data: animalsResponse,
     isLoading: animalsLoading,
     isFetching: animalsFetching,
     isError: animalsError,
-  } = useGetFarmAnimalsQuery(listQuery);
+  } = useGetFarmAnimalsQuery(listQuery, { skip: !activeFarmId });
   const [getAnimal, { isFetching: detailLoading }] = useLazyGetFarmAnimalQuery();
   const summary = summaryResponse?.data;
   const filters = summary?.filter_options || {};
 
   useEffect(() => {
-    setFarmId(searchParams.get("farm_id") || "1");
+    setFarmId(searchParams.get("farm_id") || (defaultFarmId ? String(defaultFarmId) : ""));
     setSearch(searchParams.get("search") || "");
     setAnimalType(searchParams.get("animal_type") || "");
     setBreed(searchParams.get("breed") || "");
     setLocation(searchParams.get("location") || "");
-  }, [searchParams]);
+  }, [searchParams, defaultFarmId]);
 
   const options = (key: string) =>
     (filters[key] || []).map((item) => ({ value: item, label: labelize(item) }));
+  const farmOptions = farms.map((farm) => ({
+    value: String(farm.id),
+    label: [farm.name, farm.branch?.name, farm.house_barn, farm.pen_cage_pond]
+      .filter(Boolean)
+      .join(" · "),
+  }));
   const navigate = (nextView = view) => {
     const params = new URLSearchParams({ view: nextView, farm_id: String(numericFarmId) });
     if (search) params.set("search", search);
@@ -124,7 +137,7 @@ export default function FarmAnimalViewPage() {
     }
   };
 
-  if (summaryLoading || animalsLoading) return <Loading />;
+  if (farmsLoading || summaryLoading || animalsLoading) return <Loading />;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -181,13 +194,12 @@ export default function FarmAnimalViewPage() {
           Summary filters
         </h2>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <FormField label="Farm ID">
-            <Input
-              type="number"
-              min="1"
+          <FormField label="Farm">
+            <Select
               value={farmId}
               onChange={(event) => setFarmId(event.target.value)}
-              placeholder="Farm ID"
+              options={farmOptions}
+              placeholder="Select farm"
             />
           </FormField>
           <FormField label="Search">
