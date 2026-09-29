@@ -1,5 +1,5 @@
-import FinancialCashbookPage from "@/components/financial/FinancialCashbookPage";
+import { redirect } from "next/navigation";
 
 export default function CashbookReportsPage() {
-  return <FinancialCashbookPage section="reports" />;
+  redirect("/financial/daily-summary");
 }

@@ -289,7 +289,11 @@ export default function FarmAnimalViewPage() {
                   "Health",
                   "Actions",
                 ].map((heading) => (
-                  <TableCell key={heading} isHeader className={tableHeadClass}>
+                  <TableCell
+                    key={heading}
+                    isHeader
+                    className={`${tableHeadClass} ${["No.", "Available"].includes(heading) ? "text-right" : ""}`}
+                  >
                     {heading}
                   </TableCell>
                 ))}
@@ -298,7 +302,9 @@ export default function FarmAnimalViewPage() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {animalsResponse?.data.map((animal, index) => (
                 <TableRow key={animal.id}>
-                  <TableCell className={tableCellClass}>{index + 1}</TableCell>
+                  <TableCell className={`${tableCellClass} text-right tabular-nums`}>
+                    {index + 1}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {value(animal.display_name || animal.name)}
@@ -323,7 +329,7 @@ export default function FarmAnimalViewPage() {
                         animal.location?.house_barn
                     )}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                     {value(animal.available_quantity)}
                     <span className="text-xs text-gray-500">
                       {" "}

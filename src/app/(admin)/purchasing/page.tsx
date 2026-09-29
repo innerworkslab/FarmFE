@@ -332,6 +332,9 @@ const formatValue = (value: unknown) => {
   return String(value);
 };
 
+const isNumericColumn = (key: string) =>
+  /(^id$|_id$|quantity|amount|price|cost|balance|count|rate|factor|total|temperature)/i.test(key);
+
 const statusClass = (status?: string) => {
   if (status === "confirmed" || status === "received")
     return "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400";
@@ -626,7 +629,7 @@ export default function PurchasingPage() {
                     <TableCell
                       key={head}
                       isHeader
-                      className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                      className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Lines"].includes(head) ? "text-right" : "text-start"}`}
                     >
                       {head}
                     </TableCell>
@@ -637,7 +640,9 @@ export default function PurchasingPage() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {invoices.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                    {index + 1}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {item.invoice_number}
                   </TableCell>
@@ -657,7 +662,7 @@ export default function PurchasingPage() {
                       {item.status || "open"}
                     </span>
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
                     {item.lines?.length || 0}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
@@ -704,7 +709,7 @@ export default function PurchasingPage() {
                   <TableCell
                     key={head}
                     isHeader
-                    className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                    className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Lines"].includes(head) ? "text-right" : "text-start"}`}
                   >
                     {head}
                   </TableCell>
@@ -714,7 +719,9 @@ export default function PurchasingPage() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {receipts.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                    {index + 1}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {item.receipt_number}
                   </TableCell>
@@ -732,7 +739,7 @@ export default function PurchasingPage() {
                       {item.status || "draft"}
                     </span>
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
                     {item.lines?.length || 0}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
@@ -779,7 +786,7 @@ export default function PurchasingPage() {
                   <TableCell
                     key={head}
                     isHeader
-                    className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                    className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Quantity", "Available"].includes(head) ? "text-right" : "text-start"}`}
                   >
                     {head}
                   </TableCell>
@@ -789,7 +796,9 @@ export default function PurchasingPage() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {balances.map((item: Record<string, unknown>, index) => (
                 <TableRow key={String(item.id || index)}>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                    {index + 1}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {getItemLabel(String(item.category || ""), item.item_id as number)}
                   </TableCell>
@@ -805,10 +814,10 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatValue(item.location)}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                     {formatValue(item.quantity)}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                     {formatValue(item.available_quantity ?? item.quantity)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
@@ -847,7 +856,7 @@ export default function PurchasingPage() {
                   <TableCell
                     key={head}
                     isHeader
-                    className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                    className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Quantity", "Balance After"].includes(head) ? "text-right" : "text-start"}`}
                   >
                     {head}
                   </TableCell>
@@ -857,7 +866,9 @@ export default function PurchasingPage() {
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {ledger.map((item: Record<string, unknown>, index) => (
                 <TableRow key={String(item.id || index)}>
-                  <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                    {index + 1}
+                  </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {item.transaction_date
                       ? formatReadableDate(String(item.transaction_date))
@@ -875,7 +886,7 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {getItemLabel(String(item.category || ""), item.item_id as number)}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold">
+                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums">
                     <span
                       className={
                         Number(item.quantity) >= 0
@@ -886,7 +897,7 @@ export default function PurchasingPage() {
                       {Number(item.quantity) > 0 ? `+${item.quantity}` : formatValue(item.quantity)}
                     </span>
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                     {formatValue(item.balance_after)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
@@ -1475,7 +1486,7 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
                           <TableCell
                             key={key}
                             isHeader
-                            className="px-4 py-3 text-start text-xs font-medium text-gray-500"
+                            className={`px-4 py-3 text-xs font-medium text-gray-500 ${isNumericColumn(key) ? "text-right" : "text-start"}`}
                           >
                             {key}
                           </TableCell>
@@ -1486,7 +1497,10 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
                       {lines.map((line, index) => (
                         <TableRow key={String(line.id || index)}>
                           {lineKeys.map((key) => (
-                            <TableCell key={key} className="px-4 py-3 text-sm text-gray-500">
+                            <TableCell
+                              key={key}
+                              className={`px-4 py-3 text-sm text-gray-500 ${isNumericColumn(key) ? "text-right tabular-nums" : ""}`}
+                            >
                               {formatValue(line[key])}
                             </TableCell>
                           ))}

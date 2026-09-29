@@ -190,26 +190,76 @@ export default function FoodsPage() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">No.</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Code</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Name</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Category</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Price</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Batch Tracking</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Status</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Actions</TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    No.
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Code
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Name
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Category
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-right text-gray-500 font-medium text-xs"
+                  >
+                    Price
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Batch Tracking
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
+                  >
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {foods.map((item, index) => (
                   <TableRow key={item.id}>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{index + 1}</TableCell>
-                    <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">{item.code}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.category}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm font-mono">{item.purchase_price}</TableCell>
+                    <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">
+                      {item.code}
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">
+                      {item.name}
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">
+                      {item.category}
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5 text-right text-gray-500 text-sm font-mono tabular-nums">
+                      {item.purchase_price}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
-                      <span className={`px-2 py-0.5 rounded text-xs ${item.batch_tracking ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs ${item.batch_tracking ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}
+                      >
                         {item.batch_tracking ? "Enabled" : "Disabled"}
                       </span>
                     </TableCell>
@@ -226,12 +276,22 @@ export default function FoodsPage() {
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <div className="flex items-center gap-2">
-                        <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
+                        <TableActionButton
+                          label="Edit"
+                          tone="neutral"
+                          onClick={() => handleOpenEdit(item)}
+                          icon={<Pencil size={14} />}
+                        />
                         <Switch
                           checked={item.status === "active"}
                           onClick={() => handleToggle(item.id)}
                         />
-                        <TableActionButton label="Delete" tone="red" onClick={() => setDeletingId(item.id)} icon={<Trash2 size={14} />} />
+                        <TableActionButton
+                          label="Delete"
+                          tone="red"
+                          onClick={() => setDeletingId(item.id)}
+                          icon={<Trash2 size={14} />}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -243,7 +303,11 @@ export default function FoodsPage() {
       </div>
 
       {/* Create / Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-[550px] m-4">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="max-w-[550px] m-4"
+      >
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             {editingItem ? "Edit Food / Feed" : "Add New Food / Feed"}
@@ -351,7 +415,9 @@ export default function FoodsPage() {
                   onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
                 >
                   {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>{u.symbol} ({u.name})</option>
+                    <option key={u.id} value={u.id}>
+                      {u.symbol} ({u.name})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -366,7 +432,9 @@ export default function FoodsPage() {
                   onChange={(e) => setForm({ ...form, purchase_uom_id: Number(e.target.value) })}
                 >
                   {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>{u.symbol} ({u.name})</option>
+                    <option key={u.id} value={u.id}>
+                      {u.symbol} ({u.name})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -381,7 +449,9 @@ export default function FoodsPage() {
                   onChange={(e) => setForm({ ...form, consumption_uom_id: Number(e.target.value) })}
                 >
                   {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>{u.symbol} ({u.name})</option>
+                    <option key={u.id} value={u.id}>
+                      {u.symbol} ({u.name})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -394,11 +464,18 @@ export default function FoodsPage() {
               <select
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                 value={form.default_supplier_id || ""}
-                onChange={(e) => setForm({ ...form, default_supplier_id: e.target.value ? Number(e.target.value) : null })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    default_supplier_id: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
               >
                 <option value="">None</option>
                 {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.code})
+                  </option>
                 ))}
               </select>
             </div>
@@ -422,11 +499,20 @@ export default function FoodsPage() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-              <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" size="sm" disabled={isCreating || isUpdating}>
-                {isCreating || isUpdating ? "Saving..." : editingItem ? "Update Food" : "Create Food"}
+                {isCreating || isUpdating
+                  ? "Saving..."
+                  : editingItem
+                    ? "Update Food"
+                    : "Create Food"}
               </Button>
             </div>
           </form>
@@ -434,20 +520,27 @@ export default function FoodsPage() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={!!deletingId} onClose={() => setDeletingId(null)} className="max-w-[400px] m-4">
+      <Modal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        className="max-w-[400px] m-4"
+      >
         <div className="p-6 text-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
             <Trash2 size={24} />
           </div>
           <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Food</h3>
-          <p className="text-xs text-gray-500">
-            Are you sure you want to delete this food item?
-          </p>
+          <p className="text-xs text-gray-500">Are you sure you want to delete this food item?</p>
           <div className="flex justify-center gap-3 pt-2">
             <Button size="sm" variant="outline" onClick={() => setDeletingId(null)}>
               Cancel
             </Button>
-            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" disabled={isDeleting} onClick={handleDelete}>
+            <Button
+              size="sm"
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isDeleting}
+              onClick={handleDelete}
+            >
               {isDeleting ? "Deleting..." : "Yes, Delete"}
             </Button>
           </div>

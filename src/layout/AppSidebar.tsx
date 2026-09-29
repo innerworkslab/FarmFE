@@ -194,7 +194,12 @@ const AppSidebar: React.FC = () => {
             icon: <ReceiptText size={14} />,
           },
           { name: "Ledger", path: "/financial/ledger", icon: <ScrollText size={14} /> },
-          { name: "Reports", path: "/financial/reports", icon: <Database size={14} /> },
+          {
+            name: "Consolidated Balances",
+            path: "/financial/consolidated",
+            icon: <ReceiptText size={14} />,
+          },
+          { name: "Daily Summary", path: "/financial/daily-summary", icon: <Database size={14} /> },
         ],
       },
     ],

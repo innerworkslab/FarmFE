@@ -492,7 +492,7 @@ export default function FarmFeedingsPage() {
                     <TableCell
                       key={head}
                       isHeader
-                      className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                      className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Quantity"].includes(head) ? "text-right" : "text-start"}`}
                     >
                       {head}
                     </TableCell>
@@ -504,10 +504,10 @@ export default function FarmFeedingsPage() {
                   const line = item.lines?.[0];
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="px-5 py-3.5 text-sm text-gray-500">
+                      <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
                         {index + 1}
                       </TableCell>
-                      <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+                      <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                         {item.feeding_number}
                       </TableCell>
                       <TableCell className="px-5 py-3.5 text-sm">
@@ -920,7 +920,7 @@ function FeedingDetail({
                         <TableCell
                           key={head}
                           isHeader
-                          className="px-4 py-3 text-start text-xs font-medium text-gray-500"
+                          className={`px-4 py-3 text-xs font-medium text-gray-500 ${["Quantity", "Wastage"].includes(head) ? "text-right" : "text-start"}`}
                         >
                           {head}
                         </TableCell>
@@ -939,8 +939,12 @@ function FeedingDetail({
                         <TableCell className="px-4 py-3 text-sm text-gray-500">
                           #{line.inventory_id}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm">{line.quantity}</TableCell>
-                        <TableCell className="px-4 py-3 text-sm">{line.wastage_quantity}</TableCell>
+                        <TableCell className="px-4 py-3 text-right text-sm tabular-nums">
+                          {line.quantity}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-right text-sm tabular-nums">
+                          {line.wastage_quantity}
+                        </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-gray-500">
                           #{line.stock_uom_id}
                         </TableCell>

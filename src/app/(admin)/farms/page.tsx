@@ -341,7 +341,7 @@ export default function FarmsPage() {
                     <TableCell
                       key={head}
                       isHeader
-                      className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                      className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Animals"].includes(head) ? "text-right" : "text-start"}`}
                     >
                       {head}
                     </TableCell>
@@ -351,7 +351,9 @@ export default function FarmsPage() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {farms?.data.map((item, index) => (
                   <TableRow key={item.id}>
-                    <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                      {index + 1}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
                       <p className="text-xs text-gray-500">{item.farm_code}</p>
@@ -365,7 +367,7 @@ export default function FarmsPage() {
                     <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                       {[item.house_barn, item.pen_cage_pond].filter(Boolean).join(" / ") || "-"}
                     </TableCell>
-                    <TableCell className="px-5 py-3.5 text-sm">
+                    <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums">
                       <span className="font-semibold text-gray-900 dark:text-white">
                         {item.animal_count ?? 0}
                       </span>
@@ -461,7 +463,7 @@ function AnimalTable({
               <TableCell
                 key={head}
                 isHeader
-                className="px-5 py-3 text-start text-xs font-medium text-gray-500"
+                className={`px-5 py-3 text-xs font-medium text-gray-500 ${["No.", "Available"].includes(head) ? "text-right" : "text-start"}`}
               >
                 {head}
               </TableCell>
@@ -471,7 +473,9 @@ function AnimalTable({
         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
           {animals.map((animal, index) => (
             <TableRow key={animal.id}>
-              <TableCell className="px-5 py-3.5 text-sm text-gray-500">{index + 1}</TableCell>
+              <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
+                {index + 1}
+              </TableCell>
               <TableCell className="px-5 py-3.5 text-sm">
                 <p className="font-semibold text-gray-900 dark:text-white">
                   {animal.display_name || animal.name || "-"}
@@ -494,7 +498,7 @@ function AnimalTable({
                     animal.location?.house_barn
                 )}
               </TableCell>
-              <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
+              <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                 {value(animal.available_quantity)}
               </TableCell>
               <TableCell className="px-5 py-3.5 text-sm">

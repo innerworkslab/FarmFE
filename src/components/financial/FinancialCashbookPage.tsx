@@ -31,7 +31,7 @@ import {
   useUpdateCashbookTransactionMutation,
 } from "@/redux/features/financial/CashbookApiSlice";
 
-type Tab = "cashbooks" | "transactions" | "ledger" | "reports";
+type Tab = "cashbooks" | "transactions" | "ledger" | "daily-summary" | "consolidated";
 type FormKind = "cashbook" | "transaction" | "reverse" | null;
 type CashbookForm = {
   branch_id: string;
@@ -133,10 +133,13 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
       from_date: fromDate,
       to_date: toDate,
     },
-    { skip: tab !== "reports" || !effectiveCashbookId }
+    { skip: tab !== "daily-summary" || !effectiveCashbookId }
   );
   const { data: consolidatedResponse, isLoading: consolidatedLoading } =
-    useGetConsolidatedCashbookBalancesQuery({ as_of_date: asOfDate }, { skip: tab !== "reports" });
+    useGetConsolidatedCashbookBalancesQuery(
+      { as_of_date: asOfDate },
+      { skip: tab !== "consolidated" }
+    );
 
   const [createCashbook, createCashbookState] = useCreateCashbookMutation();
   const [updateCashbook, updateCashbookState] = useUpdateCashbookMutation();
@@ -267,7 +270,16 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
     cashbooks: "Cashbooks",
     transactions: "Cashbook Transactions",
     ledger: "Cashbook Ledger",
-    reports: "Cashbook Reports",
+    "daily-summary": "Daily Cashbook Summary",
+    consolidated: "Consolidated Balances",
+  };
+  const pageDescription: Record<Tab, string> = {
+    cashbooks: "Set up and manage branch cash and bank accounts.",
+    transactions: "Create transaction drafts, confirm activity, and reverse posted entries.",
+    ledger: "Review posted entries and running balances for a cashbook.",
+    "daily-summary":
+      "Review opening balance, money in, money out, and closing balance for a date range.",
+    consolidated: "Compare balances across branches and cashbooks, grouped by currency.",
   };
 
   return (
@@ -278,9 +290,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
             <Wallet size={17} className="text-emerald-600" /> Financial management
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{pageTitle[tab]}</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage cash and bank balances, transactions, and daily activity.
-          </p>
+          <p className="mt-1 text-sm text-gray-500">{pageDescription[tab]}</p>
         </div>
         {tab === "cashbooks" && (
           <Button startIcon={<Plus size={16} />} onClick={() => openCashbook()}>
@@ -315,7 +325,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                   <TableCell
                     key={head}
                     isHeader
-                    className="px-4 py-3 text-xs font-semibold text-gray-500"
+                    className={`px-4 py-3 text-xs font-semibold text-gray-500 ${head === "Current balance" ? "text-right" : ""}`}
                   >
                     {head}
                   </TableCell>
@@ -340,7 +350,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                   <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                     {item.currency_code}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
+                  <TableCell className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
                     {money(item.current_balance ?? item.opening_balance, item.currency_code)}
                   </TableCell>
                   <TableCell className="px-4 py-3">
@@ -439,7 +449,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                     <TableCell
                       key={head}
                       isHeader
-                      className="px-4 py-3 text-xs font-semibold text-gray-500"
+                      className={`px-4 py-3 text-xs font-semibold text-gray-500 ${head === "Amount" ? "text-right" : ""}`}
                     >
                       {head}
                     </TableCell>
@@ -465,7 +475,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center gap-1 text-sm ${item.direction === "in" ? "text-emerald-600" : "text-orange-600"}`}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${item.direction === "in" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"}`}
                       >
                         {item.direction === "in" ? (
                           <ArrowDownLeft size={14} />
@@ -475,7 +485,9 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                         {item.direction}
                       </span>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
+                    <TableCell
+                      className={`px-4 py-3 text-right text-sm font-semibold tabular-nums ${item.direction === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}
+                    >
                       {money(item.amount, item.cashbook?.currency_code)}
                     </TableCell>
                     <TableCell className="px-4 py-3">
@@ -561,7 +573,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                       <TableCell
                         key={head}
                         isHeader
-                        className="px-4 py-3 text-xs font-semibold text-gray-500"
+                        className={`px-4 py-3 text-xs font-semibold text-gray-500 ${["Amount", "Running balance"].includes(head) ? "text-right" : ""}`}
                       >
                         {head}
                       </TableCell>
@@ -578,13 +590,19 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                     <TableCell className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                       {entry.description || entry.reference || `Ledger entry #${entry.id}`}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
-                      {entry.direction}
+                    <TableCell className="px-4 py-3">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${entry.direction === "in" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"}`}
+                      >
+                        {entry.direction}
+                      </span>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
+                    <TableCell
+                      className={`px-4 py-3 text-right text-sm font-semibold tabular-nums ${entry.direction === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}
+                    >
                       {money(entry.amount)}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                    <TableCell className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
                       {money(entry.running_balance)}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-sm text-gray-500">
@@ -598,162 +616,175 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
         </section>
       )}
 
-      {tab === "reports" && (
-        <section className="space-y-5">
-          <FilterBar
-            cashbooks={cashbooks}
-            cashbookId={effectiveCashbookId}
-            onCashbook={setSelectedCashbook}
-            fromDate={fromDate}
-            toDate={toDate}
-            onFromDate={setFromDate}
-            onToDate={setToDate}
-          />
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Metric
-              title="Opening balance"
-              value={
-                summaryLoading
-                  ? "…"
-                  : money(
-                      summaryResponse?.data.opening_balance,
-                      summaryResponse?.data.currency_code
-                    )
-              }
-            />
-            <Metric
-              title="Money in"
-              value={
-                summaryLoading
-                  ? "…"
-                  : money(summaryResponse?.data.total_in, summaryResponse?.data.currency_code)
-              }
-              positive
-            />
-            <Metric
-              title="Money out"
-              value={
-                summaryLoading
-                  ? "…"
-                  : money(summaryResponse?.data.total_out, summaryResponse?.data.currency_code)
-              }
-            />
-            <Metric
-              title="Closing balance"
-              value={
-                summaryLoading
-                  ? "…"
-                  : money(
-                      summaryResponse?.data.closing_balance,
-                      summaryResponse?.data.currency_code
-                    )
-              }
-              positive
-            />
-          </div>
-          <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  Consolidated balances
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Balances grouped by currency at the selected date.
-                </p>
-              </div>
-              <div className="w-48">
-                <DatePicker
-                  id="cashbook-report-as-of-date"
-                  label="As of"
-                  defaultDate={asOfDate}
-                  placeholder="Select date"
-                  onChange={(_, date) => setAsOfDate(date)}
+      {(tab === "daily-summary" || tab === "consolidated") && (
+        <div className="space-y-10">
+          {tab === "daily-summary" && (
+            <section className="space-y-4">
+              <FilterBar
+                cashbooks={cashbooks}
+                cashbookId={effectiveCashbookId}
+                onCashbook={setSelectedCashbook}
+                fromDate={fromDate}
+                toDate={toDate}
+                onFromDate={setFromDate}
+                onToDate={setToDate}
+              />
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <Metric
+                  title="Opening balance"
+                  value={
+                    summaryLoading
+                      ? "…"
+                      : money(
+                          summaryResponse?.data.opening_balance,
+                          summaryResponse?.data.currency_code
+                        )
+                  }
+                />
+                <Metric
+                  title="Money in"
+                  value={
+                    summaryLoading
+                      ? "…"
+                      : money(summaryResponse?.data.total_in, summaryResponse?.data.currency_code)
+                  }
+                  positive
+                />
+                <Metric
+                  title="Money out"
+                  value={
+                    summaryLoading
+                      ? "…"
+                      : money(summaryResponse?.data.total_out, summaryResponse?.data.currency_code)
+                  }
+                />
+                <Metric
+                  title="Closing balance"
+                  value={
+                    summaryLoading
+                      ? "…"
+                      : money(
+                          summaryResponse?.data.closing_balance,
+                          summaryResponse?.data.currency_code
+                        )
+                  }
+                  positive
                 />
               </div>
-            </div>
-            {consolidatedLoading ? (
-              <div className="flex h-28 items-center justify-center">
-                <Loading />
+            </section>
+          )}
+          {tab === "consolidated" && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-start gap-3">
+                <label
+                  htmlFor="cashbook-report-as-of-date"
+                  className="shrink-0 text-sm font-medium text-gray-600 dark:text-gray-300"
+                >
+                  As of
+                </label>
+                <div className="w-48">
+                  <DatePicker
+                    id="cashbook-report-as-of-date"
+                    defaultDate={asOfDate}
+                    placeholder="Select date"
+                    onChange={(_, date) => setAsOfDate(date)}
+                  />
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {(consolidatedResponse?.data.currencies ?? []).map((currency) => (
-                  <div
-                    key={currency.currency_code}
-                    className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800"
-                  >
-                    <div className="flex flex-wrap gap-6 border-b border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-800 dark:bg-gray-900">
-                      <strong className="text-gray-900 dark:text-white">
-                        {currency.currency_code}
-                      </strong>
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Opening {money(currency.total_opening_balance)}
-                      </span>
-                      <span className="text-emerald-700 dark:text-emerald-400">
-                        In {money(currency.total_in)}
-                      </span>
-                      <span className="text-orange-700 dark:text-orange-400">
-                        Out {money(currency.total_out)}
-                      </span>
-                      <strong className="text-gray-900 dark:text-white">
-                        Closing {money(currency.total_closing_balance)}
-                      </strong>
-                    </div>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          {["Cashbook", "Branch", "Type", "Opening", "In", "Out", "Closing"].map(
-                            (head) => (
-                              <TableCell
-                                key={head}
-                                isHeader
-                                className="px-4 py-3 text-xs font-semibold text-gray-500"
-                              >
-                                {head}
+              {consolidatedLoading ? (
+                <div className="flex h-28 items-center justify-center">
+                  <Loading />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(consolidatedResponse?.data.currencies ?? []).map((currency) => (
+                    <div
+                      key={currency.currency_code}
+                      className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
+                    >
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200 px-4 py-4 text-sm dark:border-gray-800">
+                        <strong className="text-gray-900 dark:text-white">
+                          {currency.currency_code}
+                        </strong>
+                        <span className="text-gray-600 tabular-nums dark:text-gray-300">
+                          Opening {money(currency.total_opening_balance)}
+                        </span>
+                        <span className="text-emerald-700 tabular-nums dark:text-emerald-400">
+                          In {money(currency.total_in)}
+                        </span>
+                        <span className="text-orange-700 tabular-nums dark:text-orange-400">
+                          Out {money(currency.total_out)}
+                        </span>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {["Cashbook", "Branch", "Type", "Opening", "In", "Out", "Closing"].map(
+                              (head) => (
+                                <TableCell
+                                  key={head}
+                                  isHeader
+                                  className={`px-4 py-3 text-xs font-semibold text-gray-500 ${["Opening", "In", "Out", "Closing"].includes(head) ? "text-right" : ""}`}
+                                >
+                                  {head}
+                                </TableCell>
+                              )
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currency.cashbooks.map((book) => (
+                            <TableRow key={book.cashbook_id}>
+                              <TableCell className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                                {book.name}
                               </TableCell>
-                            )
-                          )}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {currency.cashbooks.map((book) => (
-                          <TableRow key={book.cashbook_id}>
-                            <TableCell className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                              {book.name}
+                              <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                {book.branch_name}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
+                                {book.type}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-right text-sm tabular-nums">
+                                {money(book.opening_balance)}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-right text-sm tabular-nums text-emerald-700">
+                                {money(book.total_in)}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-right text-sm tabular-nums text-orange-700">
+                                {money(book.total_out)}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-right text-sm font-semibold tabular-nums">
+                                {money(book.closing_balance)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                        <tfoot className="border-t border-gray-200 bg-gray-50/70 dark:border-gray-800 dark:bg-gray-900/30">
+                          <TableRow>
+                            <TableCell
+                              colSpan={6}
+                              className="px-4 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white"
+                            >
+                              Closing
                             </TableCell>
-                            <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                              {book.branch_name}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
-                              {book.type}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm">
-                              {money(book.opening_balance)}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm text-emerald-700">
-                              {money(book.total_in)}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm text-orange-700">
-                              {money(book.total_out)}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm font-semibold">
-                              {money(book.closing_balance)}
+                            <TableCell className="px-4 py-4 text-right text-sm font-bold tabular-nums text-gray-900 dark:text-white">
+                              {money(currency.total_closing_balance)}
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ))}
-                {!consolidatedResponse?.data.currencies?.length && (
-                  <p className="py-10 text-center text-sm text-gray-500">
-                    No consolidated balances for this date.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+                        </tfoot>
+                      </Table>
+                    </div>
+                  ))}
+                  {!consolidatedResponse?.data.currencies?.length && (
+                    <p className="py-10 text-center text-sm text-gray-500">
+                      No consolidated balances for this date.
+                    </p>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
       )}
 
       <Modal
