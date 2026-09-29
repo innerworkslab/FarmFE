@@ -7,6 +7,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
+import { formatReadableDate } from "@/lib/dateFormat";
 import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
@@ -519,7 +520,7 @@ export default function FarmFeedingsPage() {
                         </p>
                       </TableCell>
                       <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                        {item.feeding_date}
+                        {formatReadableDate(item.feeding_date)}
                         <br />
                         <span className="text-xs">{item.feeding_time}</span>
                       </TableCell>
@@ -873,7 +874,7 @@ function FeedingDetail({
         ["Breed", item.target?.breed],
         ["Animal Count", item.target?.animal_count],
         ["Location", item.target?.location],
-        ["Date", item.feeding_date],
+        ["Date", item.feeding_date ? formatReadableDate(item.feeding_date) : item.feeding_date],
         ["Time", item.feeding_time],
         ["Total Quantity", item.totals?.quantity],
         ["Wastage", item.totals?.wastage_quantity],

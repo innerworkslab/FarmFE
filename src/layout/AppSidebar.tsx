@@ -25,6 +25,7 @@ import {
   ReceiptText,
   Database,
   MapPin,
+  Wallet,
 } from "lucide-react";
 
 type NavItem = {
@@ -57,6 +58,7 @@ const AppSidebar: React.FC = () => {
   );
   const [farmFeedingOpen, setFarmFeedingOpen] = useState(pathname.startsWith("/farms/feedings"));
   const [farmNavigationOpen, setFarmNavigationOpen] = useState(pathname === "/farms");
+  const [financialOpen, setFinancialOpen] = useState(pathname.startsWith("/financial"));
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
       pathname.startsWith("/setup/roles") ||
@@ -77,6 +79,7 @@ const AppSidebar: React.FC = () => {
     if (pathname.startsWith("/farms/animal-view")) setFarmAnimalViewOpen(true);
     if (pathname.startsWith("/farms/feedings")) setFarmFeedingOpen(true);
     if (pathname === "/farms") setFarmNavigationOpen(true);
+    if (pathname.startsWith("/financial")) setFinancialOpen(true);
 
     if (
       pathname.startsWith("/setup/branches") ||
@@ -179,6 +182,20 @@ const AppSidebar: React.FC = () => {
         name: "Farm Feeding API",
         icon: <Wheat size={20} />,
         children: [{ name: "Farm Feedings", path: "/farms/feedings", icon: <Wheat size={14} /> }],
+      },
+      {
+        name: "Financial Cashbook API",
+        icon: <Wallet size={20} />,
+        children: [
+          { name: "Cashbooks", path: "/financial/cashbooks", icon: <Wallet size={14} /> },
+          {
+            name: "Transactions",
+            path: "/financial/transactions",
+            icon: <ReceiptText size={14} />,
+          },
+          { name: "Ledger", path: "/financial/ledger", icon: <ScrollText size={14} /> },
+          { name: "Reports", path: "/financial/reports", icon: <Database size={14} /> },
+        ],
       },
     ],
     []
@@ -335,7 +352,9 @@ const AppSidebar: React.FC = () => {
                     ? farmNavigationOpen
                     : group.name === "Farm Animal View API"
                       ? farmAnimalViewOpen
-                      : farmFeedingOpen;
+                      : group.name === "Financial Cashbook API"
+                        ? financialOpen
+                        : farmFeedingOpen;
             const setOpen =
               group.name === "Inventory Foundation API"
                 ? setInventoryOpen
@@ -345,7 +364,9 @@ const AppSidebar: React.FC = () => {
                     ? setFarmNavigationOpen
                     : group.name === "Farm Animal View API"
                       ? setFarmAnimalViewOpen
-                      : setFarmFeedingOpen;
+                      : group.name === "Financial Cashbook API"
+                        ? setFinancialOpen
+                        : setFarmFeedingOpen;
 
             return (
               <div key={group.name}>

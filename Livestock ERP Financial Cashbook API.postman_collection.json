@@ -1,0 +1,1519 @@
+{
+  "info": {
+    "_postman_id": "18ff3784-f032-4e72-8b05-c7b895f81f05",
+    "name": "Livestock ERP Financial Cashbook API",
+    "description": "Postman collection for the implemented Financial cashbook APIs: cashbook setup, manual transaction drafts, confirmation, reversal, ledger, daily summary, and consolidated balances. All endpoints use /api/v1. Manual transaction creation requires an Idempotency-Key header. This collection does not cover staff advances, depreciation, period controls, or P&L.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-18ff3784-f032-4e72-8b05-c7b895f81f05?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.access_token) pm.collectionVariables.set('access_token', json.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in and stores the Sanctum access token in the access_token collection variable."
+          },
+          "response": [
+            {
+              "name": "Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 03:22:15 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"token_type\": \"Bearer\",\n  \"access_token\": \"17|nUfcON2CCcZs0Ejbcb5K8lnq39B0PkfIdk5VCVvF94602514\",\n  \"user\": {\n    \"id\": 1,\n    \"name\": \"Super Admin\",\n    \"email\": \"superadmin@example.com\",\n    \"username\": \"superadmin\",\n    \"account_status\": \"active\",\n    \"last_login_at\": \"2026-09-29T03:22:15.000000Z\",\n    \"two_factor_enabled\": false,\n    \"roles\": [\n      \"super-admin\"\n    ],\n    \"permissions\": [\n      \"authorization.permissions.view\",\n      \"setup.view\",\n      \"setup.manage\",\n      \"setup.branches.view\",\n      \"setup.branches.create\",\n      \"setup.branches.update\",\n      \"setup.branches.delete\",\n      \"setup.roles.view\",\n      \"setup.roles.create\",\n      \"setup.roles.update\",\n      \"setup.roles.delete\",\n      \"setup.admins.view\",\n      \"setup.admins.create\",\n      \"setup.admins.update\",\n      \"setup.admins.delete\",\n      \"setup.audit.view\",\n      \"setup.customers.view\",\n      \"setup.customers.create\",\n      \"setup.customers.update\",\n      \"setup.customers.delete\",\n      \"setup.suppliers.view\",\n      \"setup.suppliers.create\",\n      \"setup.suppliers.update\",\n      \"setup.suppliers.delete\",\n      \"setup.foods.view\",\n      \"setup.foods.create\",\n      \"setup.foods.update\",\n      \"setup.foods.delete\",\n      \"setup.medicines.view\",\n      \"setup.medicines.create\",\n      \"setup.medicines.update\",\n      \"setup.medicines.delete\",\n      \"setup.animals.view\",\n      \"setup.animals.create\",\n      \"setup.animals.update\",\n      \"setup.animals.delete\",\n      \"setup.equipment.view\",\n      \"setup.equipment.create\",\n      \"setup.equipment.update\",\n      \"setup.equipment.delete\",\n      \"setup.inventories.view\",\n      \"setup.inventories.create\",\n      \"setup.inventories.update\",\n      \"setup.inventories.delete\",\n      \"setup.uoms.view\",\n      \"setup.uoms.create\",\n      \"setup.uoms.update\",\n      \"setup.uoms.delete\",\n      \"setup.farm-information.view\",\n      \"setup.farm-information.create\",\n      \"setup.farm-information.update\",\n      \"setup.farm-information.delete\",\n      \"purchasing.view\",\n      \"purchasing.manage\",\n      \"inventory.view\",\n      \"inventory.manage\",\n      \"inventory.items.view\",\n      \"inventory.balances.view\",\n      \"inventory.ledger.view\",\n      \"inventory.confirmations.view\",\n      \"inventory.adjustments.view\",\n      \"inventory.adjustments.create\",\n      \"inventory.adjustments.update\",\n      \"inventory.adjustments.submit\",\n      \"inventory.adjustments.confirm\",\n      \"inventory.adjustments.reverse\",\n      \"inventory.history.export\",\n      \"farms.view\",\n      \"farms.manage\",\n      \"sales.view\",\n      \"sales.manage\",\n      \"financial.view\",\n      \"financial.manage\",\n      \"purchasing.receipts.confirm\",\n      \"purchasing.receipts.create\",\n      \"purchasing.receipts.view\",\n      \"purchasing.invoices.cancel\",\n      \"purchasing.invoices.update\",\n      \"purchasing.invoices.create\",\n      \"purchasing.invoices.view\"\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cashbooks",
+      "item": [
+        {
+          "name": "List Cashbooks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks?per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Lists cashbooks within the authenticated user's branch scope. Optional filters: branch_id, type, status, currency_code, search, and per_page."
+          },
+          "response": [
+            {
+              "name": "List Cashbooks",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks?per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 03:32:25 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 2,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"bank\",\n      \"name\": \"Yangon Operating Bank\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"8000000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"8000000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    },\n    {\n      \"id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Yangon Main Cash\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"1500000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"1500000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbooks\",\n    \"per_page\": 15,\n    \"to\": 2,\n    \"total\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Cashbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const data = body.data || body;",
+                  "if (data.id) pm.collectionVariables.set('cashbook_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branch_id\": \"{{branch_id}}\",\n  \"type\": \"cash\",\n  \"name\": \"{{cashbook_name}}\",\n  \"currency_code\": \"{{currency_code}}\",\n  \"opening_balance\": \"500000.00\",\n  \"effective_date\": \"{{effective_date}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks"
+              ]
+            },
+            "description": "Creates an active cashbook and records its opening balance as a ledger entry. Opening balance may be omitted and then defaults to zero. Set branch_id to an active branch you can access. The name must be unique for that branch and cash/bank type."
+          },
+          "response": [
+            {
+              "name": "Create Cashbook",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"branch_id\": \"{{branch_id}}\",\n  \"type\": \"cash\",\n  \"name\": \"{{cashbook_name}}\",\n  \"currency_code\": \"{{currency_code}}\",\n  \"opening_balance\": \"500000.00\",\n  \"effective_date\": \"{{effective_date}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 03:33:21 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 3,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"branch_id\": 1,\n    \"type\": \"cash\",\n    \"name\": \"Postman Cashbook\",\n    \"currency_code\": \"MMK\",\n    \"bank_reference\": null,\n    \"opening_balance\": \"500000.00\",\n    \"effective_date\": \"2026-09-28\",\n    \"current_balance\": \"500000.00\",\n    \"status\": \"active\",\n    \"deactivation_reason\": null,\n    \"version\": 1,\n    \"created_at\": \"2026-09-29T03:33:20.000000Z\",\n    \"updated_at\": \"2026-09-29T03:33:20.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Cashbook",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}"
+              ]
+            },
+            "description": "Returns cashbook details and the system-calculated current balance."
+          },
+          "response": [
+            {
+              "name": "Get Cashbook",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks",
+                    "{{cashbook_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:42:42 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 3,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"branch_id\": 1,\n    \"type\": \"cash\",\n    \"name\": \"Postman Cashbook Updated\",\n    \"currency_code\": \"MMK\",\n    \"bank_reference\": \"BANK-REF-001\",\n    \"opening_balance\": \"500000.00\",\n    \"effective_date\": \"2026-09-28\",\n    \"current_balance\": \"500000.00\",\n    \"status\": \"active\",\n    \"deactivation_reason\": null,\n    \"version\": 2,\n    \"created_at\": \"2026-09-29T03:33:20.000000Z\",\n    \"updated_at\": \"2026-09-29T03:33:32.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Cashbook Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{cashbook_name}} Updated\",\n  \"bank_reference\": \"BANK-REF-001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}"
+              ]
+            },
+            "description": "Updates descriptive fields. Branch, type, currency, effective date, and opening balance cannot be changed after creation."
+          },
+          "response": [
+            {
+              "name": "Update Cashbook Description",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{cashbook_name}} Updated\",\n  \"bank_reference\": \"BANK-REF-001\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks",
+                    "{{cashbook_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 03:33:32 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 3,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"branch_id\": 1,\n    \"type\": \"cash\",\n    \"name\": \"Postman Cashbook Updated\",\n    \"currency_code\": \"MMK\",\n    \"bank_reference\": \"BANK-REF-001\",\n    \"opening_balance\": \"500000.00\",\n    \"effective_date\": \"2026-09-28\",\n    \"current_balance\": \"500000.00\",\n    \"status\": \"active\",\n    \"deactivation_reason\": null,\n    \"version\": 2,\n    \"created_at\": \"2026-09-29T03:33:20.000000Z\",\n    \"updated_at\": \"2026-09-29T03:33:32.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Deactivate Cashbook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cashbook no longer in use\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/deactivate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}",
+                "deactivate"
+              ]
+            },
+            "description": "Deactivation is blocked while draft transactions exist or the current balance is non-zero."
+          },
+          "response": []
+        },
+        {
+          "name": "Cashbook Ledger",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/ledger?per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}",
+                "ledger"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Lists immutable ledger entries in posting order. Optional filters: from_date, to_date, direction, source_type, search, and per_page."
+          },
+          "response": [
+            {
+              "name": "Cashbook Ledger",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/ledger?per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks",
+                    "{{cashbook_id}}",
+                    "ledger"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:42:55 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 3,\n      \"cashbook_id\": 3,\n      \"cashbook_transaction_id\": null,\n      \"reversal_of_entry_id\": null,\n      \"reference\": \"CBO-01M3NKJQZHS9HHYZCYHZFMFN20\",\n      \"entry_date\": \"2026-09-28\",\n      \"description\": \"Opening balance\",\n      \"source_type\": \"opening_balance\",\n      \"direction\": \"in\",\n      \"amount\": \"500000.00\",\n      \"running_balance\": \"500000.00\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-09-29T10:03:21.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbooks/3/ledger?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbooks/3/ledger?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbooks/3/ledger?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbooks/3/ledger\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cashbook Daily Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/daily-summary?from_date={{business_date}}&to_date={{business_date}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}",
+                "daily-summary"
+              ],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "{{business_date}}"
+                },
+                {
+                  "key": "to_date",
+                  "value": "{{business_date}}"
+                }
+              ]
+            },
+            "description": "Returns opening balance, total In, total Out, and closing balance for one date or a date range."
+          },
+          "response": [
+            {
+              "name": "Cashbook Daily Summary",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/daily-summary?from_date={{business_date}}&to_date={{business_date}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks",
+                    "{{cashbook_id}}",
+                    "daily-summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "from_date",
+                      "value": "{{business_date}}"
+                    },
+                    {
+                      "key": "to_date",
+                      "value": "{{business_date}}"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 03:32:54 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"cashbook_id\": 1,\n    \"cashbook_name\": \"Yangon Main Cash\",\n    \"currency_code\": \"MMK\",\n    \"from_date\": \"2026-09-28\",\n    \"to_date\": \"2026-09-28\",\n    \"opening_balance\": \"0.00\",\n    \"total_in\": \"0.00\",\n    \"total_out\": \"0.00\",\n    \"closing_balance\": \"0.00\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Manual Cashbook Transactions",
+      "item": [
+        {
+          "name": "List Cashbook Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions?cashbook_id={{cashbook_id}}&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions"
+              ],
+              "query": [
+                {
+                  "key": "cashbook_id",
+                  "value": "{{cashbook_id}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Lists authorized transactions. Optional filters: cashbook_id, branch_id, status, direction, from_date, to_date, search, and per_page."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Transaction Draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const data = body.data || body;",
+                  "if (data.id) pm.collectionVariables.set('transaction_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashbook_id\": \"{{cashbook_id}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"direction\": \"in\",\n  \"amount\": \"25000.00\",\n  \"description\": \"Postman sample receipt\",\n  \"external_reference\": \"PM-RECEIPT-001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions"
+              ]
+            },
+            "description": "Creates a draft without changing the cashbook balance. Idempotency-Key is required. Keep the same key when retrying this request; change idempotency_key and external_reference to create a different transaction."
+          },
+          "response": [
+            {
+              "name": "Create Transaction Draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{idempotency_key}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cashbook_id\": \"{{cashbook_id}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"direction\": \"in\",\n  \"amount\": \"25000.00\",\n  \"description\": \"Postman sample receipt\",\n  \"external_reference\": \"PM-RECEIPT-001\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:43:53 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"reference\": \"CBT-01M3NQKXDZ9Y8ZXMHQ1KPPNTAJ\",\n    \"external_reference\": \"PM-RECEIPT-001\",\n    \"business_date\": \"2026-09-28\",\n    \"direction\": \"in\",\n    \"amount\": \"25000.00\",\n    \"description\": \"Postman sample receipt\",\n    \"source_type\": \"manual\",\n    \"status\": \"draft\",\n    \"ledger_entry_id\": null,\n    \"reverses_transaction_id\": null,\n    \"reversed_by_transaction_id\": null,\n    \"reversal_reason\": null,\n    \"created_by_id\": 1,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"version\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Transaction",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions",
+                "{{transaction_id}}"
+              ]
+            },
+            "description": "Returns transaction details, posting reference, and reversal links."
+          },
+          "response": [
+            {
+              "name": "Get Transaction",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions",
+                    "{{transaction_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:44:03 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"reference\": \"CBT-01M3NQKXDZ9Y8ZXMHQ1KPPNTAJ\",\n    \"external_reference\": \"PM-RECEIPT-001\",\n    \"business_date\": \"2026-09-28\",\n    \"direction\": \"in\",\n    \"amount\": \"25000.00\",\n    \"description\": \"Postman sample receipt\",\n    \"source_type\": \"manual\",\n    \"status\": \"draft\",\n    \"ledger_entry_id\": null,\n    \"reverses_transaction_id\": null,\n    \"reversed_by_transaction_id\": null,\n    \"reversal_reason\": null,\n    \"created_by_id\": 1,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"version\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Transaction Draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"30000.00\",\n  \"description\": \"Updated sample receipt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions",
+                "{{transaction_id}}"
+              ]
+            },
+            "description": "Edits a draft only. Confirmed or reversed transactions are immutable."
+          },
+          "response": [
+            {
+              "name": "Update Transaction Draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": \"30000.00\",\n  \"description\": \"Updated sample receipt\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions",
+                    "{{transaction_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:44:45 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"reference\": \"CBT-01M3NQKXDZ9Y8ZXMHQ1KPPNTAJ\",\n    \"external_reference\": \"PM-RECEIPT-001\",\n    \"business_date\": \"2026-09-28\",\n    \"direction\": \"in\",\n    \"amount\": \"30000.00\",\n    \"description\": \"Updated sample receipt\",\n    \"source_type\": \"manual\",\n    \"status\": \"draft\",\n    \"ledger_entry_id\": null,\n    \"reverses_transaction_id\": null,\n    \"reversed_by_transaction_id\": null,\n    \"reversal_reason\": null,\n    \"created_by_id\": 1,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"version\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions",
+                "{{transaction_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Revalidates cashbook status, business date, and available balance, then appends one ledger entry atomically. Repeating confirmation does not post again."
+          },
+          "response": [
+            {
+              "name": "Confirm Transaction",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions",
+                    "{{transaction_id}}",
+                    "confirm"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:45:12 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"reference\": \"CBT-01M3NQKXDZ9Y8ZXMHQ1KPPNTAJ\",\n    \"external_reference\": \"PM-RECEIPT-001\",\n    \"business_date\": \"2026-09-28\",\n    \"direction\": \"in\",\n    \"amount\": \"30000.00\",\n    \"description\": \"Updated sample receipt\",\n    \"source_type\": \"manual\",\n    \"status\": \"confirmed\",\n    \"ledger_entry_id\": 4,\n    \"reverses_transaction_id\": null,\n    \"reversed_by_transaction_id\": null,\n    \"reversal_reason\": null,\n    \"created_by_id\": 1,\n    \"confirmed_by_id\": 1,\n    \"confirmed_at\": \"2026-09-29T04:45:12.000000Z\",\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"version\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reverse Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman reversal example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}/reverse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions",
+                "{{transaction_id}}",
+                "reverse"
+              ]
+            },
+            "description": "Reverses a confirmed manual transaction with an equal and opposite ledger entry. Transactions owned by another module must be reversed through that module."
+          },
+          "response": [
+            {
+              "name": "Reverse Transaction",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Postman reversal example\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions/{{transaction_id}}/reverse",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions",
+                    "{{transaction_id}}",
+                    "reverse"
+                  ]
+                }
+              },
+              "status": "Unprocessable Content",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:44:24 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Only confirmed transactions can be reversed.\",\n  \"errors\": {\n    \"transaction\": [\n      \"Only confirmed transactions can be reversed.\"\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cashbook Reports",
+      "item": [
+        {
+          "name": "Consolidated Cashbook Balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-reports/consolidated?as_of_date={{business_date}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-reports",
+                "consolidated"
+              ],
+              "query": [
+                {
+                  "key": "as_of_date",
+                  "value": "{{business_date}}"
+                }
+              ]
+            },
+            "description": "Returns branch and type totals grouped by currency. Optional filters: branch_id, type, and currency_code. Different currencies are never combined."
+          },
+          "response": [
+            {
+              "name": "Consolidated Cashbook Balances",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-reports/consolidated?as_of_date={{business_date}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-reports",
+                    "consolidated"
+                  ],
+                  "query": [
+                    {
+                      "key": "as_of_date",
+                      "value": "{{business_date}}"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Tue, 29 Sep 2026 04:45:28 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"as_of_date\": \"2026-09-28\",\n    \"currencies\": [\n      {\n        \"currency_code\": \"MMK\",\n        \"total_opening_balance\": \"500000.00\",\n        \"total_in\": \"30000.00\",\n        \"total_out\": \"0.00\",\n        \"total_closing_balance\": \"530000.00\",\n        \"cashbooks\": [\n          {\n            \"cashbook_id\": 2,\n            \"branch_id\": 1,\n            \"branch_name\": \"Yangon Main Farm\",\n            \"type\": \"bank\",\n            \"name\": \"Yangon Operating Bank\",\n            \"opening_balance\": \"0.00\",\n            \"total_in\": \"0.00\",\n            \"total_out\": \"0.00\",\n            \"closing_balance\": \"0.00\"\n          },\n          {\n            \"cashbook_id\": 3,\n            \"branch_id\": 1,\n            \"branch_name\": \"Yangon Main Farm\",\n            \"type\": \"cash\",\n            \"name\": \"Postman Cashbook Updated\",\n            \"opening_balance\": \"500000.00\",\n            \"total_in\": \"30000.00\",\n            \"total_out\": \"0.00\",\n            \"closing_balance\": \"530000.00\"\n          },\n          {\n            \"cashbook_id\": 1,\n            \"branch_id\": 1,\n            \"branch_name\": \"Yangon Main Farm\",\n            \"type\": \"cash\",\n            \"name\": \"Yangon Main Cash\",\n            \"opening_balance\": \"0.00\",\n            \"total_in\": \"0.00\",\n            \"total_out\": \"0.00\",\n            \"closing_balance\": \"0.00\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "branch_id",
+      "value": ""
+    },
+    {
+      "key": "cashbook_id",
+      "value": ""
+    },
+    {
+      "key": "transaction_id",
+      "value": ""
+    },
+    {
+      "key": "idempotency_key",
+      "value": "PM-CASHBOOK-TX-001"
+    },
+    {
+      "key": "cashbook_name",
+      "value": "Postman Cashbook"
+    },
+    {
+      "key": "currency_code",
+      "value": "MMK"
+    },
+    {
+      "key": "effective_date",
+      "value": "2026-09-28"
+    },
+    {
+      "key": "business_date",
+      "value": "2026-09-28"
+    }
+  ]
+}
