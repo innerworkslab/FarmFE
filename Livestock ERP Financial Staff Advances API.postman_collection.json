@@ -1,0 +1,2076 @@
+{
+  "info": {
+    "_postman_id": "2ee84d79-2a78-4c26-b7be-0cddb794f20c",
+    "name": "Livestock ERP Financial Staff Advances API",
+    "description": "Separate Postman collection for staff advance loans and repayments. Uses the single-entry cash in/out ledger. A confirmed loan posts cash out; a confirmed repayment posts cash in. Requires an active employed staff member, an active branch cashbook, an active cash-out category for loans, and an active cash-in category for repayments. Before reversals, configure each category's active opposite-direction reversal category using the Cash Ledger Categories API. All endpoints use /api/v1. Set IDs from your environment or run the related setup collections first. A staff member's advances use one currency; repayments must use that currency.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-2ee84d79-2a78-4c26-b7be-0cddb794f20c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication and prerequisites",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) pm.collectionVariables.set('access_token', body.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 03:57:33 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"token_type\": \"Bearer\",\n  \"access_token\": \"19|LK56RNq8UIvDtUcTpxM5MWCOLfQD14PoxvvTt0VR56cceb25\",\n  \"user\": {\n    \"id\": 1,\n    \"name\": \"Super Admin\",\n    \"email\": \"superadmin@example.com\",\n    \"username\": \"superadmin\",\n    \"account_status\": \"active\",\n    \"last_login_at\": \"2026-09-30T03:57:33.000000Z\",\n    \"two_factor_enabled\": false,\n    \"roles\": [\n      \"super-admin\"\n    ],\n    \"permissions\": [\n      \"authorization.permissions.view\",\n      \"setup.view\",\n      \"setup.manage\",\n      \"setup.branches.view\",\n      \"setup.branches.create\",\n      \"setup.branches.update\",\n      \"setup.branches.delete\",\n      \"setup.roles.view\",\n      \"setup.roles.create\",\n      \"setup.roles.update\",\n      \"setup.roles.delete\",\n      \"setup.admins.view\",\n      \"setup.admins.create\",\n      \"setup.admins.update\",\n      \"setup.admins.delete\",\n      \"setup.audit.view\",\n      \"setup.customers.view\",\n      \"setup.customers.create\",\n      \"setup.customers.update\",\n      \"setup.customers.delete\",\n      \"setup.suppliers.view\",\n      \"setup.suppliers.create\",\n      \"setup.suppliers.update\",\n      \"setup.suppliers.delete\",\n      \"setup.foods.view\",\n      \"setup.foods.create\",\n      \"setup.foods.update\",\n      \"setup.foods.delete\",\n      \"setup.medicines.view\",\n      \"setup.medicines.create\",\n      \"setup.medicines.update\",\n      \"setup.medicines.delete\",\n      \"setup.animals.view\",\n      \"setup.animals.create\",\n      \"setup.animals.update\",\n      \"setup.animals.delete\",\n      \"setup.equipment.view\",\n      \"setup.equipment.create\",\n      \"setup.equipment.update\",\n      \"setup.equipment.delete\",\n      \"setup.inventories.view\",\n      \"setup.inventories.create\",\n      \"setup.inventories.update\",\n      \"setup.inventories.delete\",\n      \"setup.uoms.view\",\n      \"setup.uoms.create\",\n      \"setup.uoms.update\",\n      \"setup.uoms.delete\",\n      \"setup.farm-information.view\",\n      \"setup.farm-information.create\",\n      \"setup.farm-information.update\",\n      \"setup.farm-information.delete\",\n      \"purchasing.view\",\n      \"purchasing.manage\",\n      \"inventory.view\",\n      \"inventory.manage\",\n      \"inventory.items.view\",\n      \"inventory.balances.view\",\n      \"inventory.ledger.view\",\n      \"inventory.confirmations.view\",\n      \"inventory.adjustments.view\",\n      \"inventory.adjustments.create\",\n      \"inventory.adjustments.update\",\n      \"inventory.adjustments.submit\",\n      \"inventory.adjustments.confirm\",\n      \"inventory.adjustments.reverse\",\n      \"inventory.history.export\",\n      \"farms.view\",\n      \"farms.manage\",\n      \"sales.view\",\n      \"sales.manage\",\n      \"financial.view\",\n      \"financial.manage\",\n      \"purchasing.receipts.confirm\",\n      \"purchasing.receipts.create\",\n      \"purchasing.receipts.view\",\n      \"purchasing.invoices.cancel\",\n      \"purchasing.invoices.update\",\n      \"purchasing.invoices.create\",\n      \"purchasing.invoices.view\",\n      \"financial.cashbooks.view\",\n      \"financial.cashbooks.create\",\n      \"financial.cashbooks.update\",\n      \"financial.cashbooks.deactivate\",\n      \"financial.cashbooks.bank-reference.view\",\n      \"financial.transactions.view\",\n      \"financial.transactions.create\",\n      \"financial.transactions.update\",\n      \"financial.transactions.confirm\",\n      \"financial.transactions.reverse\",\n      \"financial.reports.view\",\n      \"financial.categories.view\",\n      \"financial.categories.create\",\n      \"financial.categories.update\",\n      \"setup.staff.view\",\n      \"setup.staff.create\",\n      \"setup.staff.update\",\n      \"financial.advances.view\",\n      \"financial.advances.create\",\n      \"financial.advances.update\",\n      \"financial.advances.confirm\",\n      \"financial.advances.reverse\",\n      \"financial.advance-repayments.create\",\n      \"financial.advance-repayments.update\",\n      \"financial.advance-repayments.confirm\",\n      \"financial.advance-repayments.reverse\",\n      \"financial.advance-repayments.cancel\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List active staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/staff?status=active&employment_status=employed&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "staff"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "employment_status",
+                  "value": "employed"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose an active, employed staff record and set staff_id. Staff Master must exist first."
+          },
+          "response": [
+            {
+              "name": "List active staff",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/staff?status=active&employment_status=employed&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "staff"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "employment_status",
+                      "value": "employed"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 03:57:59 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"name\": \"Aung Kyaw\",\n      \"phone_number\": \"+95 9 123456789\",\n      \"branch_id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"employment_status\": \"employed\",\n      \"status\": \"active\",\n      \"eligible_for_advance\": true,\n      \"version\": 3,\n      \"created_at\": \"2026-09-30T02:47:51.000000Z\",\n      \"updated_at\": \"2026-09-30T02:48:41.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/setup/staff?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/setup/staff?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/setup/staff?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/setup/staff\",\n    \"per_page\": 100,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List cashbooks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose an active cashbook in the staff member's branch and set cashbook_id. The same currency must be used for this staff member's later advances and repayments."
+          },
+          "response": [
+            {
+              "name": "List cashbooks",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 03:57:48 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 2,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"bank\",\n      \"name\": \"Yangon Operating Bank\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"8000000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"8000000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    },\n    {\n      \"id\": 3,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Postman Cashbook Updated\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": \"BANK-REF-001\",\n      \"opening_balance\": \"500000.00\",\n      \"effective_date\": \"2026-09-28\",\n      \"current_balance\": \"530000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 2,\n      \"created_at\": \"2026-09-29T03:33:20.000000Z\",\n      \"updated_at\": \"2026-09-29T03:33:32.000000Z\"\n    },\n    {\n      \"id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Yangon Main Cash\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"1500000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"1500000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    },\n    {\n      \"id\": 4,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Ygn farm cashbook 2\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": \"BANK-REF-001\",\n      \"opening_balance\": \"500000.00\",\n      \"effective_date\": \"2026-09-28\",\n      \"current_balance\": \"500000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 3,\n      \"created_at\": \"2026-09-30T02:49:37.000000Z\",\n      \"updated_at\": \"2026-09-30T02:51:37.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbooks\",\n    \"per_page\": 100,\n    \"to\": 4,\n    \"total\": 4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List cash ledger categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cash-ledger-categories?per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cash-ledger-categories"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Set cash_out_category_id to an active direction=out category and cash_in_category_id to an active direction=in category."
+          },
+          "response": [
+            {
+              "name": "List cash ledger categories",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cash-ledger-categories?per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cash-ledger-categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 03:58:07 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\",\n      \"reversal_category_id\": 4,\n      \"reversal_category\": {\n        \"id\": 4,\n        \"name\": \"Staff Loan Disbursement\",\n        \"direction\": \"out\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-09-30T02:44:44.000000Z\",\n      \"updated_at\": \"2026-09-30T02:45:43.000000Z\"\n    },\n    {\n      \"id\": 1,\n      \"name\": \"Uncategorized cash in\",\n      \"direction\": \"in\",\n      \"reversal_category_id\": 2,\n      \"reversal_category\": {\n        \"id\": 2,\n        \"name\": \"Uncategorized cash out\",\n        \"direction\": \"out\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": null,\n      \"created_at\": \"2026-09-29T16:37:08.000000Z\",\n      \"updated_at\": \"2026-09-29T16:37:08.000000Z\"\n    },\n    {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\",\n      \"reversal_category_id\": 3,\n      \"reversal_category\": {\n        \"id\": 3,\n        \"name\": \"Staff Loan Repayment\",\n        \"direction\": \"in\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-09-30T02:44:54.000000Z\",\n      \"updated_at\": \"2026-09-30T02:45:12.000000Z\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Uncategorized cash out\",\n      \"direction\": \"out\",\n      \"reversal_category_id\": 1,\n      \"reversal_category\": {\n        \"id\": 1,\n        \"name\": \"Uncategorized cash in\",\n        \"direction\": \"in\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": null,\n      \"created_at\": \"2026-09-29T16:37:08.000000Z\",\n      \"updated_at\": \"2026-09-29T16:37:08.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories\",\n    \"per_page\": 100,\n    \"to\": 4,\n    \"total\": 4\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Staff balances and history",
+      "item": [
+        {
+          "name": "List staff advance balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-balances?search=&balance_state=positive&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-balances"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "balance_state",
+                  "value": "positive"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Staff selector and balance summary. Supports search, branch_id, employment_status, status, balance_state=positive|zero, per_page."
+          },
+          "response": [
+            {
+              "name": "List staff advance balances",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-balances?balance_state=positive&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-balances"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "balance_state",
+                      "value": "positive"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:03:40 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"staff_id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"staff_name\": \"Aung Kyaw\",\n      \"currency_code\": \"MMK\",\n      \"branch_id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"employment_status\": \"employed\",\n      \"status\": \"active\",\n      \"total_additions\": \"120.00\",\n      \"total_deductions\": \"0.00\",\n      \"outstanding_balance\": \"120.00\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/staff-advance-balances?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/staff-advance-balances?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/staff-advance-balances?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/staff-advance-balances\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get staff loan and repayment history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-history/{{staff_id}}?per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-history",
+                "{{staff_id}}"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Returns the immutable ledger entries in posting order. Optional from_date, to_date, and entry_type filters."
+          },
+          "response": [
+            {
+              "name": "Get staff loan and repayment history",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-history/{{staff_id}}?per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-history",
+                    "{{staff_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:03:59 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"staff_id\": 1,\n      \"staff_advance_id\": 1,\n      \"staff_advance_repayment_id\": null,\n      \"cashbook_transaction_id\": 2,\n      \"reversal_of_entry_id\": null,\n      \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n      \"business_date\": \"2026-09-28\",\n      \"entry_type\": \"loan_disbursement\",\n      \"effect\": \"addition\",\n      \"addition\": \"120.00\",\n      \"deduction\": \"0.00\",\n      \"amount\": \"120.00\",\n      \"currency_code\": \"MMK\",\n      \"running_balance\": \"120.00\",\n      \"description\": \"Staff loan\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-09-30T10:33:16.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/staff-advance-history/1?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/staff-advance-history/1?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/staff-advance-history/1?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/staff-advance-history/1\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1,\n    \"staff_id\": 1,\n    \"current_balance\": \"120.00\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Staff loans",
+      "item": [
+        {
+          "name": "Create loan draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const data = body.data || body;",
+                  "if (data.id) pm.collectionVariables.set('staff_advance_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{advance_idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": {{staff_id}},\n  \"principal_amount\": \"{{advance_amount}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Staff loan\",\n  \"idempotency_key\": \"{{advance_idempotency_key}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances"
+              ]
+            },
+            "description": "Creates an editable draft only; cash is not posted until confirmation. Repeating the same request with this idempotency key is safe."
+          },
+          "response": [
+            {
+              "name": "Create loan draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{advance_idempotency_key}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"staff_id\": {{staff_id}},\n  \"principal_amount\": \"{{advance_amount}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Staff loan\",\n  \"idempotency_key\": \"{{advance_idempotency_key}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:00:24 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"staff\": {\n      \"id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"name\": \"Aung Kyaw\",\n      \"branch_id\": 1,\n      \"branch_code\": \"BR-YGN\",\n      \"branch_name\": \"Yangon Main Farm\"\n    },\n    \"principal_amount\": \"100.00\",\n    \"outstanding_amount\": \"0.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 4,\n    \"category\": {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Staff loan\",\n    \"status\": \"draft\",\n    \"cashbook_transaction_id\": null,\n    \"cashbook_posting_reference\": null,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 1,\n    \"repayments\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List loan drafts and history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances?staff_id={{staff_id}}&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances"
+              ],
+              "query": [
+                {
+                  "key": "staff_id",
+                  "value": "{{staff_id}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Supports staff_id, branch_id, status, date range, search, and per_page."
+          },
+          "response": [
+            {
+              "name": "List loan drafts and history",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances?staff_id={{staff_id}}&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances"
+                  ],
+                  "query": [
+                    {
+                      "key": "staff_id",
+                      "value": "{{staff_id}}"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:02:41 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n      \"staff_id\": 1,\n      \"staff\": {\n        \"id\": 1,\n        \"staff_code\": \"STF-001\",\n        \"name\": \"Aung Kyaw\",\n        \"branch_id\": 1,\n        \"branch_code\": \"BR-YGN\",\n        \"branch_name\": \"Yangon Main Farm\"\n      },\n      \"principal_amount\": \"120.00\",\n      \"outstanding_amount\": \"0.00\",\n      \"business_date\": \"2026-09-28\",\n      \"cashbook_id\": 3,\n      \"cashbook\": {\n        \"id\": 3,\n        \"name\": \"Postman Cashbook Updated\",\n        \"type\": \"cash\",\n        \"currency_code\": \"MMK\"\n      },\n      \"category_id\": 4,\n      \"category\": {\n        \"id\": 4,\n        \"name\": \"Staff Loan Disbursement\",\n        \"direction\": \"out\"\n      },\n      \"description\": \"Staff loan\",\n      \"status\": \"draft\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"confirmed_by_id\": null,\n      \"confirmed_at\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null,\n      \"version\": 2\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/staff-advances?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/staff-advances?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/staff-advances?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/staff-advances\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get loan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get loan",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances",
+                    "{{staff_advance_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:02:59 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"staff\": {\n      \"id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"name\": \"Aung Kyaw\",\n      \"branch_id\": 1,\n      \"branch_code\": \"BR-YGN\",\n      \"branch_name\": \"Yangon Main Farm\"\n    },\n    \"principal_amount\": \"120.00\",\n    \"outstanding_amount\": \"0.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 4,\n    \"category\": {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Staff loan\",\n    \"status\": \"draft\",\n    \"cashbook_transaction_id\": null,\n    \"cashbook_posting_reference\": null,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 2,\n    \"repayments\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update loan draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal_amount\": \"{{advance_amount}}\",\n  \"description\": \"Staff loan\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}"
+              ]
+            },
+            "description": "Drafts only. The selected cashbook and cash-out category can also be changed before confirmation."
+          },
+          "response": [
+            {
+              "name": "Update loan draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"principal_amount\": \"{{advance_amount}}\",\n  \"description\": \"Staff loan\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances",
+                    "{{staff_advance_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:02:26 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"staff\": {\n      \"id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"name\": \"Aung Kyaw\",\n      \"branch_id\": 1,\n      \"branch_code\": \"BR-YGN\",\n      \"branch_name\": \"Yangon Main Farm\"\n    },\n    \"principal_amount\": \"120.00\",\n    \"outstanding_amount\": \"0.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 4,\n    \"category\": {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Staff loan\",\n    \"status\": \"draft\",\n    \"cashbook_transaction_id\": null,\n    \"cashbook_posting_reference\": null,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 2,\n    \"repayments\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm and disburse loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Posts a cashbook cash-out entry and an immutable staff loan ledger entry in one transaction."
+          },
+          "response": [
+            {
+              "name": "Confirm and disburse loan",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances",
+                    "{{staff_advance_id}}",
+                    "confirm"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:03:16 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"staff\": {\n      \"id\": 1,\n      \"staff_code\": \"STF-001\",\n      \"name\": \"Aung Kyaw\",\n      \"branch_id\": 1,\n      \"branch_code\": \"BR-YGN\",\n      \"branch_name\": \"Yangon Main Farm\"\n    },\n    \"principal_amount\": \"120.00\",\n    \"outstanding_amount\": \"120.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 4,\n    \"category\": {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Staff loan\",\n    \"status\": \"confirmed\",\n    \"cashbook_transaction_id\": 2,\n    \"cashbook_posting_reference\": \"CBT-01M3R7P8KJ6XAD2FJG93H5RXWJ\",\n    \"confirmed_by_id\": 1,\n    \"confirmed_at\": \"2026-09-30T04:03:16.000000Z\",\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 3,\n    \"repayments\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reverse loan disbursement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/reverse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}",
+                "reverse"
+              ]
+            },
+            "description": "Reversal requires cancelling draft repayments and reversing confirmed repayments first. Uses the category's configured opposite-direction reversal category."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Repayments",
+      "item": [
+        {
+          "name": "Create repayment draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const data = body.data || body;",
+                  "if (data.id) pm.collectionVariables.set('repayment_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{repayment_idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"{{repayment_amount}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_in_category_id}},\n  \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n  \"description\": \"Staff loan repayment\",\n  \"idempotency_key\": \"{{repayment_idempotency_key}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/repayments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}",
+                "repayments"
+              ]
+            },
+            "description": "Repayment is tied to this specific loan. Amount cannot exceed its remaining principal. Cashbook must be in the loan currency and same branch."
+          },
+          "response": [
+            {
+              "name": "Create repayment draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{repayment_idempotency_key}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": \"{{repayment_amount}}\",\n  \"business_date\": \"{{business_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_in_category_id}},\n  \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n  \"description\": \"Staff loan repayment\",\n  \"idempotency_key\": \"{{repayment_idempotency_key}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/repayments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances",
+                    "{{staff_advance_id}}",
+                    "repayments"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:05:06 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"staff_advance_id\": 1,\n    \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n    \"amount\": \"20.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 3,\n    \"category\": {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\"\n    },\n    \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n    \"description\": \"Staff loan repayment\",\n    \"status\": \"draft\",\n    \"cashbook_transaction_id\": null,\n    \"cashbook_posting_reference\": null,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List repayments for loan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/repayments?per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advances",
+                "{{staff_advance_id}}",
+                "repayments"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List repayments for loan",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advances/{{staff_advance_id}}/repayments?per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advances",
+                    "{{staff_advance_id}}",
+                    "repayments"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:06:54 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"staff_advance_id\": 1,\n      \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n      \"staff_id\": 1,\n      \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n      \"amount\": \"25.00\",\n      \"business_date\": \"2026-09-28\",\n      \"cashbook_id\": 3,\n      \"cashbook\": {\n        \"id\": 3,\n        \"name\": \"Postman Cashbook Updated\",\n        \"type\": \"cash\",\n        \"currency_code\": \"MMK\"\n      },\n      \"category_id\": 3,\n      \"category\": {\n        \"id\": 3,\n        \"name\": \"Staff Loan Repayment\",\n        \"direction\": \"in\"\n      },\n      \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n      \"description\": \"Staff loan repayment\",\n      \"status\": \"confirmed\",\n      \"cashbook_transaction_id\": 3,\n      \"cashbook_posting_reference\": \"CBT-01M3R7VXP8J2QXCVCJDSRTP5Y6\",\n      \"confirmed_by_id\": 1,\n      \"confirmed_at\": \"2026-09-30T04:06:22.000000Z\",\n      \"cancelled_by_id\": null,\n      \"cancelled_at\": null,\n      \"cancellation_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null,\n      \"version\": 3\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/staff-advances/1/repayments?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/staff-advances/1/repayments?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/staff-advances/1/repayments?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/staff-advances/1/repayments\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get repayment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-repayments",
+                "{{repayment_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get repayment",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-repayments",
+                    "{{repayment_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:06:36 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"staff_advance_id\": 1,\n    \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n    \"amount\": \"25.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 3,\n    \"category\": {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\"\n    },\n    \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n    \"description\": \"Staff loan repayment\",\n    \"status\": \"confirmed\",\n    \"cashbook_transaction_id\": 3,\n    \"cashbook_posting_reference\": \"CBT-01M3R7VXP8J2QXCVCJDSRTP5Y6\",\n    \"confirmed_by_id\": 1,\n    \"confirmed_at\": \"2026-09-30T04:06:22.000000Z\",\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update repayment draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"{{repayment_amount}}\",\n  \"description\": \"Staff loan repayment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-repayments",
+                "{{repayment_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Update repayment draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": \"{{repayment_amount}}\",\n  \"description\": \"Staff loan repayment\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-repayments",
+                    "{{repayment_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:05:41 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"staff_advance_id\": 1,\n    \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n    \"amount\": \"25.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 3,\n    \"category\": {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\"\n    },\n    \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n    \"description\": \"Staff loan repayment\",\n    \"status\": \"draft\",\n    \"cashbook_transaction_id\": null,\n    \"cashbook_posting_reference\": null,\n    \"confirmed_by_id\": null,\n    \"confirmed_at\": null,\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-repayments",
+                "{{repayment_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Posts a cashbook cash-in entry and reduces the remaining loan balance atomically. Staff may repay after termination."
+          },
+          "response": [
+            {
+              "name": "Confirm repayment",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-repayments",
+                    "{{repayment_id}}",
+                    "confirm"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:06:22 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"staff_advance_id\": 1,\n    \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n    \"amount\": \"25.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 3,\n    \"category\": {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\"\n    },\n    \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n    \"description\": \"Staff loan repayment\",\n    \"status\": \"confirmed\",\n    \"cashbook_transaction_id\": 3,\n    \"cashbook_posting_reference\": \"CBT-01M3R7VXP8J2QXCVCJDSRTP5Y6\",\n    \"confirmed_by_id\": 1,\n    \"confirmed_at\": \"2026-09-30T04:06:22.000000Z\",\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null,\n    \"version\": 3\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reverse confirmed repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/reverse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-repayments",
+                "{{repayment_id}}",
+                "reverse"
+              ]
+            },
+            "description": "Adds the repaid principal back to the staff loan balance and posts a cashbook reversal."
+          },
+          "response": [
+            {
+              "name": "Reverse confirmed repayment",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/reverse",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-repayments",
+                    "{{repayment_id}}",
+                    "reverse"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:07:40 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"staff_advance_id\": 1,\n    \"advance_reference\": \"ADV-01M3R7H05YGG42SJMSMVJH9WDZ\",\n    \"staff_id\": 1,\n    \"reference\": \"ADVR-01M3R7SKY5B7QAK3BNCN623ZFQ\",\n    \"amount\": \"25.00\",\n    \"business_date\": \"2026-09-28\",\n    \"cashbook_id\": 3,\n    \"cashbook\": {\n      \"id\": 3,\n      \"name\": \"Postman Cashbook Updated\",\n      \"type\": \"cash\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 3,\n    \"category\": {\n      \"id\": 3,\n      \"name\": \"Staff Loan Repayment\",\n      \"direction\": \"in\"\n    },\n    \"external_reference\": \"PAYROLL-OR-RECEIPT-REF\",\n    \"description\": \"Staff loan repayment\",\n    \"status\": \"reversed\",\n    \"cashbook_transaction_id\": 3,\n    \"cashbook_posting_reference\": \"CBT-01M3R7VXP8J2QXCVCJDSRTP5Y6\",\n    \"confirmed_by_id\": 1,\n    \"confirmed_at\": \"2026-09-30T04:06:22.000000Z\",\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"reversed_by_id\": 1,\n    \"reversed_at\": \"2026-09-30T04:07:40.000000Z\",\n    \"reversal_reason\": \"Entered in error\",\n    \"version\": 4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel draft repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "staff-advance-repayments",
+                "{{repayment_id}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Cancel draft repayment",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/staff-advance-repayments/{{repayment_id}}/cancel",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "staff-advance-repayments",
+                    "{{repayment_id}}",
+                    "cancel"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Wed, 30 Sep 2026 04:10:08 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Draft repayment cancelled.\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "staff_id",
+      "value": ""
+    },
+    {
+      "key": "cashbook_id",
+      "value": ""
+    },
+    {
+      "key": "cash_out_category_id",
+      "value": ""
+    },
+    {
+      "key": "cash_in_category_id",
+      "value": ""
+    },
+    {
+      "key": "staff_advance_id",
+      "value": ""
+    },
+    {
+      "key": "repayment_id",
+      "value": ""
+    },
+    {
+      "key": "advance_idempotency_key",
+      "value": "PM-STAFF-ADV-001"
+    },
+    {
+      "key": "repayment_idempotency_key",
+      "value": "PM-STAFF-ADVR-001"
+    },
+    {
+      "key": "business_date",
+      "value": "2026-09-28"
+    },
+    {
+      "key": "advance_amount",
+      "value": "100000.00"
+    },
+    {
+      "key": "repayment_amount",
+      "value": "25000.00"
+    },
+    {
+      "key": "reversal_reason",
+      "value": "Entered in error"
+    }
+  ]
+}

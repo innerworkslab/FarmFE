@@ -76,6 +76,12 @@ export const farmApi = createApi({
     "cashbookTransactions",
     "cashbookLedger",
     "cashbookReports",
+    "cashLedgerCategories",
+    "staff",
+    "staffAdvanceBalances",
+    "staffAdvanceHistory",
+    "staffAdvances",
+    "staffAdvanceRepayments",
   ],
   endpoints: () => ({}),
 });

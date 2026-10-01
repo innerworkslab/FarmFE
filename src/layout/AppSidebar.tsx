@@ -26,6 +26,8 @@ import {
   Database,
   MapPin,
   Wallet,
+  Tags,
+  Users,
 } from "lucide-react";
 
 type NavItem = {
@@ -188,6 +190,7 @@ const AppSidebar: React.FC = () => {
         icon: <Wallet size={20} />,
         children: [
           { name: "Cashbooks", path: "/financial/cashbooks", icon: <Wallet size={14} /> },
+          { name: "Categories", path: "/financial/categories", icon: <Tags size={14} /> },
           {
             name: "Transactions",
             path: "/financial/transactions",
@@ -200,6 +203,22 @@ const AppSidebar: React.FC = () => {
             icon: <ReceiptText size={14} />,
           },
           { name: "Daily Summary", path: "/financial/daily-summary", icon: <Database size={14} /> },
+          { name: "Staff", path: "/setup/staff", icon: <Users size={14} /> },
+          {
+            name: "Advance Balances",
+            path: "/financial/staff-advance-balances",
+            icon: <Database size={14} />,
+          },
+          {
+            name: "Loans & Repayments",
+            path: "/financial/staff-advances",
+            icon: <Wallet size={14} />,
+          },
+          {
+            name: "Category Summary",
+            path: "/financial/category-summary",
+            icon: <Tags size={14} />,
+          },
         ],
       },
     ],
@@ -223,6 +242,7 @@ const AppSidebar: React.FC = () => {
         icon: <Database size={20} />,
         children: [
           { name: "Customers", path: "/setup/customers", icon: <ShoppingCart size={14} /> },
+          { name: "Staff", path: "/setup/staff", icon: <Users size={14} /> },
           { name: "Suppliers", path: "/setup/suppliers", icon: <Truck size={14} /> },
           { name: "UOMs", path: "/setup/uoms", icon: <Ruler size={14} /> },
           { name: "Foods", path: "/setup/foods", icon: <Wheat size={14} /> },

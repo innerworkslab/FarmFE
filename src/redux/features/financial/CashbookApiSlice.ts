@@ -56,6 +56,8 @@ export interface CashbookPayload {
 export interface CashbookTransaction {
   id: number;
   cashbook_id: number;
+  category_id?: number;
+  category?: Pick<CashLedgerCategory, "id" | "name" | "direction"> | null;
   cashbook?: Pick<Cashbook, "id" | "name" | "type" | "currency_code"> | null;
   reference?: string;
   external_reference?: string | null;
@@ -82,11 +84,45 @@ export interface CashbookTransaction {
 export interface CashbookTransactionPayload {
   idempotency_key: string;
   cashbook_id: number;
+  category_id: number;
   business_date: string;
   direction: "in" | "out";
   amount: number | string;
   description: string;
   external_reference?: string | null;
+}
+
+export interface CashLedgerCategory {
+  id: number;
+  name: string;
+  direction: "in" | "out" | string;
+  reversal_category_id?: number | null;
+  reversal_category?: Pick<CashLedgerCategory, "id" | "name" | "direction" | "status"> | null;
+  status: "active" | "inactive" | string;
+  created_by_id?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CashLedgerCategoryPayload {
+  name?: string;
+  direction?: "in" | "out";
+  reversal_category_id?: number | null;
+}
+
+export interface CashbookCategorySummary {
+  from_date: string;
+  to_date: string;
+  currencies: Array<{
+    currency_code: string;
+    categories: Array<{
+      category_id: number;
+      category_name: string;
+      direction: "in" | "out" | string;
+      total_amount: string | number;
+      entry_count: number;
+    }>;
+  }>;
 }
 
 export interface CashbookTransactionUpdatePayload {
@@ -101,6 +137,8 @@ export interface CashbookLedgerEntry {
   id: number;
   cashbook_id: number;
   cashbook_transaction_id?: number | null;
+  category_id?: number | null;
+  category_name?: string | null;
   reversal_of_entry_id?: number | null;
   reference: string;
   entry_date: string;
@@ -186,6 +224,56 @@ export interface CashbookListResponse<T> {
 
 export const cashbookApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getCashLedgerCategories: builder.query<
+      CashbookListResponse<CashLedgerCategory>,
+      {
+        direction?: "in" | "out";
+        status?: "active" | "inactive";
+        search?: string;
+        per_page?: number;
+        page?: number;
+      } | void
+    >({
+      query: (params) => withQuery("financial/cash-ledger-categories", params || undefined),
+      providesTags: ["cashLedgerCategories"],
+    }),
+    getCashLedgerCategory: builder.query<
+      CashbookSingleResponse<CashLedgerCategory>,
+      number | string
+    >({
+      query: (id) => `financial/cash-ledger-categories/${id}`,
+      providesTags: ["cashLedgerCategories"],
+    }),
+    createCashLedgerCategory: builder.mutation<
+      CashbookSingleResponse<CashLedgerCategory>,
+      Required<Pick<CashLedgerCategoryPayload, "name" | "direction">> &
+        Pick<CashLedgerCategoryPayload, "reversal_category_id">
+    >({
+      query: (body) => ({ url: "financial/cash-ledger-categories", method: "POST", body }),
+      invalidatesTags: ["cashLedgerCategories"],
+    }),
+    updateCashLedgerCategory: builder.mutation<
+      CashbookSingleResponse<CashLedgerCategory>,
+      { id: number | string; body: CashLedgerCategoryPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `financial/cash-ledger-categories/${id}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["cashLedgerCategories"],
+    }),
+    setCashLedgerCategoryStatus: builder.mutation<
+      CashbookSingleResponse<CashLedgerCategory>,
+      { id: number | string; status: "active" | "inactive" }
+    >({
+      query: ({ id, status }) => ({
+        url: `financial/cash-ledger-categories/${id}/toggle-status`,
+        method: "POST",
+        body: { status },
+      }),
+      invalidatesTags: ["cashLedgerCategories"],
+    }),
     getCashbooks: builder.query<CashbookListResponse<Cashbook>, CashbookListQuery | void>({
       query: (params) => withQuery("financial/cashbooks", params ? { ...params } : undefined),
       providesTags: ["cashbooks"],
@@ -249,7 +337,12 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
       CashbookSingleResponse<CashbookTransaction>,
       CashbookTransactionPayload
     >({
-      query: (body) => ({ url: "financial/cashbook-transactions", method: "POST", body }),
+      query: ({ idempotency_key, ...body }) => ({
+        url: "financial/cashbook-transactions",
+        method: "POST",
+        headers: { "Idempotency-Key": idempotency_key },
+        body,
+      }),
       invalidatesTags: ["cashbookTransactions"],
     }),
     getCashbookTransaction: builder.query<
@@ -295,11 +388,23 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
       query: (params) => withQuery("financial/cashbook-reports/consolidated", params || undefined),
       providesTags: ["cashbookReports"],
     }),
+    getCashbookCategorySummary: builder.query<
+      CashbookSingleResponse<CashbookCategorySummary>,
+      { from_date: string; to_date: string }
+    >({
+      query: (params) => withQuery("financial/cashbook-reports/categories", params),
+      providesTags: ["cashbookReports"],
+    }),
   }),
 });
 
 export const {
   useGetCashbooksQuery,
+  useGetCashLedgerCategoriesQuery,
+  useLazyGetCashLedgerCategoryQuery,
+  useCreateCashLedgerCategoryMutation,
+  useUpdateCashLedgerCategoryMutation,
+  useSetCashLedgerCategoryStatusMutation,
   useLazyGetCashbookQuery,
   useCreateCashbookMutation,
   useUpdateCashbookMutation,
@@ -313,4 +418,5 @@ export const {
   useConfirmCashbookTransactionMutation,
   useReverseCashbookTransactionMutation,
   useGetConsolidatedCashbookBalancesQuery,
+  useGetCashbookCategorySummaryQuery,
 } = cashbookApiSlice;

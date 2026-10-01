@@ -23,6 +23,7 @@ import {
   useGetCashbookLedgerQuery,
   useGetCashbookTransactionsQuery,
   useGetCashbooksQuery,
+  useGetCashLedgerCategoriesQuery,
   useGetConsolidatedCashbookBalancesQuery,
   useLazyGetCashbookQuery,
   useLazyGetCashbookTransactionQuery,
@@ -45,6 +46,7 @@ type CashbookForm = {
 type TransactionForm = {
   idempotency_key: string;
   cashbook_id: string;
+  category_id: string;
   business_date: string;
   direction: string;
   amount: string;
@@ -65,6 +67,7 @@ const emptyCashbook = (): CashbookForm => ({
 const emptyTransaction = (cashbookId = ""): TransactionForm => ({
   idempotency_key: createIdempotencyKey(),
   cashbook_id: cashbookId,
+  category_id: "",
   business_date: today(),
   direction: "in",
   amount: "",
@@ -108,6 +111,15 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
   const activeCashbooks = useMemo(
     () => cashbooks.filter((item) => item.status === "active"),
     [cashbooks]
+  );
+  const { data: categoryResponse } = useGetCashLedgerCategoriesQuery(
+    {
+      per_page: 100,
+    },
+    { skip: tab !== "transactions" }
+  );
+  const activeCategories = (categoryResponse?.data ?? []).filter(
+    (category) => category.status === "active" && category.direction === transactionForm.direction
   );
   const effectiveCashbookId = selectedCashbook || String(activeCashbooks[0]?.id || "");
   const { data: transactionsResponse, isLoading: transactionsLoading } =
@@ -185,6 +197,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
         ? {
             idempotency_key: "",
             cashbook_id: String(item.cashbook_id),
+            category_id: String(item.category_id ?? ""),
             business_date: item.business_date,
             direction: item.direction,
             amount: String(item.amount),
@@ -220,6 +233,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
       } else if (formKind === "transaction") {
         if (
           !transactionForm.cashbook_id ||
+          !transactionForm.category_id ||
           !transactionForm.amount ||
           !transactionForm.description.trim()
         )
@@ -227,6 +241,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
         const body = {
           idempotency_key: transactionForm.idempotency_key,
           cashbook_id: Number(transactionForm.cashbook_id),
+          category_id: Number(transactionForm.category_id),
           business_date: transactionForm.business_date,
           direction: transactionForm.direction as "in" | "out",
           amount: transactionForm.amount,
@@ -931,11 +946,32 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                   className={inputClass}
                   value={transactionForm.direction}
                   onChange={(event) =>
-                    setTransactionForm({ ...transactionForm, direction: event.target.value })
+                    setTransactionForm({
+                      ...transactionForm,
+                      direction: event.target.value,
+                      category_id: "",
+                    })
                   }
                 >
                   <option value="in">Money in</option>
                   <option value="out">Money out</option>
+                </select>
+              </Field>
+              <Field label="Category" required>
+                <select
+                  required
+                  className={inputClass}
+                  value={transactionForm.category_id}
+                  onChange={(event) =>
+                    setTransactionForm({ ...transactionForm, category_id: event.target.value })
+                  }
+                >
+                  <option value="">Select a category</option>
+                  {activeCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Amount" required>
