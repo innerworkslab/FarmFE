@@ -154,6 +154,7 @@ export interface CashbookLedgerEntry {
 export interface CashbookLedgerQuery {
   from_date?: string;
   to_date?: string;
+  source_type?: string;
   per_page?: number;
   page?: number;
 }
@@ -323,7 +324,9 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
       CashbookListResponse<CashbookTransaction>,
       {
         cashbook_id?: number | string;
+        direction?: "in" | "out";
         status?: string;
+        search?: string;
         from_date?: string;
         to_date?: string;
         per_page?: number;
@@ -390,7 +393,7 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
     }),
     getCashbookCategorySummary: builder.query<
       CashbookSingleResponse<CashbookCategorySummary>,
-      { from_date: string; to_date: string }
+      { from_date: string; to_date: string; direction?: "in" | "out" }
     >({
       query: (params) => withQuery("financial/cashbook-reports/categories", params),
       providesTags: ["cashbookReports"],

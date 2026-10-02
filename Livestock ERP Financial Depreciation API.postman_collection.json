@@ -1,0 +1,2141 @@
+{
+  "info": {
+    "_postman_id": "ffb1689d-2f16-4c5d-80c2-4a33c2caa29e",
+    "name": "Livestock ERP Financial Depreciation API",
+    "description": "Separate Postman collection for the single-entry depreciation workflow. This module follows the ordered cashbook-deduction behavior: an active depreciation record generates monthly schedule lines, and each posted line creates one Cashbook Out movement until the posted total equals the asset price. This is not formal non-cash accounting depreciation. Requires an active cashbook and an active cash-out category. Before reversing posted depreciation lines, configure the cash-out category's active opposite-direction reversal category using the Cash Ledger Categories API. All endpoints use /api/v1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-ffb1689d-2f16-4c5d-80c2-4a33c2caa29e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication and prerequisites",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) pm.collectionVariables.set('access_token', body.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List active cashbooks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose the cashbook that monthly depreciation deductions will reduce, then set cashbook_id."
+          },
+          "response": [
+            {
+              "name": "List active cashbooks",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:08:25 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 2,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"bank\",\n      \"name\": \"Yangon Operating Bank\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"8000000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"8000000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    },\n    {\n      \"id\": 3,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Postman Cashbook Updated\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": \"BANK-REF-001\",\n      \"opening_balance\": \"500000.00\",\n      \"effective_date\": \"2026-09-28\",\n      \"current_balance\": \"529880.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 2,\n      \"created_at\": \"2026-09-29T03:33:20.000000Z\",\n      \"updated_at\": \"2026-09-29T03:33:32.000000Z\"\n    },\n    {\n      \"id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Yangon Main Cash\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": null,\n      \"opening_balance\": \"1500000.00\",\n      \"effective_date\": \"2026-09-29\",\n      \"current_balance\": \"1500000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 1,\n      \"created_at\": \"2026-09-29T03:28:05.000000Z\",\n      \"updated_at\": \"2026-09-29T03:28:05.000000Z\"\n    },\n    {\n      \"id\": 4,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"branch_id\": 1,\n      \"type\": \"cash\",\n      \"name\": \"Ygn farm cashbook 2\",\n      \"currency_code\": \"MMK\",\n      \"bank_reference\": \"BANK-REF-001\",\n      \"opening_balance\": \"500000.00\",\n      \"effective_date\": \"2026-09-28\",\n      \"current_balance\": \"500000.00\",\n      \"status\": \"active\",\n      \"deactivation_reason\": null,\n      \"version\": 3,\n      \"created_at\": \"2026-09-30T02:49:37.000000Z\",\n      \"updated_at\": \"2026-09-30T02:51:37.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbooks?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbooks\",\n    \"per_page\": 100,\n    \"to\": 4,\n    \"total\": 4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List cash-out categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cash-ledger-categories?direction=out&status=active&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cash-ledger-categories"
+              ],
+              "query": [
+                {
+                  "key": "direction",
+                  "value": "out"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose an active direction=out category, then set cash_out_category_id. Configure its opposite direction reversal category before testing reversals."
+          },
+          "response": [
+            {
+              "name": "List cash-out categories",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cash-ledger-categories?direction=out&status=active&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cash-ledger-categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "direction",
+                      "value": "out"
+                    },
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:08:35 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 4,\n      \"name\": \"Staff Loan Disbursement\",\n      \"direction\": \"out\",\n      \"reversal_category_id\": 3,\n      \"reversal_category\": {\n        \"id\": 3,\n        \"name\": \"Staff Loan Repayment\",\n        \"direction\": \"in\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-09-30T02:44:54.000000Z\",\n      \"updated_at\": \"2026-09-30T02:45:12.000000Z\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Uncategorized cash out\",\n      \"direction\": \"out\",\n      \"reversal_category_id\": 1,\n      \"reversal_category\": {\n        \"id\": 1,\n        \"name\": \"Uncategorized cash in\",\n        \"direction\": \"in\",\n        \"status\": \"active\"\n      },\n      \"status\": \"active\",\n      \"created_by_id\": null,\n      \"created_at\": \"2026-09-29T16:37:08.000000Z\",\n      \"updated_at\": \"2026-09-29T16:37:08.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cash-ledger-categories\",\n    \"per_page\": 100,\n    \"to\": 2,\n    \"total\": 2\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Asset categories",
+      "item": [
+        {
+          "name": "Create asset category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a draft or active depreciation record and stops future postings. Posted cashbook entries remain historical and require schedule-line reversal if wrong."
+          },
+          "response": [
+            {
+              "name": "Create asset category",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Vehicles\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/asset-categories",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "asset-categories"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:32:34 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"name\": \"Vehicles\",\n    \"status\": \"active\",\n    \"created_by_id\": 1,\n    \"created_at\": \"2026-10-02T04:32:34.000000Z\",\n    \"updated_at\": \"2026-10-02T04:32:34.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update asset category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a draft or active depreciation record and stops future postings. Posted cashbook entries remain historical and require schedule-line reversal if wrong."
+          },
+          "response": [
+            {
+              "name": "Update asset category",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Vehicle\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/asset-categories/2/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "asset-categories",
+                    "2",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:38:28 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"name\": \"Vehicle\",\n    \"status\": \"inactive\",\n    \"created_by_id\": 1,\n    \"created_at\": \"2026-10-02T04:32:34.000000Z\",\n    \"updated_at\": \"2026-10-02T04:38:28.000000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List asset categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions?cashbook_id={{cashbook_id}}&direction=out&search=DEP-&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions"
+              ],
+              "query": [
+                {
+                  "key": "cashbook_id",
+                  "value": "{{cashbook_id}}"
+                },
+                {
+                  "key": "direction",
+                  "value": "out"
+                },
+                {
+                  "key": "search",
+                  "value": "DEP-"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Shows linked cashbook transactions created by depreciation postings. Module-owned depreciation entries must be reversed from the depreciation schedule-line endpoint."
+          },
+          "response": [
+            {
+              "name": "List asset categories",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/asset-categories?per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "asset-categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:33:44 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Farm Equipment\",\n      \"status\": \"active\",\n      \"created_by_id\": null,\n      \"created_at\": \"2026-10-02T04:26:33.000000Z\",\n      \"updated_at\": \"2026-10-02T04:26:33.000000Z\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Vehicles\",\n      \"status\": \"active\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-10-02T04:32:34.000000Z\",\n      \"updated_at\": \"2026-10-02T04:32:34.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/asset-categories?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/asset-categories?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/asset-categories?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/asset-categories\",\n    \"per_page\": 30,\n    \"to\": 2,\n    \"total\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Toggle asset category status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a draft or active depreciation record and stops future postings. Posted cashbook entries remain historical and require schedule-line reversal if wrong."
+          },
+          "response": [
+            {
+              "name": "Toggle asset category status",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"inactive\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/asset-categories/2/toggle-status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "asset-categories",
+                    "2",
+                    "toggle-status"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:36:44 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"name\": \"Vehicles\",\n    \"status\": \"inactive\",\n    \"created_by_id\": 1,\n    \"created_at\": \"2026-10-02T04:32:34.000000Z\",\n    \"updated_at\": \"2026-10-02T04:36:44.000000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Depreciation records",
+      "item": [
+        {
+          "name": "Create depreciation draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const data = body.data || body;",
+                  "if (data.id) pm.collectionVariables.set('depreciation_id', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{depreciation_idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_name\": \"{{asset_name}}\",\n  \"asset_category\": \"{{asset_category}}\",\n  \"asset_price\": \"{{asset_price}}\",\n  \"monthly_amount\": \"{{monthly_amount}}\",\n  \"start_date\": \"{{start_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Monthly cashbook deduction for asset depreciation\",\n  \"idempotency_key\": \"{{depreciation_idempotency_key}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations"
+              ]
+            },
+            "description": "Creates an editable draft. No schedule or cashbook entry is created until activation/posting."
+          },
+          "response": [
+            {
+              "name": "Create depreciation draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{depreciation_idempotency_key}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"asset_name\": \"{{asset_name}}\",\n  \"asset_category_id\": \"{{asset_category_id}}\",\n  \"asset_price\": \"{{asset_price}}\",\n  \"monthly_amount\": \"{{monthly_amount}}\",\n  \"start_date\": \"{{start_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Monthly cashbook deduction for asset depreciation\",\n  \"idempotency_key\": \"{{depreciation_idempotency_key}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:41:03 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"reference\": \"DEP-01M3XEMWAC6A91E1421M7NTKPA\",\n    \"asset_name\": \"Toyota car\",\n    \"asset_category_id\": 2,\n    \"asset_category\": {\n      \"id\": 2,\n      \"name\": \"Vehicles\",\n      \"status\": \"active\"\n    },\n    \"asset_price\": \"1200000.00\",\n    \"monthly_amount\": \"100000.00\",\n    \"total_posted_amount\": \"0.00\",\n    \"remaining_amount\": \"1200000.00\",\n    \"currency_code\": \"MMK\",\n    \"start_date\": \"2026-09-01\",\n    \"next_posting_date\": null,\n    \"branch_id\": 1,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"cashbook_id\": 2,\n    \"cashbook\": {\n      \"id\": 2,\n      \"name\": \"Yangon Operating Bank\",\n      \"type\": \"bank\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 5,\n    \"category\": {\n      \"id\": 5,\n      \"name\": \"Depreciation out\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Monthly cashbook deduction for asset depreciation\",\n    \"status\": \"draft\",\n    \"created_by_id\": 1,\n    \"activated_by_id\": null,\n    \"activated_at\": null,\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"version\": 1,\n    \"schedule_lines\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List depreciation records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations?status=draft&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "draft"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Supports branch_id, cashbook_id, category_id, status=draft|active|completed|cancelled, from_date, to_date, search, and per_page."
+          },
+          "response": [
+            {
+              "name": "List depreciation records",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations?status=draft&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "draft"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:18:57 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"reference\": \"DEP-01M3XDB7YJWTPKVAMG3EM3VCFS\",\n      \"asset_name\": \"Water Pump\",\n      \"asset_category\": \"Farm Equipment\",\n      \"asset_price\": \"1200000.00\",\n      \"monthly_amount\": \"100000.00\",\n      \"total_posted_amount\": \"0.00\",\n      \"remaining_amount\": \"1200000.00\",\n      \"currency_code\": \"MMK\",\n      \"start_date\": \"2026-09-01\",\n      \"next_posting_date\": null,\n      \"branch_id\": 1,\n      \"branch\": {\n        \"id\": 1,\n        \"code\": \"BR-YGN\",\n        \"name\": \"Yangon Main Farm\"\n      },\n      \"cashbook_id\": 2,\n      \"cashbook\": {\n        \"id\": 2,\n        \"name\": \"Yangon Operating Bank\",\n        \"type\": \"bank\",\n        \"currency_code\": \"MMK\"\n      },\n      \"category_id\": 5,\n      \"category\": {\n        \"id\": 5,\n        \"name\": \"Depreciation out\",\n        \"direction\": \"out\"\n      },\n      \"description\": \"Monthly cashbook deduction for asset depreciation\",\n      \"status\": \"draft\",\n      \"created_by_id\": 1,\n      \"activated_by_id\": null,\n      \"activated_at\": null,\n      \"cancelled_by_id\": null,\n      \"cancelled_at\": null,\n      \"cancellation_reason\": null,\n      \"version\": 1\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/depreciations?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/depreciations?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/depreciations?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/depreciations\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get depreciation record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get depreciation record",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations",
+                    "{{depreciation_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:19:17 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"DEP-01M3XDB7YJWTPKVAMG3EM3VCFS\",\n    \"asset_name\": \"Water Pump\",\n    \"asset_category\": \"Farm Equipment\",\n    \"asset_price\": \"1200000.00\",\n    \"monthly_amount\": \"100000.00\",\n    \"total_posted_amount\": \"0.00\",\n    \"remaining_amount\": \"1200000.00\",\n    \"currency_code\": \"MMK\",\n    \"start_date\": \"2026-09-01\",\n    \"next_posting_date\": null,\n    \"branch_id\": 1,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"cashbook_id\": 2,\n    \"cashbook\": {\n      \"id\": 2,\n      \"name\": \"Yangon Operating Bank\",\n      \"type\": \"bank\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 5,\n    \"category\": {\n      \"id\": 5,\n      \"name\": \"Depreciation out\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Monthly cashbook deduction for asset depreciation\",\n    \"status\": \"draft\",\n    \"created_by_id\": 1,\n    \"activated_by_id\": null,\n    \"activated_at\": null,\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"version\": 1,\n    \"schedule_lines\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update depreciation draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_name\": \"{{asset_name}}\",\n  \"asset_category\": \"{{asset_category}}\",\n  \"asset_price\": \"{{asset_price}}\",\n  \"monthly_amount\": \"{{monthly_amount}}\",\n  \"start_date\": \"{{start_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Monthly cashbook deduction for asset depreciation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}"
+              ]
+            },
+            "description": "Drafts only. Once activated, the generated schedule owns the posting plan."
+          },
+          "response": [
+            {
+              "name": "Update depreciation draft",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"asset_name\": \"{{asset_name}}\",\n  \"asset_category_id\": \"{{asset_category_id}}\",\n  \"asset_price\": \"{{asset_price}}\",\n  \"monthly_amount\": \"{{monthly_amount}}\",\n  \"start_date\": \"{{start_date}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"category_id\": {{cash_out_category_id}},\n  \"description\": \"Monthly cashbook deduction for asset depreciation\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations",
+                    "{{depreciation_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:42:24 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"reference\": \"DEP-01M3XEMWAC6A91E1421M7NTKPA\",\n    \"asset_name\": \"Toyota car\",\n    \"asset_category_id\": 1,\n    \"asset_category\": {\n      \"id\": 1,\n      \"name\": \"Farm Equipment\",\n      \"status\": \"active\"\n    },\n    \"asset_price\": \"1200000.00\",\n    \"monthly_amount\": \"100000.00\",\n    \"total_posted_amount\": \"0.00\",\n    \"remaining_amount\": \"1200000.00\",\n    \"currency_code\": \"MMK\",\n    \"start_date\": \"2026-09-01\",\n    \"next_posting_date\": null,\n    \"branch_id\": 1,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"cashbook_id\": 2,\n    \"cashbook\": {\n      \"id\": 2,\n      \"name\": \"Yangon Operating Bank\",\n      \"type\": \"bank\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 5,\n    \"category\": {\n      \"id\": 5,\n      \"name\": \"Depreciation out\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Monthly cashbook deduction for asset depreciation\",\n    \"status\": \"draft\",\n    \"created_by_id\": 1,\n    \"activated_by_id\": null,\n    \"activated_at\": null,\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"version\": 2,\n    \"schedule_lines\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Activate and generate schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/activate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "activate"
+              ]
+            },
+            "description": "Generates monthly schedule lines. The final line is adjusted so total scheduled amount equals asset_price."
+          },
+          "response": [
+            {
+              "name": "Activate and generate schedule",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/activate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations",
+                    "{{depreciation_id}}",
+                    "activate"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:45:05 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"reference\": \"DEP-01M3XDB7YJWTPKVAMG3EM3VCFS\",\n    \"asset_name\": \"Water Pump\",\n    \"asset_category_id\": 1,\n    \"asset_category\": {\n      \"id\": 1,\n      \"name\": \"Farm Equipment\",\n      \"status\": \"active\"\n    },\n    \"asset_price\": \"1200000.00\",\n    \"monthly_amount\": \"100000.00\",\n    \"total_posted_amount\": \"0.00\",\n    \"remaining_amount\": \"1200000.00\",\n    \"currency_code\": \"MMK\",\n    \"start_date\": \"2026-09-01\",\n    \"next_posting_date\": \"2026-09-01\",\n    \"branch_id\": 1,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"cashbook_id\": 2,\n    \"cashbook\": {\n      \"id\": 2,\n      \"name\": \"Yangon Operating Bank\",\n      \"type\": \"bank\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 5,\n    \"category\": {\n      \"id\": 5,\n      \"name\": \"Depreciation out\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Monthly cashbook deduction for asset depreciation\",\n    \"status\": \"active\",\n    \"created_by_id\": 1,\n    \"activated_by_id\": 1,\n    \"activated_at\": \"2026-10-02T04:45:05.000000Z\",\n    \"cancelled_by_id\": null,\n    \"cancelled_at\": null,\n    \"cancellation_reason\": null,\n    \"version\": 2,\n    \"schedule_lines\": [\n      {\n        \"id\": 1,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 1,\n        \"due_date\": \"2026-09-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 2,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 2,\n        \"due_date\": \"2026-10-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 3,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 3,\n        \"due_date\": \"2026-11-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 4,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 4,\n        \"due_date\": \"2026-12-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 5,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 5,\n        \"due_date\": \"2027-01-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 6,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 6,\n        \"due_date\": \"2027-02-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 7,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 7,\n        \"due_date\": \"2027-03-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 8,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 8,\n        \"due_date\": \"2027-04-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 9,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 9,\n        \"due_date\": \"2027-05-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 10,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 10,\n        \"due_date\": \"2027-06-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 11,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 11,\n        \"due_date\": \"2027-07-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      },\n      {\n        \"id\": 12,\n        \"depreciation_id\": 1,\n        \"sequence_number\": 12,\n        \"due_date\": \"2027-08-01\",\n        \"amount\": \"100000.00\",\n        \"status\": \"pending\",\n        \"cashbook_transaction_id\": null,\n        \"cashbook_posting_reference\": null,\n        \"posted_by_id\": null,\n        \"posted_at\": null,\n        \"failure_reason\": null,\n        \"reversed_by_id\": null,\n        \"reversed_at\": null,\n        \"reversal_reason\": null\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel depreciation record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a draft or active depreciation record and stops future postings. Posted cashbook entries remain historical and require schedule-line reversal if wrong."
+          },
+          "response": [
+            {
+              "name": "Cancel depreciation record",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/cancel",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations",
+                    "{{depreciation_id}}",
+                    "cancel"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:42:46 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"reference\": \"DEP-01M3XEMWAC6A91E1421M7NTKPA\",\n    \"asset_name\": \"Toyota car\",\n    \"asset_category_id\": 1,\n    \"asset_category\": {\n      \"id\": 1,\n      \"name\": \"Farm Equipment\",\n      \"status\": \"active\"\n    },\n    \"asset_price\": \"1200000.00\",\n    \"monthly_amount\": \"100000.00\",\n    \"total_posted_amount\": \"0.00\",\n    \"remaining_amount\": \"1200000.00\",\n    \"currency_code\": \"MMK\",\n    \"start_date\": \"2026-09-01\",\n    \"next_posting_date\": null,\n    \"branch_id\": 1,\n    \"branch\": {\n      \"id\": 1,\n      \"code\": \"BR-YGN\",\n      \"name\": \"Yangon Main Farm\"\n    },\n    \"cashbook_id\": 2,\n    \"cashbook\": {\n      \"id\": 2,\n      \"name\": \"Yangon Operating Bank\",\n      \"type\": \"bank\",\n      \"currency_code\": \"MMK\"\n    },\n    \"category_id\": 5,\n    \"category\": {\n      \"id\": 5,\n      \"name\": \"Depreciation out\",\n      \"direction\": \"out\"\n    },\n    \"description\": \"Monthly cashbook deduction for asset depreciation\",\n    \"status\": \"cancelled\",\n    \"created_by_id\": 1,\n    \"activated_by_id\": null,\n    \"activated_at\": null,\n    \"cancelled_by_id\": 1,\n    \"cancelled_at\": \"2026-10-02T04:42:46.000000Z\",\n    \"cancellation_reason\": \"Asset removed from depreciation plan\",\n    \"version\": 3,\n    \"schedule_lines\": []\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Schedule posting",
+      "item": [
+        {
+          "name": "List schedule lines",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const rows = body.data || [];",
+                  "const firstPending = rows.find(row => row.status === 'pending' || row.status === 'failed') || rows[0];",
+                  "if (firstPending && firstPending.id) pm.collectionVariables.set('schedule_line_id', firstPending.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/schedule?per_page=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciations",
+                "{{depreciation_id}}",
+                "schedule"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Returns generated monthly schedule lines in sequence. The test script stores the first pending or failed line as schedule_line_id."
+          },
+          "response": [
+            {
+              "name": "List schedule lines",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciations/{{depreciation_id}}/schedule?per_page=50",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciations",
+                    "{{depreciation_id}}",
+                    "schedule"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "50"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:45:28 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 1,\n      \"due_date\": \"2026-09-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 2,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 2,\n      \"due_date\": \"2026-10-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 3,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 3,\n      \"due_date\": \"2026-11-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 4,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 4,\n      \"due_date\": \"2026-12-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 5,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 5,\n      \"due_date\": \"2027-01-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 6,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 6,\n      \"due_date\": \"2027-02-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 7,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 7,\n      \"due_date\": \"2027-03-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 8,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 8,\n      \"due_date\": \"2027-04-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 9,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 9,\n      \"due_date\": \"2027-05-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 10,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 10,\n      \"due_date\": \"2027-06-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 11,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 11,\n      \"due_date\": \"2027-07-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    },\n    {\n      \"id\": 12,\n      \"depreciation_id\": 1,\n      \"sequence_number\": 12,\n      \"due_date\": \"2027-08-01\",\n      \"amount\": \"100000.00\",\n      \"status\": \"pending\",\n      \"cashbook_transaction_id\": null,\n      \"cashbook_posting_reference\": null,\n      \"posted_by_id\": null,\n      \"posted_at\": null,\n      \"failure_reason\": null,\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"reversal_reason\": null\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/depreciations/1/schedule?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/depreciations/1/schedule?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/depreciations/1/schedule?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/depreciations/1/schedule\",\n    \"per_page\": 50,\n    \"to\": 12,\n    \"total\": 12\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Post due schedule line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciation-schedule-lines/{{schedule_line_id}}/post",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciation-schedule-lines",
+                "{{schedule_line_id}}",
+                "post"
+              ]
+            },
+            "description": "Posts one due pending or failed schedule line as Cashbook Out. Future-dated lines are rejected. For automatic posting, run: php artisan financial:post-depreciation --date={{as_of_date}}"
+          },
+          "response": [
+            {
+              "name": "Post due schedule line",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciation-schedule-lines/{{schedule_line_id}}/post",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciation-schedule-lines",
+                    "{{schedule_line_id}}",
+                    "post"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:47:29 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"depreciation_id\": 1,\n    \"sequence_number\": 2,\n    \"due_date\": \"2026-10-01\",\n    \"amount\": \"100000.00\",\n    \"status\": \"posted\",\n    \"cashbook_transaction_id\": 6,\n    \"cashbook_posting_reference\": \"CBT-01M3XF0MW1P0WGB6P7W6MJBRQJ\",\n    \"posted_by_id\": 1,\n    \"posted_at\": \"2026-10-02T04:47:29.000000Z\",\n    \"failure_reason\": null,\n    \"reversed_by_id\": null,\n    \"reversed_at\": null,\n    \"reversal_reason\": null\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reverse posted schedule line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/financial/depreciation-schedule-lines/{{schedule_line_id}}/reverse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "depreciation-schedule-lines",
+                "{{schedule_line_id}}",
+                "reverse"
+              ]
+            },
+            "description": "Reverses a posted depreciation line through the depreciation module. Requires the original cash-out category to have an active opposite-direction reversal category."
+          },
+          "response": [
+            {
+              "name": "Reverse posted schedule line",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"{{reversal_reason}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/financial/depreciation-schedule-lines/{{schedule_line_id}}/reverse",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "depreciation-schedule-lines",
+                    "{{schedule_line_id}}",
+                    "reverse"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:53:22 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"id\": 2,\n    \"depreciation_id\": 1,\n    \"sequence_number\": 2,\n    \"due_date\": \"2026-10-01\",\n    \"amount\": \"100000.00\",\n    \"status\": \"reversed\",\n    \"cashbook_transaction_id\": 6,\n    \"cashbook_posting_reference\": \"CBT-01M3XF0MW1P0WGB6P7W6MJBRQJ\",\n    \"posted_by_id\": 1,\n    \"posted_at\": \"2026-10-02T04:47:29.000000Z\",\n    \"failure_reason\": null,\n    \"reversed_by_id\": 1,\n    \"reversed_at\": \"2026-10-02T04:53:22.000000Z\",\n    \"reversal_reason\": \"Entered in error\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cashbook verification",
+      "item": [
+        {
+          "name": "List depreciation cashbook transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-transactions?cashbook_id={{cashbook_id}}&direction=out&search=DEP-&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-transactions"
+              ],
+              "query": [
+                {
+                  "key": "cashbook_id",
+                  "value": "{{cashbook_id}}"
+                },
+                {
+                  "key": "direction",
+                  "value": "out"
+                },
+                {
+                  "key": "search",
+                  "value": "DEP-"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Shows linked cashbook transactions created by depreciation postings. Module-owned depreciation entries must be reversed from the depreciation schedule-line endpoint."
+          },
+          "response": [
+            {
+              "name": "List depreciation cashbook transactions",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-transactions?cashbook_id={{cashbook_id}}&direction=out&search=DEP-&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-transactions"
+                  ],
+                  "query": [
+                    {
+                      "key": "cashbook_id",
+                      "value": "{{cashbook_id}}"
+                    },
+                    {
+                      "key": "direction",
+                      "value": "out"
+                    },
+                    {
+                      "key": "search",
+                      "value": "DEP-"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:48:22 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 6,\n      \"cashbook_id\": 2,\n      \"category_id\": 5,\n      \"category\": {\n        \"id\": 5,\n        \"name\": \"Depreciation out\",\n        \"direction\": \"out\"\n      },\n      \"cashbook\": {\n        \"id\": 2,\n        \"name\": \"Yangon Operating Bank\",\n        \"type\": \"bank\",\n        \"currency_code\": \"MMK\"\n      },\n      \"reference\": \"CBT-01M3XF0MW1P0WGB6P7W6MJBRQJ\",\n      \"external_reference\": \"DEP-01M3XDB7YJWTPKVAMG3EM3VCFS-2\",\n      \"business_date\": \"2026-10-01\",\n      \"direction\": \"out\",\n      \"amount\": \"100000.00\",\n      \"description\": \"Depreciation deduction: Water Pump #2\",\n      \"source_type\": \"depreciation\",\n      \"status\": \"confirmed\",\n      \"ledger_entry_id\": 9,\n      \"reverses_transaction_id\": null,\n      \"reversed_by_transaction_id\": null,\n      \"reversal_reason\": null,\n      \"created_by_id\": 1,\n      \"confirmed_by_id\": 1,\n      \"confirmed_at\": \"2026-10-02T04:47:29.000000Z\",\n      \"reversed_by_id\": null,\n      \"reversed_at\": null,\n      \"version\": 1\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbook-transactions?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbook-transactions?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbook-transactions?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbook-transactions\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cashbook ledger by depreciation source",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/ledger?source_type=depreciation&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks",
+                "{{cashbook_id}}",
+                "ledger"
+              ],
+              "query": [
+                {
+                  "key": "source_type",
+                  "value": "depreciation"
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Verifies the actual Cashbook Out ledger entries posted by depreciation."
+          },
+          "response": [
+            {
+              "name": "Cashbook ledger by depreciation source",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks/{{cashbook_id}}/ledger?source_type=depreciation&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks",
+                    "{{cashbook_id}}",
+                    "ledger"
+                  ],
+                  "query": [
+                    {
+                      "key": "source_type",
+                      "value": "depreciation"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:48:35 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 9,\n      \"cashbook_id\": 2,\n      \"cashbook_transaction_id\": 6,\n      \"category_id\": 5,\n      \"category_name\": \"Depreciation out\",\n      \"reversal_of_entry_id\": null,\n      \"reference\": \"CBT-01M3XF0MW1P0WGB6P7W6MJBRQJ\",\n      \"entry_date\": \"2026-10-01\",\n      \"description\": \"Depreciation deduction: Water Pump #2\",\n      \"source_type\": \"depreciation\",\n      \"direction\": \"out\",\n      \"amount\": \"100000.00\",\n      \"running_balance\": \"7900000.00\",\n      \"created_by_id\": 1,\n      \"created_at\": \"2026-10-02T11:17:29.000000Z\"\n    }\n  ],\n  \"links\": {\n    \"first\": \"http://localhost:8089/api/v1/financial/cashbooks/2/ledger?page=1\",\n    \"last\": \"http://localhost:8089/api/v1/financial/cashbooks/2/ledger?page=1\",\n    \"prev\": null,\n    \"next\": null\n  },\n  \"meta\": {\n    \"current_page\": 1,\n    \"from\": 1,\n    \"last_page\": 1,\n    \"links\": [\n      {\n        \"url\": null,\n        \"label\": \"&laquo; Previous\",\n        \"page\": null,\n        \"active\": false\n      },\n      {\n        \"url\": \"http://localhost:8089/api/v1/financial/cashbooks/2/ledger?page=1\",\n        \"label\": \"1\",\n        \"page\": 1,\n        \"active\": true\n      },\n      {\n        \"url\": null,\n        \"label\": \"Next &raquo;\",\n        \"page\": null,\n        \"active\": false\n      }\n    ],\n    \"path\": \"http://localhost:8089/api/v1/financial/cashbooks/2/ledger\",\n    \"per_page\": 30,\n    \"to\": 1,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cashbook category summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbook-reports/categories?from_date={{start_date}}&to_date={{as_of_date}}&direction=out",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbook-reports",
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "{{start_date}}"
+                },
+                {
+                  "key": "to_date",
+                  "value": "{{as_of_date}}"
+                },
+                {
+                  "key": "direction",
+                  "value": "out"
+                }
+              ]
+            },
+            "description": "Summarizes cash-out categories, including depreciation category totals."
+          },
+          "response": [
+            {
+              "name": "Cashbook category summary",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbook-reports/categories?from_date={{start_date}}&to_date={{as_of_date}}&direction=out",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbook-reports",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "from_date",
+                      "value": "{{start_date}}"
+                    },
+                    {
+                      "key": "to_date",
+                      "value": "{{as_of_date}}"
+                    },
+                    {
+                      "key": "direction",
+                      "value": "out"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "host",
+                  "value": "localhost:8089"
+                },
+                {
+                  "key": "connection",
+                  "value": "close"
+                },
+                {
+                  "key": "x-powered-by",
+                  "value": "PHP/8.3.23"
+                },
+                {
+                  "key": "cache-control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 02 Oct 2026 04:48:48 GMT"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "Origin"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"from_date\": \"2026-09-01\",\n    \"to_date\": \"2026-10-01\",\n    \"currencies\": [\n      {\n        \"currency_code\": \"MMK\",\n        \"categories\": [\n          {\n            \"category_id\": 5,\n            \"category_name\": \"Depreciation out\",\n            \"direction\": \"out\",\n            \"total_amount\": \"100000.00\",\n            \"entry_count\": 1\n          },\n          {\n            \"category_id\": 4,\n            \"category_name\": \"Staff Loan Disbursement\",\n            \"direction\": \"out\",\n            \"total_amount\": \"145.00\",\n            \"entry_count\": 2\n          }\n        ]\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "cashbook_id",
+      "value": ""
+    },
+    {
+      "key": "cash_out_category_id",
+      "value": ""
+    },
+    {
+      "key": "depreciation_id",
+      "value": ""
+    },
+    {
+      "key": "schedule_line_id",
+      "value": ""
+    },
+    {
+      "key": "depreciation_idempotency_key",
+      "value": "PM-DEPRECIATION-001"
+    },
+    {
+      "key": "asset_name",
+      "value": "Water Pump"
+    },
+    {
+      "key": "asset_category",
+      "value": "Farm Equipment"
+    },
+    {
+      "key": "asset_price",
+      "value": "1200000.00"
+    },
+    {
+      "key": "monthly_amount",
+      "value": "100000.00"
+    },
+    {
+      "key": "start_date",
+      "value": "2026-09-01"
+    },
+    {
+      "key": "as_of_date",
+      "value": "2026-10-01"
+    },
+    {
+      "key": "reversal_reason",
+      "value": "Entered in error"
+    },
+    {
+      "key": "cancellation_reason",
+      "value": "Asset removed from depreciation plan"
+    }
+  ]
+}

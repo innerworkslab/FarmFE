@@ -34,7 +34,7 @@ import {
   useUpdateStaffAdvanceMutation,
   useUpdateStaffAdvanceRepaymentMutation,
 } from "@/redux/features/financial/StaffAdvanceApiSlice";
-import { StaffRecord, useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
+import { useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
 import { formatReadableDate, formatReadableDateTime } from "@/lib/dateFormat";
 
 type AdvanceForm = {

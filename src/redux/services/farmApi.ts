@@ -82,6 +82,9 @@ export const farmApi = createApi({
     "staffAdvanceHistory",
     "staffAdvances",
     "staffAdvanceRepayments",
+    "depreciations",
+    "depreciationSchedule",
+    "assetCategories",
   ],
   endpoints: () => ({}),
 });

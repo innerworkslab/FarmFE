@@ -28,6 +28,7 @@ import {
   Wallet,
   Tags,
   Users,
+  CalendarDays,
 } from "lucide-react";
 
 type NavItem = {
@@ -213,6 +214,16 @@ const AppSidebar: React.FC = () => {
             name: "Loans & Repayments",
             path: "/financial/staff-advances",
             icon: <Wallet size={14} />,
+          },
+          {
+            name: "Depreciation",
+            path: "/financial/depreciations",
+            icon: <CalendarDays size={14} />,
+          },
+          {
+            name: "Asset Categories",
+            path: "/financial/asset-categories",
+            icon: <Tags size={14} />,
           },
           {
             name: "Category Summary",
