@@ -90,6 +90,7 @@ export const farmApi = createApi({
     "depreciations",
     "depreciationSchedule",
     "assetCategories",
+    "sales",
   ],
   endpoints: () => ({}),
 });

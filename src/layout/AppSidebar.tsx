@@ -105,7 +105,10 @@ const AppSidebar: React.FC = () => {
   }, [pathname]);
 
   const mainNavItems: NavItem[] = useMemo(
-    () => [{ icon: <LayoutDashboard size={20} />, name: "Dashboard", path: "/" }],
+    () => [
+      { icon: <LayoutDashboard size={20} />, name: "Dashboard", path: "/" },
+      { icon: <ShoppingCart size={20} />, name: "Sales", path: "/sales" },
+    ],
     []
   );
 

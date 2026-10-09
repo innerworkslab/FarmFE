@@ -62,7 +62,6 @@ export default function FarmOperationsPage() {
   const [busy, setBusy] = useState(false);
   const { data: farmsResponse } = useGetFarmInformationListQuery({ per_page: 100 });
   const farms = farmsResponse?.data || [];
-  const currentFarm = farms.find((farm) => String(farm.id) === farmId);
   const { data: adminsResponse } = useGetSetupAdminsQuery();
   const { data: response, isLoading, isError } = useGetFarmOperationsQuery({ farm_information_id: farmId, animal_balance_id: animalFilter, type: typeFilter, per_page: 100 });
   const { data: filterAnimals } = useGetFarmAnimalsQuery({ farmId: Number(farmId), per_page: 100 }, { skip: !farmId });

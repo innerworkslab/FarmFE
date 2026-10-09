@@ -44,13 +44,14 @@ export const branchApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
     getBranches: builder.query<
       BranchListResponse,
-      { per_page?: number; page?: number; search?: string } | void
+      { per_page?: number; page?: number; search?: string; status?: string } | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
         if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
         if (params?.page) queryParams.append("page", params.page.toString());
         if (params?.search) queryParams.append("search", params.search);
+        if (params?.status) queryParams.append("status", params.status);
         const str = queryParams.toString();
         return `setup/branches${str ? `?${str}` : ""}`;
       },

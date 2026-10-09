@@ -1,0 +1,1534 @@
+{
+  "info": {
+    "_postman_id": "d39af5b9-c9dd-483a-b24a-da1c4dd40bc3",
+    "name": "Livestock ERP Sales API",
+    "description": "Postman collection for animal batch sales. Sales drafts do not post stock or accounting. Confirming posts paid plus FOC animals to the batch movement ledger, paid amounts to an active branch cashbook, and unpaid amounts to customer receivables. Later receipts reduce AR; cancelling reverses stock, cash receipts, and remaining AR. Requires active customers, farms, animal batch balances, a branch cashbook, and an active cash-in category. All URLs use /api/v1. Select IDs from the prerequisite requests before creating a sale. Over-limit credit is blocked; sale.backdate is required for past dates.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-d39af5b9-c9dd-483a-b24a-da1c4dd40bc3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication and prerequisites",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) pm.collectionVariables.set('access_token', body.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"{{login}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"{{device_name}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\r\n  \"token_type\": \"Bearer\",\r\n  \"access_token\": \"[REDACTED: authentication token]\",\r\n  \"user\": {\r\n    \"id\": 1,\r\n    \"name\": \"Super Admin\",\r\n    \"email\": \"superadmin@example.com\",\r\n    \"username\": \"superadmin\",\r\n    \"account_status\": \"active\",\r\n    \"last_login_at\": \"2026-10-09T02:05:14Z\",\r\n    \"two_factor_enabled\": false,\r\n    \"roles\": [\r\n      \"super-admin\"\r\n    ],\r\n    \"permissions\": [\r\n      \"authorization.permissions.view\",\r\n      \"setup.view\",\r\n      \"setup.manage\",\r\n      \"setup.branches.view\",\r\n      \"setup.branches.create\",\r\n      \"setup.branches.update\",\r\n      \"setup.branches.delete\",\r\n      \"setup.roles.view\",\r\n      \"setup.roles.create\",\r\n      \"setup.roles.update\",\r\n      \"setup.roles.delete\",\r\n      \"setup.admins.view\",\r\n      \"setup.admins.create\",\r\n      \"setup.admins.update\",\r\n      \"setup.admins.delete\",\r\n      \"setup.audit.view\",\r\n      \"setup.customers.view\",\r\n      \"setup.customers.create\",\r\n      \"setup.customers.update\",\r\n      \"setup.customers.delete\",\r\n      \"setup.suppliers.view\",\r\n      \"setup.suppliers.create\",\r\n      \"setup.suppliers.update\",\r\n      \"setup.suppliers.delete\",\r\n      \"setup.foods.view\",\r\n      \"setup.foods.create\",\r\n      \"setup.foods.update\",\r\n      \"setup.foods.delete\",\r\n      \"setup.medicines.view\",\r\n      \"setup.medicines.create\",\r\n      \"setup.medicines.update\",\r\n      \"setup.medicines.delete\",\r\n      \"setup.animals.view\",\r\n      \"setup.animals.create\",\r\n      \"setup.animals.update\",\r\n      \"setup.animals.delete\",\r\n      \"setup.equipment.view\",\r\n      \"setup.equipment.create\",\r\n      \"setup.equipment.update\",\r\n      \"setup.equipment.delete\",\r\n      \"setup.inventories.view\",\r\n      \"setup.inventories.create\",\r\n      \"setup.inventories.update\",\r\n      \"setup.inventories.delete\",\r\n      \"setup.uoms.view\",\r\n      \"setup.uoms.create\",\r\n      \"setup.uoms.update\",\r\n      \"setup.uoms.delete\",\r\n      \"setup.farm-information.view\",\r\n      \"setup.farm-information.create\",\r\n      \"setup.farm-information.update\",\r\n      \"setup.farm-information.delete\",\r\n      \"purchasing.view\",\r\n      \"purchasing.manage\",\r\n      \"inventory.view\",\r\n      \"inventory.manage\",\r\n      \"inventory.items.view\",\r\n      \"inventory.balances.view\",\r\n      \"inventory.ledger.view\",\r\n      \"inventory.confirmations.view\",\r\n      \"inventory.adjustments.view\",\r\n      \"inventory.adjustments.create\",\r\n      \"inventory.adjustments.update\",\r\n      \"inventory.adjustments.submit\",\r\n      \"inventory.adjustments.confirm\",\r\n      \"inventory.adjustments.reverse\",\r\n      \"inventory.history.export\",\r\n      \"farms.view\",\r\n      \"farms.manage\",\r\n      \"sales.view\",\r\n      \"sales.manage\",\r\n      \"financial.view\",\r\n      \"financial.manage\",\r\n      \"purchasing.receipts.confirm\",\r\n      \"purchasing.receipts.create\",\r\n      \"purchasing.receipts.view\",\r\n      \"purchasing.invoices.cancel\",\r\n      \"purchasing.invoices.update\",\r\n      \"purchasing.invoices.create\",\r\n      \"purchasing.invoices.view\",\r\n      \"financial.cashbooks.view\",\r\n      \"financial.cashbooks.create\",\r\n      \"financial.cashbooks.update\",\r\n      \"financial.cashbooks.deactivate\",\r\n      \"financial.cashbooks.bank-reference.view\",\r\n      \"financial.transactions.view\",\r\n      \"financial.transactions.create\",\r\n      \"financial.transactions.update\",\r\n      \"financial.transactions.confirm\",\r\n      \"financial.transactions.reverse\",\r\n      \"financial.reports.view\",\r\n      \"financial.categories.view\",\r\n      \"financial.categories.create\",\r\n      \"financial.categories.update\",\r\n      \"setup.staff.view\",\r\n      \"setup.staff.create\",\r\n      \"setup.staff.update\",\r\n      \"financial.advances.view\",\r\n      \"financial.advances.create\",\r\n      \"financial.advances.update\",\r\n      \"financial.advances.confirm\",\r\n      \"financial.advances.reverse\",\r\n      \"financial.advance-repayments.create\",\r\n      \"financial.advance-repayments.update\",\r\n      \"financial.advance-repayments.confirm\",\r\n      \"financial.advance-repayments.reverse\",\r\n      \"financial.advance-repayments.cancel\",\r\n      \"financial.depreciations.view\",\r\n      \"financial.depreciations.create\",\r\n      \"financial.depreciations.update\",\r\n      \"financial.depreciations.activate\",\r\n      \"financial.depreciations.cancel\",\r\n      \"financial.depreciations.post\",\r\n      \"financial.depreciations.reverse\",\r\n      \"financial.asset-categories.view\",\r\n      \"financial.asset-categories.create\",\r\n      \"financial.asset-categories.update\"\r\n    ]\r\n  }\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "List branches (choose branch_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/branches?status=active&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "branches"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose an active branch and set branch_id. You need an assigned branch or super-admin access."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/setup/branches?status=active&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "setup",
+                    "branches"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                },
+                "description": "Choose an active branch and set branch_id. You need an assigned branch or super-admin access."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":2,\"code\":\"BR-MDY\",\"name\":\"Mandalay Feed & Holding\",\"phone_number\":\"+95 9 400000002\",\"address\":\"Feed storage and holding branch\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\"},{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/branches?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/branches?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/branches?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/branches\",\"per_page\":100,\"to\":2,\"total\":2}}"
+            }
+          ]
+        },
+        {
+          "name": "Search customers (choose customer_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/customers?branch_id={{branch_id}}&search=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "branch_id",
+                  "value": "{{branch_id}}"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Returns active customers assigned to this branch or customers with no preferred branch. Optional search matches code, name, or phone. Set customer_id from the result."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/customers?branch_id={{branch_id}}&search=",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "customers"
+                  ],
+                  "query": [
+                    {
+                      "key": "branch_id",
+                      "value": "{{branch_id}}"
+                    },
+                    {
+                      "key": "search",
+                      "value": ""
+                    }
+                  ]
+                },
+                "description": "Returns active customers assigned to this branch or customers with no preferred branch. Optional search matches code, name, or phone. Set customer_id from the result."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":1,\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"status\":\"active\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "List saleable farms (choose farm_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/farms?branch_id={{branch_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "farms"
+              ],
+              "query": [
+                {
+                  "key": "branch_id",
+                  "value": "{{branch_id}}"
+                }
+              ]
+            },
+            "description": "Returns active farms in the selected branch. Set farm_id from the result."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/farms?branch_id={{branch_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "farms"
+                  ],
+                  "query": [
+                    {
+                      "key": "branch_id",
+                      "value": "{{branch_id}}"
+                    }
+                  ]
+                },
+                "description": "Returns active farms in the selected branch. Set farm_id from the result."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":2,\"name\":\"Farm management demo\",\"branch_id\":1,\"house_barn\":\"Demo Barn\",\"pen_cage_pond\":\"Demo Pen\",\"current_animal_id\":null,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-10-08T15:51:15.000000Z\",\"updated_at\":\"2026-10-08T15:51:15.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}}]}"
+            }
+          ]
+        },
+        {
+          "name": "List eligible animal batches (choose animal_balance_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/batches?farm_information_id={{farm_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "batches"
+              ],
+              "query": [
+                {
+                  "key": "farm_information_id",
+                  "value": "{{farm_id}}"
+                }
+              ]
+            },
+            "description": "Returns saleable animal batches with on-hand, reserved, and available whole-animal quantities. Set animal_balance_id from the result."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/batches?farm_information_id={{farm_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "batches"
+                  ],
+                  "query": [
+                    {
+                      "key": "farm_information_id",
+                      "value": "{{farm_id}}"
+                    }
+                  ]
+                },
+                "description": "Returns saleable animal batches with on-hand, reserved, and available whole-animal quantities. Set animal_balance_id from the result."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":14,\"batch_number\":\"ANI-POSTMAN-BATCH\",\"animal_type\":\"Postman Batch 001\",\"branch_id\":1,\"farm_information_id\":1,\"on_hand_quantity\":25,\"reserved_quantity\":0,\"available_quantity\":25,\"health_status\":null}]}"
+            }
+          ]
+        },
+        {
+          "name": "List active cashbooks (choose cashbook_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cashbooks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Choose an active cashbook in the sale branch and set cashbook_id. Required when paid_amount or a later receipt is greater than zero."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cashbooks?status=active&per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cashbooks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                },
+                "description": "Choose an active cashbook in the sale branch and set cashbook_id. Required when paid_amount or a later receipt is greater than zero."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":2,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\"},\"branch_id\":1,\"type\":\"bank\",\"name\":\"Yangon Operating Bank\",\"currency_code\":\"MMK\",\"bank_reference\":null,\"opening_balance\":\"8000000.00\",\"effective_date\":\"2026-09-29\",\"current_balance\":\"8000000.00\",\"status\":\"active\",\"deactivation_reason\":null,\"version\":1,\"created_at\":\"2026-09-29T03:28:05.000000Z\",\"updated_at\":\"2026-09-29T03:28:05.000000Z\"},{\"id\":3,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\"},\"branch_id\":1,\"type\":\"cash\",\"name\":\"Postman Cashbook Updated\",\"currency_code\":\"MMK\",\"bank_reference\":\"BANK-REF-001\",\"opening_balance\":\"500000.00\",\"effective_date\":\"2026-09-28\",\"current_balance\":\"529880.00\",\"status\":\"active\",\"deactivation_reason\":null,\"version\":2,\"created_at\":\"2026-09-29T03:33:20.000000Z\",\"updated_at\":\"2026-09-29T03:33:32.000000Z\"},{\"id\":1,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\"},\"branch_id\":1,\"type\":\"cash\",\"name\":\"Yangon Main Cash\",\"currency_code\":\"MMK\",\"bank_reference\":null,\"opening_balance\":\"1500000.00\",\"effective_date\":\"2026-09-29\",\"current_balance\":\"1500000.00\",\"status\":\"active\",\"deactivation_reason\":null,\"version\":1,\"created_at\":\"2026-09-29T03:28:05.000000Z\",\"updated_at\":\"2026-09-29T03:28:05.000000Z\"},{\"id\":4,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\"},\"branch_id\":1,\"type\":\"cash\",\"name\":\"Ygn farm cashbook 2\",\"currency_code\":\"MMK\",\"bank_reference\":\"BANK-REF-001\",\"opening_balance\":\"500000.00\",\"effective_date\":\"2026-09-28\",\"current_balance\":\"500000.00\",\"status\":\"active\",\"deactivation_reason\":null,\"version\":3,\"created_at\":\"2026-09-30T02:49:37.000000Z\",\"updated_at\":\"2026-09-30T02:51:37.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cashbooks?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cashbooks?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cashbooks?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cashbooks\",\"per_page\":100,\"to\":4,\"total\":4}}"
+            }
+          ]
+        },
+        {
+          "name": "List cash ledger categories (choose cash_in_category_id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/cash-ledger-categories?per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "cash-ledger-categories"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Set cash_in_category_id to an active category with direction=in. For cancellation reversals, configure an active opposite-direction reversal category on it."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/financial/cash-ledger-categories?per_page=100",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "financial",
+                    "cash-ledger-categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "100"
+                    }
+                  ]
+                },
+                "description": "Set cash_in_category_id to an active category with direction=in. For cancellation reversals, configure an active opposite-direction reversal category on it."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":[{\"id\":6,\"name\":\"Depreciation reversal\",\"direction\":\"in\",\"reversal_category_id\":5,\"reversal_category\":{\"id\":5,\"name\":\"Depreciation out\",\"direction\":\"out\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":null,\"created_at\":\"2026-10-02T04:51:52.000000Z\",\"updated_at\":\"2026-10-02T04:51:52.000000Z\"},{\"id\":3,\"name\":\"Staff Loan Repayment\",\"direction\":\"in\",\"reversal_category_id\":4,\"reversal_category\":{\"id\":4,\"name\":\"Staff Loan Disbursement\",\"direction\":\"out\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":1,\"created_at\":\"2026-09-30T02:44:44.000000Z\",\"updated_at\":\"2026-09-30T02:45:43.000000Z\"},{\"id\":1,\"name\":\"Uncategorized cash in\",\"direction\":\"in\",\"reversal_category_id\":2,\"reversal_category\":{\"id\":2,\"name\":\"Uncategorized cash out\",\"direction\":\"out\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":null,\"created_at\":\"2026-09-29T16:37:08.000000Z\",\"updated_at\":\"2026-09-29T16:37:08.000000Z\"},{\"id\":5,\"name\":\"Depreciation out\",\"direction\":\"out\",\"reversal_category_id\":6,\"reversal_category\":{\"id\":6,\"name\":\"Depreciation reversal\",\"direction\":\"in\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":1,\"created_at\":\"2026-10-02T04:17:43.000000Z\",\"updated_at\":\"2026-10-02T04:51:52.000000Z\"},{\"id\":4,\"name\":\"Staff Loan Disbursement\",\"direction\":\"out\",\"reversal_category_id\":3,\"reversal_category\":{\"id\":3,\"name\":\"Staff Loan Repayment\",\"direction\":\"in\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":1,\"created_at\":\"2026-09-30T02:44:54.000000Z\",\"updated_at\":\"2026-09-30T02:45:12.000000Z\"},{\"id\":2,\"name\":\"Uncategorized cash out\",\"direction\":\"out\",\"reversal_category_id\":1,\"reversal_category\":{\"id\":1,\"name\":\"Uncategorized cash in\",\"direction\":\"in\",\"status\":\"active\"},\"status\":\"active\",\"created_by_id\":null,\"created_at\":\"2026-09-29T16:37:08.000000Z\",\"updated_at\":\"2026-09-29T16:37:08.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cash-ledger-categories?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cash-ledger-categories?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cash-ledger-categories?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/financial\\/cash-ledger-categories\",\"per_page\":100,\"to\":6,\"total\":6}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "List and search sales",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales?branch_id={{branch_id}}&farm_information_id={{farm_id}}&status=&payment_status=&search=&per_page=30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales"
+              ],
+              "query": [
+                {
+                  "key": "branch_id",
+                  "value": "{{branch_id}}"
+                },
+                {
+                  "key": "farm_information_id",
+                  "value": "{{farm_id}}"
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "payment_status",
+                  "value": ""
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Optional filters: branch_id, farm_information_id, status=draft|confirmed|cancelled, payment_status=unpaid|partially_paid|paid, from_date, to_date, search, per_page."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales?branch_id={{branch_id}}&farm_information_id={{farm_id}}&status=&payment_status=&search=&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales"
+                  ],
+                  "query": [
+                    {
+                      "key": "branch_id",
+                      "value": "{{branch_id}}"
+                    },
+                    {
+                      "key": "farm_information_id",
+                      "value": "{{farm_id}}"
+                    },
+                    {
+                      "key": "status",
+                      "value": ""
+                    },
+                    {
+                      "key": "payment_status",
+                      "value": ""
+                    },
+                    {
+                      "key": "search",
+                      "value": ""
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                },
+                "description": "Optional filters: branch_id, farm_information_id, status=draft|confirmed|cancelled, payment_status=unpaid|partially_paid|paid, from_date, to_date, search, per_page."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"current_page\":1,\"data\":[],\"first_page_url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"from\":null,\"last_page\":1,\"last_page_url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"next_page_url\":null,\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales\",\"per_page\":30,\"prev_page_url\":null,\"to\":null,\"total\":0}"
+            },
+            {
+              "name": "200 OK - confirmed sale",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales?branch_id={{branch_id}}&farm_information_id={{farm_id}}&status=&payment_status=&search=&per_page=30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales"
+                  ],
+                  "query": [
+                    {
+                      "key": "branch_id",
+                      "value": "{{branch_id}}"
+                    },
+                    {
+                      "key": "farm_information_id",
+                      "value": "{{farm_id}}"
+                    },
+                    {
+                      "key": "status",
+                      "value": ""
+                    },
+                    {
+                      "key": "payment_status",
+                      "value": ""
+                    },
+                    {
+                      "key": "search",
+                      "value": ""
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "30"
+                    }
+                  ]
+                },
+                "description": "Optional filters: branch_id, farm_information_id, status=draft|confirmed|cancelled, payment_status=unpaid|partially_paid|paid, from_date, to_date, search, per_page."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"current_page\":1,\"data\":[{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"confirmed\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":3,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null}}],\"first_page_url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"from\":1,\"last_page\":1,\"last_page_url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"next_page_url\":null,\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/sales\",\"per_page\":30,\"prev_page_url\":null,\"to\":1,\"total\":1}"
+            }
+          ]
+        },
+        {
+          "name": "Create sale draft",
+          "event": [
+            {
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const sale = body.data || body;",
+                  "if (sale.id) pm.collectionVariables.set('sale_id', sale.id);",
+                  "if (sale.id) pm.collectionVariables.set('sale_idempotency_key', 'PM-SALE-' + Date.now());"
+                ]
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotency_key\": \"{{sale_idempotency_key}}\",\n  \"branch_id\": {{branch_id}},\n  \"farm_information_id\": {{farm_id}},\n  \"inventory_balance_id\": {{animal_balance_id}},\n  \"customer_id\": {{customer_id}},\n  \"quantity\": {{paid_quantity}},\n  \"foc_quantity\": {{foc_quantity}},\n  \"unit_price\": \"{{unit_price}}\",\n  \"discount_type\": \"{{discount_type}}\",\n  \"discount_value\": \"{{discount_value}}\",\n  \"paid_amount\": \"{{paid_amount}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"cash_category_id\": {{cash_in_category_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/sales",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales"
+              ]
+            },
+            "description": "Creates a non-posting draft. Animals are counted as paid quantity plus FOC quantity; FOC does not add to revenue. Discount type is none, percentage, or fixed_amount. Omit cash fields for a fully unpaid sale."
+          },
+          "response": [
+            {
+              "name": "201 Created - paid and FOC sale",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotency_key\": \"{{sale_idempotency_key}}\",\n  \"branch_id\": {{branch_id}},\n  \"farm_information_id\": {{farm_id}},\n  \"inventory_balance_id\": {{animal_balance_id}},\n  \"customer_id\": {{customer_id}},\n  \"quantity\": {{paid_quantity}},\n  \"foc_quantity\": {{foc_quantity}},\n  \"unit_price\": \"{{unit_price}}\",\n  \"discount_type\": \"{{discount_type}}\",\n  \"discount_value\": \"{{discount_value}}\",\n  \"paid_amount\": \"{{paid_amount}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"cash_category_id\": {{cash_in_category_id}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales"
+                  ]
+                },
+                "description": "Creates a non-posting draft. Animals are counted as paid quantity plus FOC quantity; FOC does not add to revenue. Discount type is none, percentage, or fixed_amount. Omit cash fields for a fully unpaid sale."
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Sale draft created.\",\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"draft\",\"customer_snapshot\":null,\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":null,\"confirmed_at\":null,\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":1,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:18.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"25.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"25.000000\",\"version\":1,\"last_ledger_entry_id\":null,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[]}}"
+            },
+            {
+              "name": "201 Created - unpaid draft for delete example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotency_key\": \"{{sale_idempotency_key}}\",\n  \"branch_id\": {{branch_id}},\n  \"farm_information_id\": {{farm_id}},\n  \"inventory_balance_id\": {{animal_balance_id}},\n  \"customer_id\": {{customer_id}},\n  \"quantity\": {{paid_quantity}},\n  \"foc_quantity\": {{foc_quantity}},\n  \"unit_price\": \"{{unit_price}}\",\n  \"discount_type\": \"{{discount_type}}\",\n  \"discount_value\": \"{{discount_value}}\",\n  \"paid_amount\": \"{{paid_amount}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"cash_category_id\": {{cash_in_category_id}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales"
+                  ]
+                },
+                "description": "Creates a non-posting draft. Animals are counted as paid quantity plus FOC quantity; FOC does not add to revenue. Discount type is none, percentage, or fixed_amount. Omit cash fields for a fully unpaid sale."
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Sale draft created.\",\"data\":{\"id\":2,\"sale_number\":\"SAL-2026-000002\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-02\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":1,\"foc_quantity\":0,\"unit_price\":\"100.00\",\"discount_type\":\"none\",\"discount_value\":\"0.00\",\"gross_amount\":\"100.00\",\"discount_amount\":\"0.00\",\"total_amount\":\"100.00\",\"paid_amount\":\"0.00\",\"ar_amount\":\"100.00\",\"payment_status\":\"unpaid\",\"status\":\"draft\",\"customer_snapshot\":null,\"cashbook_id\":null,\"cash_category_id\":null,\"created_by_id\":1,\"confirmed_by_id\":null,\"confirmed_at\":null,\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":1,\"created_at\":\"2026-10-09T02:05:23.000000Z\",\"updated_at\":\"2026-10-09T02:05:23.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[]}}"
+            }
+          ]
+        },
+        {
+          "name": "Get sale details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"confirmed\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":3,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"}]}}"
+            },
+            {
+              "name": "200 OK - cancelled sale",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"80.00\",\"ar_amount\":\"100.00\",\"payment_status\":\"partially_paid\",\"status\":\"cancelled\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":\"Postman example run; reverse test sale\",\"cancelled_by_id\":1,\"cancelled_at\":\"2026-10-09T02:05:25.000000Z\",\"version\":5,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:25.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"25.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"25.000000\",\"version\":3,\"last_ledger_entry_id\":26,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:24.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"},{\"id\":2,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":9,\"entry_type\":\"receipt\",\"amount\":\"-50.00\",\"reference\":\"CBT-01M4F6GVHBTYV52BAG3TA43GMS\",\"idempotency_key\":\"sale-receipt-1-8510838637fd8a02c444f07144432407ffddccce\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:22.000000Z\",\"updated_at\":\"2026-10-09T02:05:22.000000Z\"},{\"id\":3,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"reversal\",\"amount\":\"-100.00\",\"reference\":\"SAL-2026-000001-REV\",\"idempotency_key\":\"sale-1-ar-reversal\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:25.000000Z\",\"updated_at\":\"2026-10-09T02:05:25.000000Z\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Update sale draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": {{paid_quantity}},\n  \"foc_quantity\": {{foc_quantity}},\n  \"unit_price\": \"{{unit_price}}\",\n  \"discount_type\": \"{{discount_type}}\",\n  \"discount_value\": \"{{discount_value}}\",\n  \"paid_amount\": \"{{paid_amount}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}"
+              ]
+            },
+            "description": "Drafts only. Confirmation will recheck customer, farm, batch health, withdrawal, and latest stock availability."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"quantity\": {{paid_quantity}},\n  \"foc_quantity\": {{foc_quantity}},\n  \"unit_price\": \"{{unit_price}}\",\n  \"discount_type\": \"{{discount_type}}\",\n  \"discount_value\": \"{{discount_value}}\",\n  \"paid_amount\": \"{{paid_amount}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}"
+                  ]
+                },
+                "description": "Drafts only. Confirmation will recheck customer, farm, batch health, withdrawal, and latest stock availability."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Sale draft updated.\",\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"draft\",\"customer_snapshot\":null,\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":null,\"confirmed_at\":null,\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":2,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:19.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"25.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"25.000000\",\"version\":1,\"last_ledger_entry_id\":null,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[]}}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm and post sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Atomically deducts paid plus FOC quantity, posts the paid amount to the cashbook, and records any remaining amount as customer AR. Repeating confirmation does not post twice."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}/confirm",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}",
+                    "confirm"
+                  ]
+                },
+                "description": "Atomically deducts paid plus FOC quantity, posts the paid amount to the cashbook, and records any remaining amount as customer AR. Repeating confirmation does not post twice."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Sale confirmed and posted.\",\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"confirmed\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":3,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Get invoice view data",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}/invoice",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}",
+                "invoice"
+              ]
+            },
+            "description": "Returns invoice fields from the confirmed customer snapshot. Drafts are marked as draft; this endpoint returns JSON data."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}/invoice",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}",
+                    "invoice"
+                  ]
+                },
+                "description": "Returns invoice fields from the confirmed customer snapshot. Drafts are marked as draft; this endpoint returns JSON data."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"data\":{\"document_type\":\"invoice\",\"sale\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"30.00\",\"ar_amount\":\"150.00\",\"payment_status\":\"partially_paid\",\"status\":\"confirmed\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":3,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"}]},\"customer\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"farm\":\"Yangon Barn A\",\"batch\":\"Postman Batch 001\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Apply a customer receipt to AR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"{{receipt_amount}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"cash_category_id\": {{cash_in_category_id}},\n  \"idempotency_key\": \"{{receipt_idempotency_key}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}/receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}",
+                "receipts"
+              ]
+            },
+            "description": "Posts a cash-in receipt and reduces the sale's outstanding AR. Amount cannot exceed the remaining AR; repeat requests with the same key are safe."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": \"{{receipt_amount}}\",\n  \"cashbook_id\": {{cashbook_id}},\n  \"cash_category_id\": {{cash_in_category_id}},\n  \"idempotency_key\": \"{{receipt_idempotency_key}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}/receipts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}",
+                    "receipts"
+                  ]
+                },
+                "description": "Posts a cash-in receipt and reduces the sale's outstanding AR. Amount cannot exceed the remaining AR; repeat requests with the same key are safe."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Receivable payment posted.\",\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"80.00\",\"ar_amount\":\"100.00\",\"payment_status\":\"partially_paid\",\"status\":\"confirmed\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":null,\"cancelled_by_id\":null,\"cancelled_at\":null,\"version\":4,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:22.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"22.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"22.000000\",\"version\":2,\"last_ledger_entry_id\":25,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"},{\"id\":2,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":9,\"entry_type\":\"receipt\",\"amount\":\"-50.00\",\"reference\":\"CBT-01M4F6GVHBTYV52BAG3TA43GMS\",\"idempotency_key\":\"sale-receipt-1-8510838637fd8a02c444f07144432407ffddccce\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:22.000000Z\",\"updated_at\":\"2026-10-09T02:05:22.000000Z\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel sale and reverse postings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Requires reversal categories to be configured. Restores batch quantity, reverses each receipt, and clears remaining AR atomically."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"{{cancellation_reason}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}/cancel",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}",
+                    "cancel"
+                  ]
+                },
+                "description": "Requires reversal categories to be configured. Restores batch quantity, reverses each receipt, and clears remaining AR atomically."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Sale cancelled and reversed.\",\"data\":{\"id\":1,\"sale_number\":\"SAL-2026-000001\",\"idempotency_key\":\"PM-SALE-EXAMPLE-20261009-01\",\"branch_id\":1,\"farm_information_id\":1,\"inventory_balance_id\":14,\"customer_id\":1,\"sale_date\":\"2026-10-09T00:00:00.000000Z\",\"quantity\":2,\"foc_quantity\":1,\"unit_price\":\"100.00\",\"discount_type\":\"percentage\",\"discount_value\":\"10.00\",\"gross_amount\":\"200.00\",\"discount_amount\":\"20.00\",\"total_amount\":\"180.00\",\"paid_amount\":\"80.00\",\"ar_amount\":\"100.00\",\"payment_status\":\"partially_paid\",\"status\":\"cancelled\",\"customer_snapshot\":{\"code\":\"CUS-YGN-001\",\"name\":\"Yangon Fresh Meat Shop\",\"township\":\"North Dagon\",\"price_level\":\"standard\",\"phone_number\":\"+95 9 600000001\",\"state_region\":\"Yangon\",\"payment_terms\":\"cash\",\"contact_person\":\"Ko Aung\",\"delivery_address\":\"North Dagon Market\",\"alternative_phone\":null},\"cashbook_id\":1,\"cash_category_id\":1,\"created_by_id\":1,\"confirmed_by_id\":1,\"confirmed_at\":\"2026-10-09T02:05:20.000000Z\",\"cancellation_reason\":\"Postman example run; reverse test sale\",\"cancelled_by_id\":1,\"cancelled_at\":\"2026-10-09T02:05:25.000000Z\",\"version\":5,\"created_at\":\"2026-10-09T02:05:18.000000Z\",\"updated_at\":\"2026-10-09T02:05:25.000000Z\",\"deleted_at\":null,\"customer\":{\"id\":1,\"code\":\"CUS-YGN-001\",\"type\":\"retail\",\"name\":\"Yangon Fresh Meat Shop\",\"contact_person\":\"Ko Aung\",\"phone_number\":\"+95 9 600000001\",\"alternative_phone\":null,\"delivery_address\":\"North Dagon Market\",\"township\":\"North Dagon\",\"state_region\":\"Yangon\",\"preferred_branch_id\":1,\"price_level\":\"standard\",\"payment_terms\":\"cash\",\"credit_limit\":\"0.00\",\"opening_balance\":\"0.00\",\"opening_balance_date\":null,\"bank_name\":null,\"bank_account_number\":null,\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null},\"farm\":{\"id\":1,\"name\":\"Yangon Barn A\",\"branch_id\":1,\"house_barn\":\"Barn A\",\"pen_cage_pond\":\"Pen 1\",\"current_animal_id\":1,\"responsible_employee_id\":2,\"version\":1,\"created_at\":\"2026-09-18T15:33:08.000000Z\",\"updated_at\":\"2026-09-18T15:33:08.000000Z\",\"deleted_at\":null,\"branch\":{\"id\":1,\"code\":\"BR-YGN\",\"name\":\"Yangon Main Farm\",\"phone_number\":\"+95 9 400000001\",\"address\":\"Main livestock operations compound\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-09-18T15:33:06.000000Z\",\"updated_at\":\"2026-09-18T15:33:06.000000Z\",\"deleted_at\":null}},\"balance\":{\"id\":14,\"identity_key\":\"POSTMAN-FARM-ANIMAL-BATCH\",\"category\":\"animal\",\"item_type\":\"animal\",\"item_id\":3,\"branch_id\":1,\"inventory_id\":3,\"farm_information_id\":1,\"location\":\"Pen 1\",\"stock_uom_id\":1,\"stock_lot_id\":null,\"equipment_instance_id\":null,\"on_hand_quantity\":\"25.000000\",\"reserved_quantity\":\"0.000000\",\"quarantined_quantity\":\"0.000000\",\"damaged_quantity\":\"0.000000\",\"expired_quantity\":\"0.000000\",\"available_quantity\":\"25.000000\",\"version\":3,\"last_ledger_entry_id\":26,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-10-09T02:05:24.000000Z\",\"item\":{\"id\":3,\"itemable_type\":\"App\\\\Modules\\\\Setup\\\\Models\\\\Animal\",\"itemable_id\":2,\"code\":\"ANI-POSTMAN-BATCH\",\"name\":\"Postman Batch 001\",\"category\":\"animal\",\"master_category\":\"beef\",\"stock_uom_id\":null,\"purchase_uom_id\":null,\"usage_uom_id\":null,\"uom_conversion\":\"1.000000\",\"batch_tracking\":true,\"expiry_tracking\":false,\"serial_tracking\":false,\"asset_tracking\":true,\"cold_chain_required\":false,\"divisible_quantity\":false,\"minimum_stock_level\":\"0.000\",\"maximum_stock_level\":null,\"reorder_level\":\"0.000\",\"reorder_quantity\":\"0.000\",\"status\":\"active\",\"source_version\":1,\"version\":1,\"created_at\":\"2026-09-21T16:24:40.000000Z\",\"updated_at\":\"2026-09-21T16:24:40.000000Z\",\"deleted_at\":null},\"profile\":null},\"receivable_entries\":[{\"id\":1,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"sale\",\"amount\":\"150.00\",\"reference\":\"SAL-2026-000001\",\"idempotency_key\":\"sale-1-ar\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:20.000000Z\",\"updated_at\":\"2026-10-09T02:05:20.000000Z\"},{\"id\":2,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":9,\"entry_type\":\"receipt\",\"amount\":\"-50.00\",\"reference\":\"CBT-01M4F6GVHBTYV52BAG3TA43GMS\",\"idempotency_key\":\"sale-receipt-1-8510838637fd8a02c444f07144432407ffddccce\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:22.000000Z\",\"updated_at\":\"2026-10-09T02:05:22.000000Z\"},{\"id\":3,\"customer_id\":1,\"sale_id\":1,\"branch_id\":1,\"cashbook_transaction_id\":null,\"entry_type\":\"reversal\",\"amount\":\"-100.00\",\"reference\":\"SAL-2026-000001-REV\",\"idempotency_key\":\"sale-1-ar-reversal\",\"created_by_id\":1,\"created_at\":\"2026-10-09T02:05:25.000000Z\",\"updated_at\":\"2026-10-09T02:05:25.000000Z\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Delete sale draft",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sales/{{sale_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                "{{sale_id}}"
+              ]
+            },
+            "description": "Soft-deletes a draft only. Confirmed sales cannot be deleted; cancel them with a reason instead."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sales/{{sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sales",
+                    "{{sale_id}}"
+                  ]
+                },
+                "description": "Soft-deletes a draft only. Confirmed sales cannot be deleted; cancel them with a reason instead."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=UTF-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\"message\":\"Draft sale deleted.\"}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "login",
+      "value": "superadmin@example.com"
+    },
+    {
+      "key": "password",
+      "value": "password"
+    },
+    {
+      "key": "device_name",
+      "value": "postman"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "branch_id",
+      "value": "1"
+    },
+    {
+      "key": "farm_id",
+      "value": "1"
+    },
+    {
+      "key": "animal_balance_id",
+      "value": "14"
+    },
+    {
+      "key": "customer_id",
+      "value": "1"
+    },
+    {
+      "key": "cashbook_id",
+      "value": "1"
+    },
+    {
+      "key": "cash_in_category_id",
+      "value": "1"
+    },
+    {
+      "key": "sale_id",
+      "value": ""
+    },
+    {
+      "key": "sale_idempotency_key",
+      "value": "PM-SALE-POSTMAN-20261009-02"
+    },
+    {
+      "key": "receipt_idempotency_key",
+      "value": "PM-SALE-RCPT-POSTMAN-20261009-02"
+    },
+    {
+      "key": "paid_quantity",
+      "value": "2"
+    },
+    {
+      "key": "foc_quantity",
+      "value": "1"
+    },
+    {
+      "key": "unit_price",
+      "value": "100.00"
+    },
+    {
+      "key": "discount_type",
+      "value": "percentage"
+    },
+    {
+      "key": "discount_value",
+      "value": "10"
+    },
+    {
+      "key": "paid_amount",
+      "value": "30.00"
+    },
+    {
+      "key": "receipt_amount",
+      "value": "50.00"
+    },
+    {
+      "key": "cancellation_reason",
+      "value": "Sale entered in error"
+    }
+  ]
+}
