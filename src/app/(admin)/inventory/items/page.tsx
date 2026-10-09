@@ -1,0 +1,14 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import FarmStatusBadge from "@/components/farms/FarmStatusBadge";
+import { useGetInventoryItemsQuery } from "@/redux/features/inventory/InventoryFoundationApiSlice";
+
+export default function InventoryItemsPage() {
+  const [search, setSearch] = useState("");
+  const [applied, setApplied] = useState("");
+  const [category, setCategory] = useState("");
+  const { data, isLoading, isError } = useGetInventoryItemsQuery({ search: applied, category, per_page: 100 });
+  return <div className="mx-auto max-w-7xl space-y-5 text-gray-800 dark:text-gray-100"><div><h1 className="text-2xl font-bold">Inventory items</h1><p className="text-sm text-gray-500">Item IDs and stock units used by receiving, feeding and medication</p><Link href="/inventory" className="text-sm text-green-700 dark:text-green-400">Inventory balances →</Link></div><form className="flex flex-wrap gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]" onSubmit={(e) => { e.preventDefault(); setApplied(search); }}><input aria-label="Search inventory items" className="h-10 min-w-52 flex-1 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900" placeholder="Search code or name" value={search} onChange={(e) => setSearch(e.target.value)}/><select aria-label="Category" className="h-10 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={category} onChange={(e) => setCategory(e.target.value)}><option value="">All categories</option>{["animal", "equipment", "food", "medicine"].map((item) => <option key={item}>{item}</option>)}</select><button className="rounded-lg bg-green-700 px-4 text-sm font-semibold text-white" type="submit">Search</button></form><div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">{isLoading ? <p className="p-6">Loading…</p> : isError ? <p className="p-6 text-red-600">Unable to load inventory items.</p> : <table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-gray-50 dark:bg-gray-900"><tr>{["ID", "Code", "Name", "Category", "Stock UOM ID", "Status"].map((head) => <th key={head} className="px-4 py-3">{head}</th>)}</tr></thead><tbody>{(data?.data || []).map((item) => <tr key={item.id} className="border-t border-gray-100 transition-colors hover:bg-gray-50/80 dark:border-gray-800 dark:hover:bg-white/[0.04]"><td className="px-4 py-3">{item.id}</td><td className="px-4 py-3 font-medium">{item.code}</td><td className="px-4 py-3">{item.name}</td><td className="px-4 py-3 capitalize">{item.category}</td><td className="px-4 py-3">{item.stock_uom_id ?? "—"}</td><td className="px-4 py-3"><FarmStatusBadge status={item.status}/></td></tr>)}{!data?.data.length && <tr><td colSpan={6} className="p-8 text-center text-gray-500">No items found.</td></tr>}</tbody></table>}</div></div>;
+}

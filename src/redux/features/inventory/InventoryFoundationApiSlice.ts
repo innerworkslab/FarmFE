@@ -126,6 +126,16 @@ export interface InventoryBalance {
   [key: string]: unknown;
 }
 
+export interface InventoryItem {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+  stock_uom_id?: number | null;
+  status?: string;
+  [key: string]: unknown;
+}
+
 export interface InventoryLedgerEntry {
   id: number;
   [key: string]: unknown;
@@ -133,6 +143,10 @@ export interface InventoryLedgerEntry {
 
 export const inventoryFoundationApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getInventoryItems: builder.query<PaginatedResponse<InventoryItem>, QueryParams | void>({
+      query: (params) => withQuery("inventory/items", params || undefined),
+      providesTags: ["inventoryBalances"],
+    }),
     getInventoryAdjustments: builder.query<
       PaginatedResponse<InventoryAdjustment>,
       QueryParams | void
@@ -258,6 +272,7 @@ export const inventoryFoundationApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useGetInventoryItemsQuery,
   useGetInventoryAdjustmentsQuery,
   useLazyGetInventoryAdjustmentQuery,
   useCreateInventoryAdjustmentMutation,

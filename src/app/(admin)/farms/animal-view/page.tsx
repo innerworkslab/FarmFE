@@ -12,6 +12,7 @@ import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
 import { useGetFarmInformationListQuery } from "@/redux/features/setup/FarmInformationApiSlice";
+import { useGetFarmTimelineQuery } from "@/redux/features/farms/FarmManagementApiSlice";
 import {
   FarmAnimalView,
   FarmAnimalViewRow,
@@ -381,11 +382,17 @@ function AnimalDetailModal({
   isLoading: boolean;
   onClose: () => void;
 }) {
+  const { data: timeline, isFetching: historyLoading, isError: historyError } = useGetFarmTimelineQuery(
+    { farmId: animal?.farm_information_id || 0, animal_balance_id: animal?.id },
+    { skip: !animal?.farm_information_id }
+  );
   const fields = animal
     ? [
         ["Animal", animal.display_name || animal.name],
         ["Tracking", labelize(animal.tracking_type)],
         ["Code", animal.code],
+        ["Batch number", animal.batch?.batch_number || animal.batch_number],
+        ["Initial batch quantity", animal.batch?.initial_animal_count],
         ["RFID", animal.individual?.rfid || animal.rfid],
         ["Ear tag", animal.individual?.ear_tag || animal.ear_tag],
         ["Animal type", animal.animal_type],
@@ -401,6 +408,17 @@ function AnimalDetailModal({
         ["Current weight", animal.individual?.current_weight],
       ]
     : [];
+  const history = animal?.history_summary;
+  const historyFields = [
+    ["Feedings", history?.feeding_records],
+    ["Medication", history?.medication_records],
+    ["Health / defects", history?.defect_records],
+    ["Mortality", history?.mortality_records],
+    ["Purchases", history?.purchase_records],
+    ["Transfers", history?.transfer_records],
+    ["Sales", history?.sale_records],
+    ["Production", history?.production_records],
+  ] as const;
   return (
     <Modal isOpen={!!animal || isLoading} onClose={onClose} className="m-4 max-w-3xl">
       <div className="p-6 sm:p-8">
@@ -408,14 +426,15 @@ function AnimalDetailModal({
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Animal Details</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Read-only response from the Farm Animal View API.
+              Identity, current quantity and activity at this farm.
             </p>
           </div>
         </div>
         {isLoading ? (
           <Loading />
         ) : (
-          <dl className="grid max-h-[65vh] overflow-y-auto border-t border-gray-100 pr-1 dark:border-white/[0.06] sm:grid-cols-2 sm:gap-x-8">
+          <div className="max-h-[65vh] overflow-y-auto pr-1">
+          <dl className="grid border-t border-gray-100 dark:border-white/[0.06] sm:grid-cols-2 sm:gap-x-8">
             {fields.map(([label, fieldValue]) => (
               <div key={label} className="border-b border-gray-100 py-3.5 dark:border-white/[0.06]">
                 <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</dt>
@@ -425,6 +444,17 @@ function AnimalDetailModal({
               </div>
             ))}
           </dl>
+          <section className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">History summary</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {historyFields.map(([label, count]) => <div key={label} className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/60"><p className="text-xs text-gray-500">{label}</p><p className="mt-1 text-lg font-semibold tabular-nums">{count ?? 0}</p></div>)}
+            </div>
+          </section>
+          <section className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Activity history</h3>
+            {historyLoading ? <p className="mt-3 text-sm text-gray-500">Loading history…</p> : historyError ? <p className="mt-3 text-sm text-red-600">Unable to load activity history.</p> : (timeline?.data || []).length ? <div className="mt-3 divide-y divide-gray-100 rounded-lg border border-gray-200 dark:divide-gray-800 dark:border-gray-700">{timeline?.data.map((event, index) => <div key={`${event.reference}-${index}`} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm"><div><p className="font-medium capitalize">{labelize(String(event.type || ""))}</p><p className="text-xs text-gray-500">{value(event.date as string | null)} · {value(event.reference as string | null)}</p></div><span className="text-xs text-gray-600 dark:text-gray-300">{labelize(String(event.workflow_state || ""))} · Qty {value(event.quantity as number | string | null)}</span></div>)}</div> : <p className="mt-3 text-sm text-gray-500">No activity recorded yet.</p>}
+          </section>
+          </div>
         )}
       </div>
     </Modal>

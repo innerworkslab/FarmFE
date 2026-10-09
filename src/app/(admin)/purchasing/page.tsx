@@ -281,7 +281,7 @@ const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm =>
       line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
     rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "",
     target_inventory_id: String(line.target_inventory_id),
-    target_location: line.target_location,
+    target_location: line.target_location || "",
     supplier_batch_number: line.supplier_batch_number || "",
     receipt_lot_number: line.receipt_lot_number || "",
     manufacturing_date: line.manufacturing_date || "",

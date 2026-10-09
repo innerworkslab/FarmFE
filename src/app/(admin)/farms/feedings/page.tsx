@@ -11,12 +11,13 @@ import { formatReadableDate } from "@/lib/dateFormat";
 import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
+import DatePicker from "@/components/form/date-picker";
+import { useReverseFarmFeedingMutation } from "@/redux/features/farms/FarmManagementApiSlice";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import { useGetFarmInformationListQuery } from "@/redux/features/setup/FarmInformationApiSlice";
-import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
 import { useGetInventoriesQuery } from "@/redux/features/setup/InventoryApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
-import { useGetInventoryBalancesQuery } from "@/redux/features/inventory/InventoryFoundationApiSlice";
+import { useGetInventoryBalancesQuery, useGetInventoryItemsQuery } from "@/redux/features/inventory/InventoryFoundationApiSlice";
 import { useGetFarmAnimalsQuery } from "@/redux/features/farms/FarmAnimalViewApiSlice";
 import {
   FarmFeeding,
@@ -37,6 +38,7 @@ type FeedingForm = {
   branch_id: string;
   farm_information_id: string;
   animal_balance_id: string;
+  animal_balance_ids: string[];
   notes: string;
   food_item_id: string;
   inventory_id: string;
@@ -55,15 +57,16 @@ const blankForm: FeedingForm = {
   branch_id: "",
   farm_information_id: "",
   animal_balance_id: "",
-  notes: "Morning feed",
+  animal_balance_ids: [],
+  notes: "",
   food_item_id: "",
   inventory_id: "",
   stock_lot_id: "",
   source_location: "",
   stock_uom_id: "",
-  quantity: "12",
-  wastage_quantity: "1.5",
-  line_notes: "Normal morning feeding",
+  quantity: "",
+  wastage_quantity: "",
+  line_notes: "",
 };
 const statusOptions: Option[] = ["draft", "submitted", "confirmed", "rejected"].map((value) => ({
   value,
@@ -97,6 +100,7 @@ const toForm = (item: FarmFeeding): FeedingForm => {
     branch_id: String(item.branch_id),
     farm_information_id: String(item.farm_information_id),
     animal_balance_id: String(item.target?.animal_balance_id || ""),
+    animal_balance_ids: item.additional_animal_balance_ids?.length ? [String(item.target?.animal_balance_id), ...item.additional_animal_balance_ids.map(String)] : [],
     notes: item.notes || "",
     food_item_id: String(line?.food_item_id || ""),
     inventory_id: String(line?.inventory_id || ""),
@@ -113,13 +117,13 @@ const toPayload = (form: FeedingForm): FarmFeedingPayload => ({
   feeding_time: form.feeding_time,
   branch_id: Number(form.branch_id),
   farm_information_id: Number(form.farm_information_id),
-  animal_balance_id: Number(form.animal_balance_id),
+  ...(form.animal_balance_ids.length ? { animal_balance_ids: form.animal_balance_ids.map(Number) } : { animal_balance_id: Number(form.animal_balance_id) }),
   notes: form.notes,
   lines: [
     {
       food_item_id: Number(form.food_item_id),
       inventory_id: Number(form.inventory_id),
-      stock_lot_id: Number(form.stock_lot_id),
+      ...(form.stock_lot_id.startsWith("balance:") ? { stock_lot_id: null } : { stock_lot_id: Number(form.stock_lot_id) }),
       source_location: form.source_location,
       stock_uom_id: Number(form.stock_uom_id),
       quantity: Number(form.quantity),
@@ -152,6 +156,7 @@ function Field({
 export default function FarmFeedingsPage() {
   const [filters, setFilters] = useState({
     farm_information_id: "",
+    animal_balance_id: "",
     status: "",
     from_date: "",
     to_date: "",
@@ -163,7 +168,9 @@ export default function FarmFeedingsPage() {
   const [target, setTarget] = useState<FarmFeeding | null>(null);
   const [detail, setDetail] = useState<FarmFeeding | null>(null);
   const [rejectTarget, setRejectTarget] = useState<FarmFeeding | null>(null);
-  const [rejectReason, setRejectReason] = useState("Feed stock lot needs recount before posting.");
+  const [rejectReason, setRejectReason] = useState("");
+  const [reverseTarget, setReverseTarget] = useState<FarmFeeding | null>(null);
+  const [reverseReason, setReverseReason] = useState("");
 
   const { data, isLoading, isFetching, isError } = useGetFarmFeedingsQuery({
     ...applied,
@@ -171,7 +178,7 @@ export default function FarmFeedingsPage() {
   });
   const { data: branches } = useGetBranchesQuery({ per_page: 100 });
   const { data: farms } = useGetFarmInformationListQuery({ per_page: 100 });
-  const { data: foods } = useGetFoodsQuery({ per_page: 100 });
+  const { data: foods } = useGetInventoryItemsQuery({ category: "food", status: "active", per_page: 100 });
   const { data: inventories } = useGetInventoriesQuery({ per_page: 100 });
   const { data: uoms } = useGetUomsQuery({ per_page: 100 });
   const { data: balances } = useGetInventoryBalancesQuery(
@@ -179,14 +186,19 @@ export default function FarmFeedingsPage() {
     { skip: !form.food_item_id }
   );
   const { data: animals } = useGetFarmAnimalsQuery(
-    { farmId: Number(form.farm_information_id) || 0, view: "all", per_page: 15 },
+    { farmId: Number(form.farm_information_id) || 0, view: "all", per_page: 100 },
     { skip: !form.farm_information_id }
+  );
+  const { data: filterAnimals } = useGetFarmAnimalsQuery(
+    { farmId: Number(filters.farm_information_id), view: "all", per_page: 100 },
+    { skip: !filters.farm_information_id }
   );
   const [showFeeding, showState] = useLazyGetFarmFeedingQuery();
   const [createFeeding, createState] = useCreateFarmFeedingMutation();
   const [updateFeeding, updateState] = useUpdateFarmFeedingMutation();
   const [submitFeeding, submitState] = useSubmitFarmFeedingMutation();
   const [confirmFeeding, confirmState] = useConfirmFarmFeedingMutation();
+  const [reverseFeeding, reverseState] = useReverseFarmFeedingMutation();
   const [rejectFeeding, rejectState] = useRejectFarmFeedingMutation();
   const saving =
     createState.isLoading ||
@@ -203,6 +215,7 @@ export default function FarmFeedingsPage() {
   }));
   const animalOptions = (animals?.data || []).map((animal) => ({
     value: String(animal.id),
+    trackingType: animal.tracking_type,
     label: [
       animal.display_name || animal.name,
       animal.tracking_type,
@@ -232,11 +245,12 @@ export default function FarmFeedingsPage() {
         .map((raw) => {
           const item = raw as Record<string, unknown>;
           const lot = item.stock_lot as Record<string, unknown> | undefined;
-          const id = Number(item.stock_lot_id || lot?.id || item.id);
+          const lotId = item.stock_lot_id || lot?.id;
+          const id = lotId ? String(lotId) : `balance:${item.id}`;
           return {
             value: String(id),
             label: [
-              lot?.receipt_lot_number || item.receipt_lot_number || `Lot #${id}`,
+              lot?.receipt_lot_number || item.receipt_lot_number || (lotId ? `Lot #${lotId}` : "No stock lot"),
               item.location,
               item.available_quantity ? `Available ${item.available_quantity}` : null,
             ]
@@ -257,6 +271,7 @@ export default function FarmFeedingsPage() {
       farm_information_id: farmId,
       branch_id: farm?.branch_id ? String(farm.branch_id) : current.branch_id,
       animal_balance_id: "",
+      animal_balance_ids: [],
       source_location: "",
     }));
   };
@@ -283,7 +298,7 @@ export default function FarmFeedingsPage() {
   };
   const selectLot = (stockLotId: string) => {
     const balance = balances?.data.find(
-      (item) => Number(item.stock_lot_id) === Number(stockLotId)
+      (item) => stockLotId.startsWith("balance:") ? String(item.id) === stockLotId.slice(8) : Number(item.stock_lot_id) === Number(stockLotId)
     ) as Record<string, unknown> | undefined;
     setForm((current) => ({
       ...current,
@@ -342,6 +357,18 @@ export default function FarmFeedingsPage() {
       toast.error(errorMessage(error));
     }
   };
+  const reverse = async () => {
+    if (!reverseTarget || !reverseReason.trim()) return;
+    try {
+      await reverseFeeding({ id: reverseTarget.id, reason: reverseReason.trim() }).unwrap();
+      setDetail(null);
+      setReverseTarget(null);
+      setReverseReason("");
+      toast.success("Feeding reversed");
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  };
   const view = async (item: FarmFeeding) => {
     try {
       setDetail((await showFeeding(item.id).unwrap()).data);
@@ -352,7 +379,7 @@ export default function FarmFeedingsPage() {
 
   const selectedBalance = balances?.data.find(
     (item) =>
-      Number(item.stock_lot_id) === Number(form.stock_lot_id) &&
+      (form.stock_lot_id.startsWith("balance:") ? String(item.id) === form.stock_lot_id.slice(8) : Number(item.stock_lot_id) === Number(form.stock_lot_id)) &&
       Number(item.item_id) === Number(form.food_item_id) &&
       Number(item.branch_id) === Number(form.branch_id) &&
       Number(item.inventory_id) === Number(form.inventory_id) &&
@@ -365,9 +392,10 @@ export default function FarmFeedingsPage() {
   const quantityExceedsStock =
     availableQuantity !== null && Number(form.quantity) > availableQuantity;
   const valid =
+    (Boolean(form.animal_balance_id) || form.animal_balance_ids.length > 0) &&
     Object.entries(form).every(
       ([key, fieldValue]) =>
-        key === "notes" || key === "line_notes" || key === "wastage_quantity" || Boolean(fieldValue)
+        key === "notes" || key === "line_notes" || key === "wastage_quantity" || key === "animal_balance_id" || key === "animal_balance_ids" || Boolean(fieldValue)
     ) &&
     Number(form.quantity) > 0 &&
     Number(form.wastage_quantity || 0) >= 0 &&
@@ -393,14 +421,17 @@ export default function FarmFeedingsPage() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <Field label="Farm">
             <Select
               value={filters.farm_information_id}
-              onChange={(e) => setFilters({ ...filters, farm_information_id: e.target.value })}
+              onChange={(e) => setFilters({ ...filters, farm_information_id: e.target.value, animal_balance_id: "" })}
               options={farmOptions}
               placeholder="All farms"
             />
+          </Field>
+          <Field label="Animal / Batch">
+            <Select value={filters.animal_balance_id} onChange={(e) => setFilters({ ...filters, animal_balance_id: e.target.value })} options={(filterAnimals?.data || []).map((animal) => ({ value: String(animal.id), label: animal.display_name || animal.name || animal.code || `#${animal.id}` }))} placeholder="All animals" disabled={!filters.farm_information_id} />
           </Field>
           <Field label="Status">
             <Select
@@ -410,20 +441,8 @@ export default function FarmFeedingsPage() {
               placeholder="All statuses"
             />
           </Field>
-          <Field label="From Date">
-            <Input
-              type="date"
-              value={filters.from_date}
-              onChange={(e) => setFilters({ ...filters, from_date: e.target.value })}
-            />
-          </Field>
-          <Field label="To Date">
-            <Input
-              type="date"
-              value={filters.to_date}
-              onChange={(e) => setFilters({ ...filters, to_date: e.target.value })}
-            />
-          </Field>
+          <DatePicker id="feeding-filter-from" label="From Date" defaultDate={filters.from_date || undefined} onChange={(_, value) => setFilters((old) => ({ ...old, from_date: value }))} />
+          <DatePicker id="feeding-filter-to" label="To Date" defaultDate={filters.to_date || undefined} onChange={(_, value) => setFilters((old) => ({ ...old, to_date: value }))} />
           <Field label="Search">
             <Input
               value={filters.search}
@@ -442,6 +461,7 @@ export default function FarmFeedingsPage() {
             onClick={() => {
               const empty = {
                 farm_information_id: "",
+                animal_balance_id: "",
                 status: "",
                 from_date: "",
                 to_date: "",
@@ -576,10 +596,13 @@ export default function FarmFeedingsPage() {
                                 icon={<XCircle size={14} />}
                                 onClick={() => {
                                   setRejectTarget(item);
-                                  setRejectReason("Feed stock lot needs recount before posting.");
+                                  setRejectReason("");
                                 }}
                               />
                             </>
+                          )}
+                          {item.status === "confirmed" && (
+                            <TableActionButton label="Reverse" tone="red" icon={<XCircle size={14} />} onClick={() => { setReverseTarget(item); setReverseReason(""); }} />
                           )}
                         </div>
                       </TableCell>
@@ -615,6 +638,7 @@ export default function FarmFeedingsPage() {
         onChange={setField}
         onFarmChange={selectFarm}
         onAnimalChange={selectAnimal}
+        onGroupChange={(ids) => setForm((current) => ({ ...current, animal_balance_ids: ids, animal_balance_id: ids.length ? "" : current.animal_balance_id }))}
         onFoodChange={selectFood}
         onLotChange={selectLot}
         onClose={() => setFormMode(null)}
@@ -627,6 +651,15 @@ export default function FarmFeedingsPage() {
         onReason={setRejectReason}
         onClose={() => setRejectTarget(null)}
         onReject={reject}
+      />
+      <RejectModal
+        item={reverseTarget}
+        reason={reverseReason}
+        saving={reverseState.isLoading}
+        action="reverse"
+        onReason={setReverseReason}
+        onClose={() => setReverseTarget(null)}
+        onReject={reverse}
       />
       <FeedingDetail item={detail} loading={showState.isFetching} onClose={() => setDetail(null)} />
     </div>
@@ -650,6 +683,7 @@ function FeedingFormModal({
   onChange,
   onFarmChange,
   onAnimalChange,
+  onGroupChange,
   onFoodChange,
   onLotChange,
   onClose,
@@ -663,7 +697,7 @@ function FeedingFormModal({
   quantityExceedsStock: boolean;
   branchOptions: Option[];
   farmOptions: Option[];
-  animalOptions: Option[];
+  animalOptions: (Option & { trackingType?: string | null })[];
   foodOptions: Option[];
   inventoryOptions: Option[];
   lotOptions: Option[];
@@ -671,6 +705,7 @@ function FeedingFormModal({
   onChange: (key: keyof FeedingForm, value: string) => void;
   onFarmChange: (value: string) => void;
   onAnimalChange: (value: string) => void;
+  onGroupChange: (ids: string[]) => void;
   onFoodChange: (value: string) => void;
   onLotChange: (value: string) => void;
   onClose: () => void;
@@ -688,13 +723,7 @@ function FeedingFormModal({
           </p>
         </div>
         <div className="grid max-h-[65vh] gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
-          <Field label="Feeding Date" required>
-            <Input
-              type="date"
-              value={form.feeding_date}
-              onChange={(e) => onChange("feeding_date", e.target.value)}
-            />
-          </Field>
+          <DatePicker id="farm-feeding-date" label="Feeding Date" defaultDate={form.feeding_date} onChange={(_, value) => onChange("feeding_date", value)} />
           <Field label="Feeding Time" required>
             <Input
               type="time"
@@ -719,13 +748,9 @@ function FeedingFormModal({
             />
           </Field>
           <Field label="Animal / Batch" required>
-            <Select
-              value={form.animal_balance_id}
-              onChange={(e) => onAnimalChange(e.target.value)}
-              options={animalOptions}
-              placeholder="Select animal or batch"
-            />
+            <Select value={form.animal_balance_id} onChange={(e) => { onGroupChange([]); onAnimalChange(e.target.value); }} options={animalOptions} placeholder="Select one animal or choose a group below" disabled={form.animal_balance_ids.length > 0} />
           </Field>
+          <div className="sm:col-span-2"><p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Group feeding targets · individual animals</p><div className="grid max-h-32 gap-2 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700 sm:grid-cols-2">{animalOptions.filter((option) => option.trackingType === "individual").map((option) => <label key={option.value} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.animal_balance_ids.includes(option.value)} onChange={(e) => onGroupChange(e.target.checked ? [...form.animal_balance_ids, option.value] : form.animal_balance_ids.filter((id) => id !== option.value))}/>{option.label}</label>)}</div></div>
           <Field label="Food" required>
             <Select
               value={form.food_item_id}
@@ -822,6 +847,7 @@ function RejectModal({
   item,
   reason,
   saving,
+  action = "reject",
   onReason,
   onClose,
   onReject,
@@ -829,6 +855,7 @@ function RejectModal({
   item: FarmFeeding | null;
   reason: string;
   saving: boolean;
+  action?: "reject" | "reverse";
   onReason: (value: string) => void;
   onClose: () => void;
   onReject: () => void;
@@ -837,10 +864,10 @@ function RejectModal({
     <Modal isOpen={!!item} onClose={onClose} className="m-4 max-w-lg">
       <div className="space-y-5 p-6 sm:p-8">
         <div className="pr-12">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Reject Feeding</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">{action === "reverse" ? "Reverse" : "Reject"} Feeding</h2>
           <p className="mt-1 text-sm text-gray-500">{item?.feeding_number}</p>
         </div>
-        <Field label="Rejection Reason" required>
+        <Field label={action === "reverse" ? "Reversal Reason" : "Rejection Reason"} required>
           <Input value={reason} onChange={(e) => onReason(e.target.value)} />
         </Field>
         <div className="flex justify-end gap-2">
@@ -848,7 +875,7 @@ function RejectModal({
             Cancel
           </Button>
           <Button disabled={!reason.trim() || saving} onClick={onReject}>
-            Reject Feeding
+            {action === "reverse" ? "Reverse" : "Reject"} Feeding
           </Button>
         </div>
       </div>

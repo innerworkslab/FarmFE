@@ -13,7 +13,7 @@ const withQuery = (url: string, params?: Record<string, QueryValue>) => {
 export interface FarmFeedingLinePayload {
   food_item_id: number;
   inventory_id: number;
-  stock_lot_id: number;
+  stock_lot_id?: number | null;
   source_location: string;
   stock_uom_id: number;
   quantity: number;
@@ -26,7 +26,8 @@ export interface FarmFeedingPayload {
   feeding_time: string;
   branch_id: number;
   farm_information_id: number;
-  animal_balance_id: number;
+  animal_balance_id?: number;
+  animal_balance_ids?: number[];
   notes: string;
   lines: FarmFeedingLinePayload[];
 }
@@ -71,6 +72,7 @@ export interface FarmFeeding {
     animal_count?: number | null;
     location?: string | null;
   } | null;
+  additional_animal_balance_ids?: number[];
   status: "draft" | "submitted" | "confirmed" | "rejected" | string;
   notes?: string | null;
   totals?: { quantity?: number | string | null; wastage_quantity?: number | string | null } | null;
@@ -97,6 +99,7 @@ export interface FarmFeeding {
 
 export interface FarmFeedingListQuery {
   farm_information_id?: number | string;
+  animal_balance_id?: number | string;
   status?: string;
   from_date?: string;
   to_date?: string;
@@ -127,14 +130,14 @@ export const farmFeedingApiSlice = farmApi.injectEndpoints({
     }),
     createFarmFeeding: builder.mutation<SingleResponse, FarmFeedingPayload>({
       query: (body) => ({ url: "farms/feedings", method: "POST", body }),
-      invalidatesTags: ["farmFeedings"],
+      invalidatesTags: ["farmFeedings", "farmReports", "farmAlerts"],
     }),
     updateFarmFeeding: builder.mutation<
       SingleResponse,
       { id: number | string; body: FarmFeedingPayload }
     >({
       query: ({ id, body }) => ({ url: `farms/feedings/${id}`, method: "POST", body }),
-      invalidatesTags: ["farmFeedings"],
+      invalidatesTags: ["farmFeedings", "farmReports", "farmAlerts"],
     }),
     submitFarmFeeding: builder.mutation<SingleResponse, number | string>({
       query: (id) => ({ url: `farms/feedings/${id}/submit`, method: "POST" }),
@@ -144,6 +147,10 @@ export const farmFeedingApiSlice = farmApi.injectEndpoints({
       query: (id) => ({ url: `farms/feedings/${id}/confirm`, method: "POST" }),
       invalidatesTags: [
         "farmFeedings",
+        "farmReports",
+        "farmAlerts",
+        "farmNavigation",
+        "farmAnimalViews",
         "inventoryBalances",
         "inventoryLedger",
         "inventoryConfirmations",

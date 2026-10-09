@@ -13,6 +13,7 @@ type PropsType = {
   defaultDate?: DateOption;
   label?: string;
   placeholder?: string;
+  static?: boolean;
 };
 
 export default function DatePicker({
@@ -22,11 +23,12 @@ export default function DatePicker({
   label,
   defaultDate,
   placeholder,
+  static: isStatic = true,
 }: PropsType) {
   useEffect(() => {
     const flatPickr = flatpickr(`#${id}`, {
       mode: mode || "single",
-      static: true,
+      static: isStatic,
       monthSelectorType: "static",
       dateFormat: "Y-m-d",
       defaultDate,
@@ -38,7 +40,7 @@ export default function DatePicker({
         flatPickr.destroy();
       }
     };
-  }, [mode, onChange, id, defaultDate]);
+  }, [mode, onChange, id, defaultDate, isStatic]);
 
   return (
     <div>

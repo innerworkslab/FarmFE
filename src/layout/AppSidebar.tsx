@@ -60,7 +60,7 @@ const AppSidebar: React.FC = () => {
     pathname.startsWith("/farms/animal-view")
   );
   const [farmFeedingOpen, setFarmFeedingOpen] = useState(pathname.startsWith("/farms/feedings"));
-  const [farmNavigationOpen, setFarmNavigationOpen] = useState(pathname === "/farms");
+  const [farmNavigationOpen, setFarmNavigationOpen] = useState(pathname === "/farms" || pathname.startsWith("/farms/management") || pathname.startsWith("/farms/operations") || pathname.startsWith("/farms/receiving"));
   const [financialOpen, setFinancialOpen] = useState(pathname.startsWith("/financial"));
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
@@ -81,7 +81,7 @@ const AppSidebar: React.FC = () => {
     if (pathname.startsWith("/purchasing")) setPurchasingOpen(true);
     if (pathname.startsWith("/farms/animal-view")) setFarmAnimalViewOpen(true);
     if (pathname.startsWith("/farms/feedings")) setFarmFeedingOpen(true);
-    if (pathname === "/farms") setFarmNavigationOpen(true);
+    if (pathname === "/farms" || pathname.startsWith("/farms/management") || pathname.startsWith("/farms/operations") || pathname.startsWith("/farms/receiving")) setFarmNavigationOpen(true);
     if (pathname.startsWith("/financial")) setFinancialOpen(true);
 
     if (
@@ -115,6 +115,7 @@ const AppSidebar: React.FC = () => {
         name: "Inventory Foundation API",
         icon: <ClipboardCheck size={20} />,
         children: [
+          { name: "Items", path: "/inventory/items", icon: <Database size={14} /> },
           {
             name: "Adjustments",
             path: "/inventory?tab=adjustments",
@@ -158,7 +159,12 @@ const AppSidebar: React.FC = () => {
       {
         name: "Farm Navigation API",
         icon: <MapPin size={20} />,
-        children: [{ name: "Farms", path: "/farms", icon: <Home size={14} /> }],
+        children: [
+          { name: "Farms", path: "/farms", icon: <Home size={14} /> },
+          { name: "Management", path: "/farms/management", icon: <Database size={14} /> },
+          { name: "Operations", path: "/farms/operations", icon: <ClipboardCheck size={14} /> },
+          { name: "Receiving", path: "/farms/receiving", icon: <ReceiptText size={14} /> },
+        ],
       },
       {
         name: "Farm Animal View API",

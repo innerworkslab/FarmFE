@@ -41,7 +41,9 @@ export interface PurchaseInvoiceLinePayload {
   foc_value?: number;
   tax_rate?: number;
   target_inventory_id?: number;
+  target_farm_information_id?: number;
   target_location?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PurchaseInvoicePayload {
@@ -77,8 +79,10 @@ export interface PurchaseReceiptLinePayload {
   accepted_quantity: number;
   accepted_foc_quantity?: number;
   rejected_quantity?: number;
-  target_inventory_id: number;
-  target_location: string;
+  target_inventory_id?: number;
+  target_farm_information_id?: number;
+  target_location?: string;
+  metadata?: Record<string, unknown>;
   supplier_batch_number?: string | null;
   receipt_lot_number?: string | null;
   manufacturing_date?: string | null;
@@ -101,6 +105,7 @@ export interface PurchaseReceiptPayload {
 
 export interface PurchaseReceiptLine extends PurchaseReceiptLinePayload {
   id: number;
+  category?: string;
   [key: string]: unknown;
 }
 
@@ -198,6 +203,10 @@ export const purchasingFoundationApiSlice = farmApi.injectEndpoints({
         "purchaseInvoices",
         "inventoryBalances",
         "inventoryLedger",
+        "farmNavigation",
+        "farmAnimalViews",
+        "farmReports",
+        "farmAlerts",
       ],
     }),
   }),

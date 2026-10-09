@@ -63,7 +63,16 @@ export interface FarmAnimalViewRow {
   animal_status?: string | null;
   can_receive_operations?: boolean;
   actions?: Record<string, { enabled?: boolean; href?: string | null }> | null;
-  history_summary?: { latest_food_at?: string | null; latest_medicine_at?: string | null; defects_deaths_count?: number | null } | null;
+  history_summary?: {
+    feeding_records?: number;
+    medication_records?: number;
+    defect_records?: number;
+    mortality_records?: number;
+    transfer_records?: number;
+    production_records?: number;
+    purchase_records?: number;
+    sale_records?: number;
+  } | null;
   created_at?: string | null;
   updated_at?: string | null;
 }
