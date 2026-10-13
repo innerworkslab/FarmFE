@@ -12,6 +12,7 @@ import {
 import { StaffRecord, useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
 import { formatReadableDate } from "@/lib/dateFormat";
 
+const EMPTY_DATA: never[] = [];
 const inputClass =
   "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white";
 const labelClass = "mb-1.5 block text-xs font-semibold text-gray-600 dark:text-gray-300";
@@ -31,13 +32,14 @@ export default function StaffAdvanceBalancesPage() {
     { staff_id: selectedStaff?.id ?? 0, per_page: 30 },
     { skip: !selectedStaff }
   );
-  const historyEntries = historyResponse?.data ?? [];
+  const historyEntries = historyResponse?.data ?? EMPTY_DATA;
   const historyCurrency = useMemo(
-    () =>
-      historyEntries[historyEntries.length - 1]?.currency_code ??
+    () => {
+      return historyEntries[historyEntries.length - 1]?.currency_code ??
       balancesResponse?.data.find((balance) => balance.staff_id === selectedStaff?.id)
         ?.currency_code ??
-      "",
+        "";
+    },
     [historyEntries, balancesResponse?.data, selectedStaff?.id]
   );
 

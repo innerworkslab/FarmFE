@@ -37,6 +37,7 @@ import {
 import { useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
 import { formatReadableDate, formatReadableDateTime } from "@/lib/dateFormat";
 
+const EMPTY_DATA: never[] = [];
 type AdvanceForm = {
   staff_id: string;
   principal_amount: string;
@@ -126,9 +127,9 @@ export default function StaffAdvancesPage() {
   });
   const staff = staffResponse?.data ?? [];
   const { data: cashbookResponse } = useGetCashbooksQuery({ status: "active", per_page: 100 });
-  const cashbooks = cashbookResponse?.data ?? [];
+  const cashbooks = cashbookResponse?.data ?? EMPTY_DATA;
   const activeCashbooks = useMemo(
-    () => cashbooks.filter((book) => book.status === "active"),
+    () => (cashbooks ?? []).filter((book) => book.status === "active"),
     [cashbooks]
   );
   const { data: categoryResponse } = useGetCashLedgerCategoriesQuery({ per_page: 100 });

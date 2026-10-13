@@ -33,6 +33,7 @@ import {
   useUpdateCashbookTransactionMutation,
 } from "@/redux/features/financial/CashbookApiSlice";
 
+const EMPTY_DATA: never[] = [];
 type Tab = "cashbooks" | "transactions" | "ledger" | "daily-summary" | "consolidated";
 type FormKind = "cashbook" | "transaction" | "reverse" | "cancel" | null;
 type CashbookForm = {
@@ -107,10 +108,10 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
   const { data: cashbooksResponse, isLoading: cashbooksLoading } = useGetCashbooksQuery({
     per_page: 100,
   });
-  const cashbooks = cashbooksResponse?.data ?? [];
+  const cashbooks = cashbooksResponse?.data ?? EMPTY_DATA;
   const branches = branchesResponse?.data ?? [];
   const activeCashbooks = useMemo(
-    () => cashbooks.filter((item) => item.status === "active"),
+    () => (cashbooks ?? []).filter((item) => item.status === "active"),
     [cashbooks]
   );
   const { data: categoryResponse } = useGetCashLedgerCategoriesQuery(
