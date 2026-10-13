@@ -18,6 +18,7 @@ import {
 } from "@/redux/features/purchasing/PurchasingFoundationApiSlice";
 import {
   useGetInventoryBalancesQuery,
+  useGetInventoryItemsQuery,
   useGetInventoryLedgerQuery,
 } from "@/redux/features/inventory/InventoryFoundationApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
@@ -381,6 +382,10 @@ export default function PurchasingPage() {
   const { data: balancesData, isLoading: balancesLoading } = useGetInventoryBalancesQuery({
     per_page: 15,
   });
+  const { data: inventoryItemsData } = useGetInventoryItemsQuery({
+    per_page: 100,
+    status: "active",
+  });
   const { data: ledgerData, isLoading: ledgerLoading } = useGetInventoryLedgerQuery({
     source_type: "purchase_receipt",
     transaction_type: "purchase_receipt",
@@ -404,6 +409,7 @@ export default function PurchasingPage() {
   const suppliers = suppliersData?.data || [];
   const foods = foodsData?.data || [];
   const medicines = medicinesData?.data || [];
+  const inventoryItems = inventoryItemsData?.data || [];
   const uoms = uomsData?.data || [];
 
   const branchMap = useMemo(
@@ -426,6 +432,8 @@ export default function PurchasingPage() {
   const getItemLabel = (category?: string, itemId?: number | string) => {
     if (!itemId) return "-";
     const id = Number(itemId);
+    const inventoryItem = inventoryItems.find((item) => item.id === id);
+    if (inventoryItem) return `${inventoryItem.name} (${inventoryItem.code})`;
     if (category === "food") {
       const food = foods.find((f) => f.id === id);
       return food ? `${food.name} (${food.code})` : `Food #${id}`;
@@ -927,8 +935,8 @@ export default function PurchasingPage() {
           value: String(i.id),
           label: `${i.code} - ${i.name} (${i.type})`,
         }))}
-        foodOptions={foods.map(namedOption)}
-        medicineOptions={medicines.map(namedOption)}
+        foodOptions={inventoryItems.filter((item) => item.category === "food").map(namedOption)}
+        medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
         uomOptions={uoms.map((u) => ({
           value: String(u.id),
           label: `${u.code} - ${u.name} (${u.symbol})`,

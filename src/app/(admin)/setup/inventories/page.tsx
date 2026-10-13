@@ -17,9 +17,19 @@ import { Modal } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import MultiSelect from "@/components/form/MultiSelect";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Warehouse } from "lucide-react";
+
+const ITEM_CATEGORY_OPTIONS = [
+  { value: "animal", text: "Animal", selected: false },
+  { value: "equipment", text: "Equipment", selected: false },
+  { value: "food", text: "Food / Feed", selected: false },
+  { value: "medicine", text: "Medicine", selected: false },
+  // Keep legacy values visible so existing warehouses can be edited safely.
+  { value: "feed", text: "Feed (legacy)", selected: false },
+];
 
 export default function InventoriesPage() {
   const [search, setSearch] = useState("");
@@ -44,14 +54,12 @@ export default function InventoriesPage() {
     type: "feed",
     branch_id: 1,
     physical_address: "",
-    allowed_item_categories: ["feed"],
+    allowed_item_categories: ["food"],
     building_zone: "",
     rack_bin: "",
     inventory_gl_account: "",
     status: "active",
   });
-  const [allowedCatText, setAllowedCatText] = useState("feed");
-
   const handleOpenAdd = () => {
     const defaultBranchId = branches[0]?.id || 1;
     setEditingItem(null);
@@ -61,13 +69,12 @@ export default function InventoriesPage() {
       type: "feed",
       branch_id: defaultBranchId,
       physical_address: "",
-      allowed_item_categories: ["feed"],
+      allowed_item_categories: ["food"],
       building_zone: "",
       rack_bin: "",
       inventory_gl_account: "",
       status: "active",
     });
-    setAllowedCatText("feed");
     setIsModalOpen(true);
   };
 
@@ -85,20 +92,13 @@ export default function InventoriesPage() {
       inventory_gl_account: item.inventory_gl_account || "",
       status: item.status || "active",
     });
-    setAllowedCatText((item.allowed_item_categories || []).join(", "));
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const allowed_item_categories = allowedCatText
-      .split(",")
-      .map((c) => c.trim())
-      .filter(Boolean);
-
     const payload: InventoryPayload = {
       ...form,
-      allowed_item_categories,
     };
 
     try {
@@ -368,14 +368,11 @@ export default function InventoriesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Allowed Item Categories (comma-separated)
-              </label>
-              <Input
-                type="text"
-                placeholder="e.g. feed, supplement"
-                value={allowedCatText}
-                onChange={(e) => setAllowedCatText(e.target.value)}
+              <MultiSelect
+                label="Allowed Item Categories"
+                options={ITEM_CATEGORY_OPTIONS}
+                selectedValues={form.allowed_item_categories}
+                onChange={(selected) => setForm({ ...form, allowed_item_categories: selected })}
               />
             </div>
 
