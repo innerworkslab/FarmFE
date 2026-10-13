@@ -11,6 +11,7 @@ export interface Animal {
   breed: string;
   gender: "male" | "female" | "mixed";
   tracking_type: "individual" | "batch";
+  ear_tag_rfid_number?: string | null;
   batch_flock_number?: string | null;
   version?: number;
   created_at?: string;
@@ -43,6 +44,7 @@ export interface AnimalPayload {
   breed: string;
   gender: "male" | "female" | "mixed";
   tracking_type: "individual" | "batch";
+  ear_tag_rfid_number?: string;
   batch_flock_number?: string;
 }
 

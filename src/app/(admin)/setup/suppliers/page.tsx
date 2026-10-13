@@ -45,12 +45,10 @@ export default function SuppliersPage() {
     phone_number: "",
     preferred_branch_id: null,
     opening_balance_type: "none",
-    supplied_categories: ["feed"],
     opening_balance: 0,
     minimum_order_amount: 0,
     status: "active",
   });
-  const [categoryText, setCategoryText] = useState("feed");
 
   const handleOpenAdd = () => {
     setEditingItem(null);
@@ -61,12 +59,10 @@ export default function SuppliersPage() {
       phone_number: "",
       preferred_branch_id: null,
       opening_balance_type: "none",
-      supplied_categories: ["feed"],
       opening_balance: 0,
       minimum_order_amount: 0,
       status: "active",
     });
-    setCategoryText("feed");
     setIsModalOpen(true);
   };
 
@@ -79,26 +75,16 @@ export default function SuppliersPage() {
       phone_number: item.phone_number || "",
       preferred_branch_id: item.preferred_branch_id || null,
       opening_balance_type: item.opening_balance_type || "none",
-      supplied_categories: item.supplied_categories || [],
       opening_balance: Number(item.opening_balance || 0),
       minimum_order_amount: Number(item.minimum_order_amount || 0),
       status: item.status || "active",
     });
-    setCategoryText((item.supplied_categories || []).join(", "));
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supplied_categories = categoryText
-      .split(",")
-      .map((c) => c.trim())
-      .filter(Boolean);
-
-    const payload: SupplierPayload = {
-      ...form,
-      supplied_categories,
-    };
+    const payload: SupplierPayload = { ...form };
 
     try {
       if (editingItem) {
@@ -195,7 +181,6 @@ export default function SuppliersPage() {
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Supplier Name</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Type</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Phone</TableCell>
-                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Categories</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Status</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Actions</TableCell>
                 </TableRow>
@@ -208,15 +193,6 @@ export default function SuppliersPage() {
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm uppercase text-xs font-semibold">{item.type}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.phone_number || "-"}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">
-                      <div className="flex flex-wrap gap-1">
-                        {item.supplied_categories?.map((c, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">
-                            {c}
-                          </span>
-                        )) || "-"}
-                      </div>
-                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -311,7 +287,7 @@ export default function SuppliersPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Preferred Branch
@@ -328,17 +304,6 @@ export default function SuppliersPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Supplied Categories
-                </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. feed, minerals"
-                  value={categoryText}
-                  onChange={(e) => setCategoryText(e.target.value)}
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

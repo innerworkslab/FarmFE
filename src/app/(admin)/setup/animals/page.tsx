@@ -40,6 +40,7 @@ export default function AnimalsPage() {
     breed: "Brahman",
     gender: "mixed",
     tracking_type: "batch",
+    ear_tag_rfid_number: "",
     batch_flock_number: "BATCH-01",
   });
 
@@ -53,6 +54,7 @@ export default function AnimalsPage() {
       breed: "",
       gender: "mixed",
       tracking_type: "batch",
+      ear_tag_rfid_number: "",
       batch_flock_number: "",
     });
     setIsModalOpen(true);
@@ -68,6 +70,7 @@ export default function AnimalsPage() {
       breed: item.breed || "",
       gender: (item.gender as "male" | "female" | "mixed") || "mixed",
       tracking_type: (item.tracking_type as "individual" | "batch") || "batch",
+      ear_tag_rfid_number: item.ear_tag_rfid_number || "",
       batch_flock_number: item.batch_flock_number || "",
     });
     setIsModalOpen(true);
@@ -75,12 +78,18 @@ export default function AnimalsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload: AnimalPayload = {
+      ...form,
+      ...(form.tracking_type === "individual"
+        ? { ear_tag_rfid_number: form.ear_tag_rfid_number?.trim(), batch_flock_number: undefined }
+        : { ear_tag_rfid_number: undefined, batch_flock_number: form.batch_flock_number?.trim() }),
+    };
     try {
       if (editingItem) {
-        await updateAnimal({ id: editingItem.id, ...form }).unwrap();
+        await updateAnimal({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Animal master updated successfully");
       } else {
-        await createAnimal(form).unwrap();
+        await createAnimal(payload).unwrap();
         toast.success("Animal master created successfully");
       }
       setIsModalOpen(false);
@@ -305,17 +314,32 @@ export default function AnimalsPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Batch / Flock Number
-                </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. BATCH-PM-01"
-                  value={form.batch_flock_number || ""}
-                  onChange={(e) => setForm({ ...form, batch_flock_number: e.target.value })}
-                />
-              </div>
+              {form.tracking_type === "individual" ? (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Ear Tag / RFID Number *
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. RFID-000123"
+                    value={form.ear_tag_rfid_number || ""}
+                    onChange={(e) => setForm({ ...form, ear_tag_rfid_number: e.target.value })}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Batch / Flock Number
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. BATCH-PM-01"
+                    value={form.batch_flock_number || ""}
+                    onChange={(e) => setForm({ ...form, batch_flock_number: e.target.value })}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
