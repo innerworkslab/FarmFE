@@ -1274,7 +1274,7 @@ function PurchasingActionModal({
             <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Receipt Line</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField label="Purchase Invoice Line ID" required>
+                <FormField label="Purchase Invoice Line ID (use Lines → id)" required>
                   <Input
                     type="number"
                     min="1"
@@ -1454,6 +1454,7 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
   );
   const lines = Array.isArray(record?.lines) ? (record.lines as Record<string, unknown>[]) : [];
   const lineKeys = [
+    "id",
     "line_number",
     "category",
     "item_id",

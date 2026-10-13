@@ -18,6 +18,39 @@ import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, PawPrint } from "lucide-react";
 
+const animalCategoriesByType: Record<string, { value: string; label: string }[]> = {
+  cattle: [
+    { value: "beef", label: "Beef" },
+    { value: "dairy", label: "Dairy" },
+    { value: "dual_purpose", label: "Dual purpose" },
+    { value: "other", label: "Other" },
+  ],
+  poultry: [
+    { value: "broiler", label: "Broiler" },
+    { value: "layer", label: "Layer" },
+    { value: "breeder", label: "Breeder" },
+    { value: "other", label: "Other" },
+  ],
+  swine: [
+    { value: "meat", label: "Meat" },
+    { value: "breeding", label: "Breeding" },
+    { value: "other", label: "Other" },
+  ],
+  sheep: [
+    { value: "meat", label: "Meat" },
+    { value: "dairy", label: "Dairy" },
+    { value: "wool", label: "Wool" },
+    { value: "other", label: "Other" },
+  ],
+  goat: [
+    { value: "meat", label: "Meat" },
+    { value: "dairy", label: "Dairy" },
+    { value: "fiber", label: "Fiber" },
+    { value: "other", label: "Other" },
+  ],
+  other: [{ value: "other", label: "Other" }],
+};
+
 export default function AnimalsPage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetAnimalsQuery({ search: search || undefined });
@@ -245,7 +278,14 @@ export default function AnimalsPage() {
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                   value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    setForm({
+                      ...form,
+                      type,
+                      category: animalCategoriesByType[type]?.[0]?.value || "other",
+                    });
+                  }}
                 >
                   <option value="cattle">Cattle</option>
                   <option value="poultry">Poultry / Chicken</option>
@@ -260,13 +300,18 @@ export default function AnimalsPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category *
                 </label>
-                <Input
-                  type="text"
+                <select
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                   required
-                  placeholder="e.g. beef, dairy, broiler, layer"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                />
+                >
+                  {!(animalCategoriesByType[form.type] || []).some((category) => category.value === form.category) &&
+                    form.category && <option value={form.category}>{form.category} (existing)</option>}
+                  {(animalCategoriesByType[form.type] || animalCategoriesByType.other).map((category) => (
+                    <option key={category.value} value={category.value}>{category.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
