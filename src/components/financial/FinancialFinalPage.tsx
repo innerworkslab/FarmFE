@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw } from "lucide-react";
@@ -105,34 +105,8 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
   const [job, setJob] = useState<Job | null>(null);
   const [form, setForm] = useState<Values>({});
   const [busy, setBusy] = useState(false);
-  const [timezoneOptions, setTimezoneOptions] = useState([
-    { value: "Asia/Yangon", label: "Asia/Yangon" },
-    { value: "UTC", label: "UTC" },
-  ]);
-  const [currencyOptions, setCurrencyOptions] = useState([
-    { value: "MMK", label: "MMK — Myanmar Kyat" },
-    { value: "USD", label: "USD — US Dollar" },
-  ]);
-  useEffect(() => {
-    const supportedTimezones = Intl.supportedValuesOf?.("timeZone") ?? [];
-    const values = new Set([...supportedTimezones, "Asia/Yangon", "UTC"]);
-    setTimezoneOptions(
-      [...values]
-        .sort((a, b) => a.localeCompare(b))
-        .map((value) => ({ value, label: value }))
-    );
-    const supportedCurrencies = Intl.supportedValuesOf?.("currency") ?? ["MMK", "USD", "THB"];
-    const currencyCodes = new Set([...supportedCurrencies, "MMK", "USD"]);
-    const currencyNames = new Intl.DisplayNames(["en"], { type: "currency" });
-    setCurrencyOptions(
-      [...currencyCodes]
-        .sort((a, b) => a.localeCompare(b))
-        .map((value) => ({
-          value,
-          label: `${value} — ${currencyNames.of(value) || value}`,
-        }))
-    );
-  }, []);
+  const currencyOptions = [{ value: "MMK", label: "MMK — Myanmar Kyat" }];
+  const timezoneOptions = [{ value: "Asia/Yangon", label: "Asia/Yangon" }];
   const draftRequest = useRef<{ signature: string; key: string } | null>(null);
   const branches = useGetBranchesQuery({ per_page: 100 });
   const users = useGetSetupAdminsQuery(undefined, { skip: section !== "policy" });
@@ -217,23 +191,13 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
           {
             key: "default_currency",
             label: "Default currency",
-            options: (() => {
-              const currentCurrency = String(form.default_currency || "").trim().toUpperCase();
-              return currentCurrency && !currencyOptions.some((option) => option.value === currentCurrency)
-                ? [...currencyOptions, { value: currentCurrency, label: currentCurrency }]
-                : currencyOptions;
-            })(),
+            options: currencyOptions,
           },
           { key: "enabled_currencies", label: "Enabled currency codes (comma separated)" },
           {
             key: "timezone",
             label: "Timezone",
-            options: (() => {
-              const currentTimezone = String(form.timezone || "").trim();
-              return currentTimezone && !timezoneOptions.some((option) => option.value === currentTimezone)
-                ? [...timezoneOptions, { value: currentTimezone, label: currentTimezone }]
-                : timezoneOptions;
-            })(),
+            options: timezoneOptions,
           },
           {
             key: "require_open_period",
