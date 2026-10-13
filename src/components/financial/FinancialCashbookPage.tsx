@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
 import Loading from "@/components/common/Loading";
+import { useCancelManualTransactionMutation } from "@/redux/features/financial/FinancialFinalApiSlice";
 import { formatReadableDate, formatReadableDateTime } from "@/lib/dateFormat";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import {
@@ -33,7 +34,7 @@ import {
 } from "@/redux/features/financial/CashbookApiSlice";
 
 type Tab = "cashbooks" | "transactions" | "ledger" | "daily-summary" | "consolidated";
-type FormKind = "cashbook" | "transaction" | "reverse" | null;
+type FormKind = "cashbook" | "transaction" | "reverse" | "cancel" | null;
 type CashbookForm = {
   branch_id: string;
   type: string;
@@ -160,6 +161,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
   const [updateTransaction, updateTransactionState] = useUpdateCashbookTransactionMutation();
   const [confirmTransaction] = useConfirmCashbookTransactionMutation();
   const [reverseTransaction] = useReverseCashbookTransactionMutation();
+  const [cancelTransaction] = useCancelManualTransactionMutation();
   const [fetchCashbook] = useLazyGetCashbookQuery();
   const [fetchTransaction] = useLazyGetCashbookTransactionQuery();
 
@@ -273,8 +275,10 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
     try {
       await action();
       toast.success(success);
+      return true;
     } catch (error) {
       notifyError(error);
+      return false;
     }
   };
   const currentBranch = (item: Cashbook) =>
@@ -542,6 +546,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                             />
                           </>
                         )}
+                        {item.status === "draft" && (item.source_type === "manual" || !item.source_type) && <TableActionButton label="Cancel draft" tone="red" icon={<RotateCcw size={14}/>} onClick={() => { setEditingTransaction(item); setReason(""); setFormKind("cancel"); }}/>}
                         {item.status === "confirmed" && (
                           <TableActionButton
                             label="Reverse"
@@ -644,7 +649,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                 onFromDate={setFromDate}
                 onToDate={setToDate}
               />
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <Metric
                   title="Opening balance"
                   value={
@@ -655,6 +660,10 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
                           summaryResponse?.data.currency_code
                         )
                   }
+                />
+                <Metric
+                  title="Opening funds introduced"
+                  value={summaryLoading ? "…" : summaryResponse?.data.opening_balance_introduced == null ? "—" : money(summaryResponse.data.opening_balance_introduced, summaryResponse.data.currency_code)}
                 />
                 <Metric
                   title="Money in"
@@ -1030,7 +1039,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
         </form>
       </Modal>
 
-      <Modal isOpen={formKind === "reverse"} onClose={closeForm} className="m-4 max-w-lg">
+      <Modal isOpen={formKind === "reverse" || formKind === "cancel"} onClose={closeForm} className="m-4 max-w-lg">
         <form
           className="space-y-5 p-6"
           onSubmit={(event) => {
@@ -1038,15 +1047,15 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
             if (!editingTransaction || !reason.trim()) return;
             void runAction(
               () =>
-                reverseTransaction({ id: editingTransaction.id, reason: reason.trim() }).unwrap(),
-              "Transaction reversed."
-            ).then(closeForm);
+                formKind === "cancel" ? cancelTransaction({ id: editingTransaction.id, reason: reason.trim() }).unwrap() : reverseTransaction({ id: editingTransaction.id, reason: reason.trim() }).unwrap(),
+              formKind === "cancel" ? "Draft cancelled." : "Transaction reversed."
+            ).then((saved) => { if (saved) closeForm(); });
           }}
         >
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Reverse transaction</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{formKind === "cancel" ? "Cancel draft transaction" : "Reverse transaction"}</h2>
             <p className="mt-1 text-sm text-gray-500">
-              A reversal creates a compensating transaction. Enter the reason for the audit trail.
+              {formKind === "cancel" ? "Cancel this unposted manual draft. Enter the reason for the audit trail." : "A reversal creates a compensating transaction. Enter the reason for the audit trail."}
             </p>
           </div>
           <Field label="Reason" required>
@@ -1062,7 +1071,7 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
             <Button type="button" variant="outline" onClick={closeForm}>
               Cancel
             </Button>
-            <Button type="submit">Reverse transaction</Button>
+            <Button type="submit">{formKind === "cancel" ? "Cancel draft" : "Reverse transaction"}</Button>
           </div>
         </form>
       </Modal>

@@ -63,6 +63,7 @@ export const authApiSlice = farmApi.injectEndpoints({
       query: () => ({
         url: "auth/logout",
         method: "POST",
+        body: {},
       }),
       invalidatesTags: ["auth"],
     }),

@@ -96,6 +96,7 @@ export interface CashLedgerCategory {
   id: number;
   name: string;
   direction: "in" | "out" | string;
+  report_treatment?: "income" | "expense" | "excluded" | "unclassified";
   reversal_category_id?: number | null;
   reversal_category?: Pick<CashLedgerCategory, "id" | "name" | "direction" | "status"> | null;
   status: "active" | "inactive" | string;
@@ -107,6 +108,7 @@ export interface CashLedgerCategory {
 export interface CashLedgerCategoryPayload {
   name?: string;
   direction?: "in" | "out";
+  report_treatment?: "income" | "expense" | "excluded" | "unclassified";
   reversal_category_id?: number | null;
 }
 
@@ -166,6 +168,7 @@ export interface CashbookDailySummary {
   from_date: string;
   to_date: string;
   opening_balance: string | number;
+  opening_balance_introduced?: string | number;
   total_in: string | number;
   total_out: string | number;
   closing_balance: string | number;
@@ -248,7 +251,7 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
     createCashLedgerCategory: builder.mutation<
       CashbookSingleResponse<CashLedgerCategory>,
       Required<Pick<CashLedgerCategoryPayload, "name" | "direction">> &
-        Pick<CashLedgerCategoryPayload, "reversal_category_id">
+        Pick<CashLedgerCategoryPayload, "reversal_category_id" | "report_treatment">
     >({
       query: (body) => ({ url: "financial/cash-ledger-categories", method: "POST", body }),
       invalidatesTags: ["cashLedgerCategories"],
@@ -340,10 +343,9 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
       CashbookSingleResponse<CashbookTransaction>,
       CashbookTransactionPayload
     >({
-      query: ({ idempotency_key, ...body }) => ({
+      query: (body) => ({
         url: "financial/cashbook-transactions",
         method: "POST",
-        headers: { "Idempotency-Key": idempotency_key },
         body,
       }),
       invalidatesTags: ["cashbookTransactions"],
@@ -370,7 +372,7 @@ export const cashbookApiSlice = farmApi.injectEndpoints({
       CashbookSingleResponse<CashbookTransaction>,
       number | string
     >({
-      query: (id) => ({ url: `financial/cashbook-transactions/${id}/confirm`, method: "POST" }),
+      query: (id) => ({ url: `financial/cashbook-transactions/${id}/confirm`, method: "POST", body: {} }),
       invalidatesTags: ["cashbookTransactions", "cashbooks", "cashbookLedger", "cashbookReports"],
     }),
     reverseCashbookTransaction: builder.mutation<

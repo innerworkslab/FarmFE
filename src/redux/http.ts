@@ -165,7 +165,7 @@ export const useLogout = () => {
 
   const logout = async () => {
     try {
-      await http.post("/auth/logout");
+      await http.post("/auth/logout", {});
     } catch {
       // ignore
     } finally {

@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import axios from "axios";
 
 import { useLogout } from "@/redux/http";
+import { useGetMeQuery } from "@/redux/features/auth/AuthApiSlice";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { name, email } = useAppSelector((state) => state.auth);
+  const auth = useAppSelector((state) => state.auth);
+  const currentUser = useGetMeQuery(undefined, { skip: !auth.token, refetchOnMountOrArgChange: true });
+  const name = currentUser.currentData?.data.name || auth.name;
+  const email = currentUser.currentData?.data.email || auth.email;
+  const roleLabel = currentUser.currentData?.data.roles?.join(", ") || "";
   const logout = useLogout();
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
@@ -43,7 +48,7 @@ export default function UserDropdown() {
             {name || "Admin Profile"}
           </span>
           <span className="block text-[11px] text-gray-400 font-medium">
-            Super Admin
+            {roleLabel}
           </span>
         </div>
 

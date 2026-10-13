@@ -35,6 +35,7 @@ export default function CashLedgerCategoriesPage() {
   const [form, setForm] = useState<CashLedgerCategoryPayload>({
     name: "",
     direction: "in",
+    report_treatment: "unclassified",
     reversal_category_id: null,
   });
   const { data, isLoading } = useGetCashLedgerCategoriesQuery({ per_page: 100 });
@@ -49,7 +50,7 @@ export default function CashLedgerCategoriesPage() {
   );
   const startCreate = () => {
     setEditing(null);
-    setForm({ name: "", direction: "in", reversal_category_id: null });
+    setForm({ name: "", direction: "in", report_treatment: "unclassified", reversal_category_id: null });
     setOpen(true);
   };
   const startEdit = (item: CashLedgerCategory) => {
@@ -57,6 +58,7 @@ export default function CashLedgerCategoriesPage() {
     setForm({
       name: item.name,
       direction: item.direction as "in" | "out",
+      report_treatment: item.report_treatment || "unclassified",
       reversal_category_id: item.reversal_category_id ?? null,
     });
     setOpen(true);
@@ -67,6 +69,7 @@ export default function CashLedgerCategoriesPage() {
       const body: CashLedgerCategoryPayload = {
         name: form.name?.trim(),
         direction: form.direction,
+        report_treatment: form.report_treatment,
         ...(form.reversal_category_id
           ? { reversal_category_id: form.reversal_category_id }
           : editing?.reversal_category_id
@@ -115,7 +118,7 @@ export default function CashLedgerCategoriesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                {["Category", "Direction", "Reversal category", "Status", "Actions"].map((h) => (
+                {["Category", "Direction", "Report treatment", "Reversal category", "Status", "Actions"].map((h) => (
                   <TableCell
                     key={h}
                     isHeader
@@ -138,8 +141,9 @@ export default function CashLedgerCategoriesPage() {
                     {item.direction === "in" ? "Money in" : "Money out"}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                    {item.reversal_category?.name || "—"}
+                    {item.report_treatment || "unclassified"}
                   </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{item.reversal_category?.name || "—"}</TableCell>
                   <TableCell className="px-4 py-3 text-sm">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusBadgeClass(item.status)}`}
@@ -231,6 +235,12 @@ export default function CashLedgerCategoriesPage() {
             >
               <option value="in">Money in</option>
               <option value="out">Money out</option>
+            </select>
+          </label>
+          <label className="block text-xs font-medium text-gray-600">
+            Report treatment
+            <select className={inputClass} value={form.report_treatment || "unclassified"} onChange={(e) => setForm({ ...form, report_treatment: e.target.value as CashLedgerCategoryPayload["report_treatment"] })}>
+              <option value="unclassified">Unclassified</option><option value="income">Income</option><option value="expense">Expense</option><option value="excluded">Excluded</option>
             </select>
           </label>
           <label className="block text-xs font-medium text-gray-600">

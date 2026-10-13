@@ -1,5 +1,2 @@
-import { redirect } from "next/navigation";
-
-export default function CashbookReportsPage() {
-  redirect("/financial/daily-summary");
-}
+import FinancialFinalPage from "@/components/financial/FinancialFinalPage";
+export default function Page(){ return <FinancialFinalPage section="reports"/>; }

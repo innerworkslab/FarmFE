@@ -200,6 +200,13 @@ const AppSidebar: React.FC = () => {
         icon: <Wallet size={20} />,
         children: [
           { name: "Cashbooks", path: "/financial/cashbooks", icon: <Wallet size={14} /> },
+          { name: "Branch Policy", path: "/financial/policy", icon: <ShieldCheck size={14} /> },
+          { name: "Financial Periods", path: "/financial/periods", icon: <CalendarDays size={14} /> },
+          { name: "Supplier Payments", path: "/financial/supplier-payments", icon: <ReceiptText size={14} /> },
+          { name: "Payroll Recovery", path: "/financial/payroll-recoveries", icon: <Users size={14} /> },
+          { name: "Cashbook Transfers", path: "/financial/transfers", icon: <Wallet size={14} /> },
+          { name: "Reconciliation", path: "/financial/reconciliation", icon: <ClipboardCheck size={14} /> },
+          { name: "Cash Result", path: "/financial/reports", icon: <ScrollText size={14} /> },
           { name: "Categories", path: "/financial/categories", icon: <Tags size={14} /> },
           {
             name: "Transactions",
