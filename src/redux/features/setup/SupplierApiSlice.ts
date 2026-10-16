@@ -50,11 +50,9 @@ export interface CreateSupplierPayload {
   types: string[];
   phone_number: string;
   preferred_branch_id?: number | null;
-  opening_balance_type?: string;
   supplied_categories?: string[];
   opening_balance?: number;
   opening_balance_currency_code?: string;
-  minimum_order_amount?: number;
   lead_time_days?: number;
   credit_limit?: number;
   status?: string;
@@ -69,11 +67,9 @@ export interface UpdateSupplierPayload {
   phone_number?: string;
   status?: string;
   preferred_branch_id?: number | null;
-  opening_balance_type?: string;
   supplied_categories?: string[];
   opening_balance?: number;
   opening_balance_currency_code?: string;
-  minimum_order_amount?: number;
   lead_time_days?: number;
   credit_limit?: number;
 }

@@ -121,3 +121,19 @@
 6. Add authoritative housing and rack/bin sources with scoped selectors.
 7. Add period-based inventory movements and Opening/In/Out/Closing balances.
 8. Remove customer payment terms after aligning the API contract and downstream use.
+
+## 16 October 2026 API update
+
+Source: `Livestock ERP — API Changes — 2026-10-16.postman_collection.json` (two requests).
+
+| API | UI integration |
+|---|---|
+| `POST /setup/suppliers` | Supplier creation retains multiple types, branch, opening balance and currency. Opening Balance Type and Min Order Amount are removed from the form and payload. A positive opening balance defaults to AP credit in the backend. |
+| `GET /setup/customers/{customerId}/receivables` | Customers → View AR shows the returned outstanding balance and ledger entries, including date, type, reference and signed amount. Adjust AR opens the existing adjustment form. |
+
+### UI checks
+
+1. Open `/setup/suppliers`, choose Add Supplier, select Food and Medicine, select a branch, and enter an opening balance of `125000` in `MMK`. Save and open View AP. Verify the opening payable and outstanding amount. The create request must omit `opening_balance_type` and `minimum_order_amount`.
+2. Edit the supplier and verify both types remain selected. Opening values are read-only; supplier edits omit opening fields. Use Adjust AP for balance corrections.
+3. Open `/setup/customers` and choose View AR for a customer with an opening balance. Verify the outstanding balance and dated ledger entries against the receivables response. A customer without entries shows an empty ledger and the API's outstanding balance.
+4. From View AR, choose Adjust AR, post an increase or decrease with a branch and reason, then close the adjustment and reopen View AR. Verify the new entry and refreshed outstanding balance; the original opening balance column remains unchanged.

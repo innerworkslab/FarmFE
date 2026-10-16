@@ -44,6 +44,23 @@ export interface SingleCustomerResponse {
   message?: string;
 }
 
+export interface CustomerReceivablesResponse {
+  data: {
+    customer_id: number;
+    entries: {
+      id: number;
+      sale_id: number | null;
+      branch_id: number;
+      cashbook_transaction_id: number | null;
+      entry_type: string;
+      amount: string | number;
+      business_date: string;
+      reference: string | null;
+    }[];
+    outstanding_balance: string | number;
+  };
+}
+
 export interface CreateCustomerPayload {
   code: string;
   name: string;
@@ -78,6 +95,10 @@ export interface UpdateCustomerPayload {
 
 export const customerApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getCustomerReceivables: builder.query<CustomerReceivablesResponse, number>({
+      query: (id) => `setup/customers/${id}/receivables`,
+      providesTags: ["customers", "sales", "financialFinal"],
+    }),
     createCustomerReceivableAdjustment: builder.mutation<
       { data: LedgerAdjustmentEntry },
       { id: number; body: LedgerAdjustmentPayload }
@@ -149,6 +170,7 @@ export const customerApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useGetCustomerReceivablesQuery,
   useCreateCustomerReceivableAdjustmentMutation,
   useGetCustomersQuery,
   useGetCustomerQuery,

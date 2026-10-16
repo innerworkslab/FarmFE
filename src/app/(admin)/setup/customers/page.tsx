@@ -19,11 +19,13 @@ import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
 import Loading from "@/components/common/Loading";
 import LedgerAdjustmentModal from "@/components/financial/LedgerAdjustmentModal";
+import CustomerReceivablesModal from "@/components/financial/CustomerReceivablesModal";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ShoppingCart, SlidersHorizontal } from "lucide-react";
+import { Plus, Pencil, Trash2, ShoppingCart, SlidersHorizontal, BookOpen } from "lucide-react";
 
 export default function CustomersPage() {
+  const [receivablesCustomer, setReceivablesCustomer] = useState<Customer | null>(null);
   const [adjustmentCustomer, setAdjustmentCustomer] = useState<Customer | null>(null);
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetCustomersQuery({ search: search || undefined });
@@ -213,7 +215,8 @@ export default function CustomersPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
-                      <div className="flex flex-wrap items-center gap-1.5 min-w-[260px]">
+                      <div className="flex flex-wrap items-center gap-1.5 min-w-[300px]">
+                        <TableActionButton label="View AR" tone="green" title="View receivable balance and ledger" onClick={() => setReceivablesCustomer(item)} icon={<BookOpen size={14} />} />
                         <TableActionButton label="Adjust AR" tone="blue" title="Post a receivable balance adjustment" onClick={() => setAdjustmentCustomer(item)} icon={<SlidersHorizontal size={14} />} />
                         <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
                         <Switch
@@ -231,6 +234,16 @@ export default function CustomersPage() {
         )}
       </div>
 
+      {receivablesCustomer && (
+        <CustomerReceivablesModal
+          customer={receivablesCustomer}
+          onClose={() => setReceivablesCustomer(null)}
+          onAdjust={() => {
+            setAdjustmentCustomer(receivablesCustomer);
+            setReceivablesCustomer(null);
+          }}
+        />
+      )}
       {/* Create / Edit Modal */}
       {adjustmentCustomer && (
         <LedgerAdjustmentModal kind="customer" party={adjustmentCustomer} onClose={() => setAdjustmentCustomer(null)} />

@@ -18,6 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import MultiSelect from "@/components/form/MultiSelect";
+import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
 import LedgerAdjustmentModal from "@/components/financial/LedgerAdjustmentModal";
 import SupplierPayablesModal from "@/components/financial/SupplierPayablesModal";
@@ -50,9 +51,7 @@ export default function SuppliersPage() {
     opening_balance_currency_code: "MMK",
     phone_number: "",
     preferred_branch_id: null,
-    opening_balance_type: "none",
     opening_balance: 0,
-    minimum_order_amount: 0,
     status: "active",
   });
 
@@ -62,12 +61,10 @@ export default function SuppliersPage() {
       code: "",
       name: "",
       types: ["food"],
-    opening_balance_currency_code: "MMK",
+      opening_balance_currency_code: "MMK",
       phone_number: "",
       preferred_branch_id: null,
-      opening_balance_type: "none",
       opening_balance: 0,
-      minimum_order_amount: 0,
       status: "active",
     });
     setIsModalOpen(true);
@@ -82,9 +79,7 @@ export default function SuppliersPage() {
       opening_balance_currency_code: item.opening_balance_currency_code || "MMK",
       phone_number: item.phone_number || "",
       preferred_branch_id: item.preferred_branch_id || null,
-      opening_balance_type: item.opening_balance_type || "none",
       opening_balance: Number(item.opening_balance || 0),
-      minimum_order_amount: Number(item.minimum_order_amount || 0),
       status: item.status || "active",
     });
     setIsModalOpen(true);
@@ -98,7 +93,10 @@ export default function SuppliersPage() {
     if (!form.types.length) { toast.error("Select at least one supplier type"); return; }
     try {
       if (editingItem) {
-        await updateSupplier({ id: editingItem.id, body: payload }).unwrap();
+        await updateSupplier({
+          id: editingItem.id,
+          body: { ...payload, opening_balance: undefined, opening_balance_currency_code: undefined },
+        }).unwrap();
         toast.success("Supplier updated successfully");
       } else {
         await createSupplier(payload).unwrap();
@@ -314,52 +312,29 @@ export default function SuppliersPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Preferred Branch
                 </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                <Select
                   value={form.preferred_branch_id || ""}
                   onChange={(e) => setForm({ ...form, preferred_branch_id: e.target.value ? Number(e.target.value) : null })}
-                >
-                  <option value="">Any Branch</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Any Branch" },
+                    ...branches.map((branch) => ({ value: String(branch.id), label: branch.name })),
+                  ]}
+                />
               </div>
 
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Opening Balance Type
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  disabled={!!editingItem}
-                  value={form.opening_balance_type || "none"}
-                  onChange={(e) => setForm({ ...form, opening_balance: 0, opening_balance_type: e.target.value as "none" | "debit" | "credit" })}
-                >
-                  <option value="none">None</option>
-                  <option value="debit">Debit</option>
-                  <option value="credit">Credit</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Min Order Amount
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={form.minimum_order_amount}
-                  onChange={(e) => setForm({ ...form, minimum_order_amount: Number(e.target.value) })}
-                />
-              </div>
+              <label className="text-sm">
+                Opening Balance
+                <Input type="number" min="0" step="any" disabled={!!editingItem} value={form.opening_balance || 0} onChange={(event) => setForm({ ...form, opening_balance: Number(event.target.value) })} />
+              </label>
+              <label className="text-sm">
+                Opening Currency *
+                <Input required maxLength={3} pattern="[A-Z]{3}" value={form.opening_balance_currency_code || ""} disabled={!!editingItem} onChange={(event) => setForm({ ...form, opening_balance_currency_code: event.target.value.toUpperCase() })} />
+              </label>
             </div>
-
-            <div className="grid grid-cols-2 gap-3"><label className="text-sm">Opening Balance<Input type="number" min="0" step="any" disabled={!!editingItem || form.opening_balance_type === "none"} value={form.opening_balance || 0} onChange={(event) => setForm({ ...form, opening_balance: Number(event.target.value) })} /></label><label className="text-sm">Opening Currency<Input required value={form.opening_balance_currency_code || ""} disabled={!!editingItem} onChange={(event) => setForm({ ...form, opening_balance_currency_code: event.target.value.toUpperCase() })} /></label></div>
-            <p className="text-xs text-gray-500">Credit: amount owed to supplier. Debit: supplier credit in your favor. A non-zero opening posts to AP on the current business date. Existing openings require an AP adjustment.</p>
+            <p className="text-xs text-gray-500">Enter the amount owed to this supplier. A positive opening balance posts to AP on the current business date. Use Adjust AP to correct an existing balance.</p>
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel

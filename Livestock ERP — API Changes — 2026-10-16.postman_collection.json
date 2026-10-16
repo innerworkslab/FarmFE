@@ -1,0 +1,208 @@
+{
+  "info": {
+    "_postman_id": "0393d6cd-6ad3-4d19-b38c-19c054366845",
+    "name": "Livestock ERP — API Changes — 2026-10-16",
+    "description": "Collection for the API changes delivered on 2026-10-16. Includes supplier creation without minimum_order_amount or opening_balance_type inputs, and the customer receivables ledger read endpoint. Examples were captured from the authenticated dev API at http://localhost:8089/api/v1. Positive supplier opening balances default to AP credit. The supplier example creates a record; change supplierTag before running it again. Customer 2 and supplier 5 are dev test records.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-0393d6cd-6ad3-4d19-b38c-19c054366845?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Suppliers — create with multiple types and AP opening balance",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"SUP-PM-{{supplierTag}}\",\n  \"types\": [\"food\", \"medicine\"],\n  \"name\": \"PM API Supplier {{supplierTag}}\",\n  \"phone_number\": \"+95 9 880000001\",\n  \"preferred_branch_id\": {{branchId}},\n  \"opening_balance\": 125000,\n  \"opening_balance_currency_code\": \"MMK\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/setup/suppliers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "setup",
+            "suppliers"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Live dev response captured 2026-10-16",
+          "originalRequest": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUP-PM-{{supplierTag}}\",\n  \"types\": [\"food\", \"medicine\"],\n  \"name\": \"PM API Supplier {{supplierTag}}\",\n  \"phone_number\": \"+95 9 880000001\",\n  \"preferred_branch_id\": {{branchId}},\n  \"opening_balance\": 125000,\n  \"opening_balance_currency_code\": \"MMK\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/setup/suppliers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setup",
+                "suppliers"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "Text",
+          "header": [
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\r\n  \"data\": {\r\n    \"id\": 5,\r\n    \"code\": \"SUP-PM-261016122551\",\r\n    \"type\": \"food\",\r\n    \"name\": \"PM API Supplier 261016122551\",\r\n    \"contact_person\": null,\r\n    \"phone_number\": \"+95 9 880000001\",\r\n    \"alternative_phone\": null,\r\n    \"address\": null,\r\n    \"township\": null,\r\n    \"state_region\": null,\r\n    \"country\": null,\r\n    \"supplied_categories\": null,\r\n    \"preferred_branch_id\": 1,\r\n    \"lead_time_days\": 0,\r\n    \"minimum_order_amount\": \"0.00\",\r\n    \"payment_terms\": null,\r\n    \"credit_limit\": \"0.00\",\r\n    \"opening_balance_type\": \"credit\",\r\n    \"opening_balance\": \"125000.00\",\r\n    \"opening_balance_date\": \"2026-10-16\",\r\n    \"bank_name\": null,\r\n    \"bank_account_name\": null,\r\n    \"bank_account_number\": null,\r\n    \"status\": \"active\",\r\n    \"version\": 1,\r\n    \"created_at\": \"2026-10-16T05:55:55Z\",\r\n    \"updated_at\": \"2026-10-16T05:55:55Z\",\r\n    \"deleted_at\": null,\r\n    \"preferred_branch\": {\r\n      \"id\": 1,\r\n      \"code\": \"BR-YGN\",\r\n      \"name\": \"Yangon Main Farm\",\r\n      \"phone_number\": \"+95 9 400000001\",\r\n      \"address\": \"Main livestock operations compound\",\r\n      \"status\": \"active\",\r\n      \"version\": 1,\r\n      \"created_at\": \"2026-09-18T15:33:06Z\",\r\n      \"updated_at\": \"2026-09-18T15:33:06Z\",\r\n      \"deleted_at\": null\r\n    },\r\n    \"types\": [\r\n      \"food\",\r\n      \"medicine\"\r\n    ]\r\n  }\r\n}"
+        }
+      ]
+    },
+    {
+      "name": "Customers — retrieve AR ledger records",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/setup/customers/{{customerId}}/receivables",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "setup",
+            "customers",
+            "{{customerId}}",
+            "receivables"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Live dev response captured 2026-10-16",
+          "originalRequest": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/setup/customers/{{customerId}}/receivables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "setup",
+                "customers",
+                "{{customerId}}",
+                "receivables"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "Text",
+          "header": [
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\r\n  \"data\": {\r\n    \"customer_id\": 2,\r\n    \"entries\": [\r\n      {\r\n        \"id\": 4,\r\n        \"sale_id\": null,\r\n        \"branch_id\": 1,\r\n        \"cashbook_transaction_id\": null,\r\n        \"entry_type\": \"opening_balance\",\r\n        \"amount\": \"250000.00\",\r\n        \"business_date\": \"2026-10-15\",\r\n        \"reference\": \"CUSTOMER-OPENING-2\"\r\n      },\r\n      {\r\n        \"id\": 5,\r\n        \"sale_id\": null,\r\n        \"branch_id\": 1,\r\n        \"cashbook_transaction_id\": null,\r\n        \"entry_type\": \"adjustment\",\r\n        \"amount\": \"-5000.00\",\r\n        \"business_date\": \"2026-10-15\",\r\n        \"reference\": \"Correct opening receivable\"\r\n      }\r\n    ],\r\n    \"outstanding_balance\": \"245000.00\"\r\n  }\r\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "branchId",
+      "value": "1"
+    },
+    {
+      "key": "customerId",
+      "value": "2"
+    },
+    {
+      "key": "supplierTag",
+      "value": "261016122551"
+    }
+  ]
+}
