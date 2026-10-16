@@ -1,5 +1,6 @@
 "use client";
 
+import InventoryBalanceFilters from "@/components/inventory/InventoryBalanceFilters";
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -11,12 +12,14 @@ import {
   useCreatePurchaseInvoiceMutation,
   useCreatePurchaseReceiptMutation,
   useGetPurchaseInvoicesQuery,
+  useGetPurchaseInvoiceQuery,
   useGetPurchaseReceiptsQuery,
   useLazyGetPurchaseInvoiceQuery,
   useLazyGetPurchaseReceiptQuery,
   useUpdatePurchaseInvoiceMutation,
 } from "@/redux/features/purchasing/PurchasingFoundationApiSlice";
 import {
+  InventoryItem,
   useGetInventoryBalancesQuery,
   useGetInventoryItemsQuery,
   useGetInventoryLedgerQuery,
@@ -52,6 +55,9 @@ type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
 type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt";
 
 type InvoiceForm = {
+  description: string;
+  additionalLines?: InvoiceForm[];
+  currency_code: string;
   invoice_number: string;
   invoice_date: string;
   supplier_id: string;
@@ -74,6 +80,7 @@ type InvoiceForm = {
 };
 
 type ReceiptForm = {
+  additionalLines?: ReceiptForm[];
   receipt_number: string;
   purchase_invoice_id: string;
   receipt_date: string;
@@ -205,12 +212,15 @@ const medicineReceiptSample: PurchaseReceiptPayload = {
 const invoiceFormFromPayload = (payload: PurchaseInvoicePayload): InvoiceForm => {
   const line = payload.lines[0];
   return {
+    additionalLines: payload.lines.slice(1).map((line) => invoiceFormFromPayload({ ...payload, lines: [line] })),
+    currency_code: payload.currency_code ?? "MMK",
     invoice_number: payload.invoice_number || "",
     invoice_date: payload.invoice_date,
     supplier_id: String(payload.supplier_id),
     branch_id: String(payload.branch_id),
     notes: payload.notes || "",
     category: line.category,
+    description: line.description || "",
     item_id: String(line.item_id),
     purchase_uom_id: String(line.purchase_uom_id),
     stock_uom_id: String(line.stock_uom_id),
@@ -229,6 +239,7 @@ const invoiceFormFromPayload = (payload: PurchaseInvoicePayload): InvoiceForm =>
 
 const invoiceFormFromRecord = (invoice: PurchaseInvoice): InvoiceForm =>
   invoiceFormFromPayload({
+    currency_code: String(invoice.currency_code || ""),
     invoice_number: invoice.invoice_number,
     invoice_date: invoice.invoice_date,
     supplier_id: invoice.supplier_id,
@@ -242,6 +253,7 @@ const toInvoicePayload = (
   includeInvoiceNumber: boolean
 ): PurchaseInvoicePayload => ({
   ...(includeInvoiceNumber && form.invoice_number ? { invoice_number: form.invoice_number } : {}),
+  currency_code: form.currency_code,
   invoice_date: form.invoice_date,
   supplier_id: Number(form.supplier_id),
   branch_id: Number(form.branch_id),
@@ -249,6 +261,7 @@ const toInvoicePayload = (
   lines: [
     {
       category: form.category,
+      ...(form.description ? { description: form.description } : {}),
       item_id: Number(form.item_id),
       purchase_uom_id: Number(form.purchase_uom_id),
       stock_uom_id: Number(form.stock_uom_id),
@@ -265,6 +278,7 @@ const toInvoicePayload = (
         : {}),
       ...(form.target_location ? { target_location: form.target_location } : {}),
     },
+    ...(form.additionalLines || []).flatMap((line) => toInvoicePayload(line, false).lines),
   ],
 });
 
@@ -324,6 +338,7 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
       ...(form.temperature_uom ? { temperature_uom: form.temperature_uom } : {}),
       ...(form.exception_reason ? { exception_reason: form.exception_reason } : {}),
     },
+    ...(form.additionalLines || []).flatMap((line) => toReceiptPayload(line).lines),
   ],
 });
 
@@ -355,6 +370,8 @@ export default function PurchasingPage() {
       ? tabParam
       : "invoices";
   const [tab, setTab] = useState<PurchasingTab>(initialTab);
+  const [balanceFilters, setBalanceFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
+  const [balancePage, setBalancePage] = useState(1);
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetInvoice, setTargetInvoice] = useState<PurchaseInvoice | null>(null);
@@ -379,9 +396,11 @@ export default function PurchasingPage() {
   const { data: receiptsData, isLoading: receiptsLoading } = useGetPurchaseReceiptsQuery({
     per_page: 15,
   });
-  const { data: balancesData, isLoading: balancesLoading } = useGetInventoryBalancesQuery({
+  const { currentData: balancesData, isFetching: balancesLoading, isError: balancesError } = useGetInventoryBalancesQuery({
     per_page: 15,
-  });
+    page: balancePage,
+    ...balanceFilters,
+  }, { skip: balanceFilters.from_date > balanceFilters.to_date });
   const { data: inventoryItemsData } = useGetInventoryItemsQuery({
     per_page: 100,
     status: "active",
@@ -432,7 +451,7 @@ export default function PurchasingPage() {
   const getItemLabel = (category?: string, itemId?: number | string) => {
     if (!itemId) return "-";
     const id = Number(itemId);
-    const inventoryItem = inventoryItems.find((item) => item.id === id);
+    const inventoryItem = inventoryItems.find((item) => item.id === id && (!category || item.category === category));
     if (inventoryItem) return `${inventoryItem.name} (${inventoryItem.code})`;
     if (category === "food") {
       const food = foods.find((f) => f.id === id);
@@ -506,7 +525,7 @@ export default function PurchasingPage() {
     }
   }, [tabParam]);
 
-  const openFormAction = (
+  const openFormAction = async (
     action: JsonAction,
     sample?: PurchaseInvoicePayload | PurchaseReceiptPayload,
     invoice?: PurchaseInvoice
@@ -514,18 +533,25 @@ export default function PurchasingPage() {
     setJsonAction(action);
     setTargetInvoice(invoice || null);
     if (action === "createInvoice" && sample)
-      setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
-    if (action === "updateInvoice" && invoice) setInvoiceForm(invoiceFormFromRecord(invoice));
+      setInvoiceForm({ ...invoiceFormFromPayload(sample as PurchaseInvoicePayload), invoice_number: "", supplier_id: "", branch_id: "", item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", target_inventory_id: "", target_location: "", notes: "", invoice_date: new Date().toLocaleDateString("en-CA") });
+    if (action === "updateInvoice" && invoice) {
+      try { const result = await showInvoice(invoice.id).unwrap(); setInvoiceForm(invoiceFormFromRecord(result.data)); }
+      catch { toast.error("Unable to load invoice details"); setJsonAction(null); return; }
+    }
     if (action === "updateInvoice" && !invoice && sample)
       setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
     if (action === "createReceipt" && sample)
-      setReceiptForm(receiptFormFromPayload(sample as PurchaseReceiptPayload));
+      setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", idempotency_key: crypto.randomUUID() });
     if (action === "cancelInvoice") setCancelReason("Supplier cancelled before any receipt.");
   };
 
   const runFormAction = async () => {
     if (!jsonAction) return;
     try {
+      if (jsonAction === "createInvoice" || jsonAction === "updateInvoice") {
+        const payload = toInvoicePayload(invoiceForm, true);
+        if (!payload.currency_code || !payload.supplier_id || !payload.branch_id || payload.lines.some((line) => ![line.quantity, line.conversion_factor, line.unit_price].every(Number.isFinite) || !line.item_id || !line.purchase_uom_id || !line.stock_uom_id || line.quantity <= 0 || line.conversion_factor <= 0 || line.unit_price < 0)) throw new Error("Complete all invoice lines with valid units, quantity and price.");
+      }
       if (jsonAction === "createInvoice")
         await createInvoice(toInvoicePayload(invoiceForm, true)).unwrap();
       if (jsonAction === "updateInvoice" && targetInvoice) {
@@ -537,8 +563,20 @@ export default function PurchasingPage() {
       if (jsonAction === "cancelInvoice" && targetInvoice) {
         await cancelInvoice({ id: targetInvoice.id, reason: cancelReason }).unwrap();
       }
-      if (jsonAction === "createReceipt")
-        await createReceipt(toReceiptPayload(receiptForm)).unwrap();
+      if (jsonAction === "createReceipt") {
+        const payload = toReceiptPayload(receiptForm);
+        if (!payload.purchase_invoice_id || payload.lines.some((line) => ![line.accepted_quantity, Number(line.accepted_foc_quantity || 0), Number(line.rejected_quantity || 0)].every(Number.isFinite) || !line.purchase_invoice_line_id || !line.target_inventory_id || line.accepted_quantity < 0 || Number(line.accepted_foc_quantity || 0) < 0 || Number(line.rejected_quantity || 0) < 0 || !(line.accepted_quantity + Number(line.accepted_foc_quantity || 0) + Number(line.rejected_quantity || 0) > 0))) throw new Error("Select receipt items and enter valid quantities and warehouses.");
+        if (new Set(payload.lines.map((line) => line.purchase_invoice_line_id)).size !== payload.lines.length) throw new Error("Each item can appear only once per receipt.");
+        const invoice = (await showInvoice(payload.purchase_invoice_id).unwrap()).data;
+        for (const line of payload.lines) {
+          const source = invoice.lines?.find((item) => item.id === line.purchase_invoice_line_id);
+          if (!source) throw new Error("Selected item does not belong to this invoice.");
+          const remaining = Number(source.remaining_quantity ?? Math.max(0, Number(source.quantity) - Number(source.received_quantity || 0)));
+          const remainingFoc = Number(source.remaining_foc_quantity ?? Math.max(0, Number(source.foc_quantity || 0) - Number(source.received_foc_quantity || 0)));
+          if (line.accepted_quantity > remaining || Number(line.accepted_foc_quantity || 0) > remainingFoc) throw new Error("Receipt quantity exceeds the remaining invoice quantity.");
+        }
+        await createReceipt(payload).unwrap();
+      }
       setJsonAction(null);
       toast.success("Purchasing API request saved successfully");
     } catch (error: unknown) {
@@ -681,6 +719,7 @@ export default function PurchasingPage() {
                         onClick={() => showSavedResponse("invoice", item.id, item)}
                         icon={<Eye size={14} />}
                       />
+                      <a className="rounded border px-2 py-1 text-xs" href={`/financial/supplier-payments?branch_id=${item.branch_id}&invoice_id=${item.id}`}>AP / Pay</a>
                       {canEditInvoice(item.status) && (
                         <TableActionButton
                           label="Update"
@@ -776,6 +815,10 @@ export default function PurchasingPage() {
       )}
 
       {tab === "balances" && (
+        <div className="space-y-4">
+          <InventoryBalanceFilters value={balanceFilters} onChange={(value) => { setBalanceFilters(value); setBalancePage(1); }} inventories={inventoriesSetupData?.data || []} items={inventoryItems} />
+          {balanceFilters.from_date > balanceFilters.to_date && <p className="text-red-600">Start date must be before or equal to end date.</p>}
+          {balancesError && <p className="text-red-600">Unable to load inventory balances.</p>}
         <DataPanel loading={balancesLoading} empty="No purchase inventory balances found.">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -786,7 +829,11 @@ export default function PurchasingPage() {
                   "Category",
                   "Warehouse",
                   "Location",
-                  "Quantity",
+                  "Opening",
+                  "In",
+                  "Out",
+                  "Closing",
+                  "Stock Unit",
                   "Available",
                   "Lot / Batch",
                   "Actions",
@@ -822,11 +869,10 @@ export default function PurchasingPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatValue(item.location)}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
-                    {formatValue(item.quantity)}
-                  </TableCell>
+                  {["opening_quantity", "in_quantity", "out_quantity", "closing_quantity"].map((key) => <TableCell key={key} className="px-5 py-3.5 text-right text-sm tabular-nums">{formatValue(item[key])}</TableCell>)}
+                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || formatValue(item.stock_uom_id)}</TableCell>
                   <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                    {formatValue(item.available_quantity ?? item.quantity)}
+                    {formatValue(item.available_quantity)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}
@@ -844,6 +890,8 @@ export default function PurchasingPage() {
             </TableBody>
           </Table>
         </DataPanel>
+          <div className="flex items-center gap-3"><Button size="sm" variant="outline" disabled={balancePage <= 1} onClick={() => setBalancePage(balancePage - 1)}>Previous</Button><span className="text-sm">Page {balancePage}</span><Button size="sm" variant="outline" disabled={balancePage >= Number(balancesData?.meta?.last_page || 1)} onClick={() => setBalancePage(balancePage + 1)}>Next</Button></div>
+        </div>
       )}
 
       {tab === "ledger" && (
@@ -932,6 +980,7 @@ export default function PurchasingPage() {
         branchOptions={branches.map(namedOption)}
         supplierOptions={suppliers.map(namedOption)}
         inventoryOptions={setupInventories.map((i) => ({
+          branch_id: i.branch_id,
           value: String(i.id),
           label: `${i.code} - ${i.name} (${i.type})`,
         }))}
@@ -941,10 +990,7 @@ export default function PurchasingPage() {
           value: String(u.id),
           label: `${u.code} - ${u.name} (${u.symbol})`,
         }))}
-        invoiceOptions={invoices.map((inv) => ({
-          value: String(inv.id),
-          label: `${inv.invoice_number} (Supplier #${inv.supplier_id})`,
-        }))}
+        invoiceItems={inventoryItems}
         isSaving={isMutating}
         onInvoiceChange={setInvoiceForm}
         onReceiptChange={setReceiptForm}
@@ -983,7 +1029,7 @@ function DataPanel({
   );
 }
 
-type SelectOption = { value: string; label: string };
+type SelectOption = { value: string; label: string; branch_id?: number };
 
 function PurchasingActionModal({
   action,
@@ -997,7 +1043,7 @@ function PurchasingActionModal({
   foodOptions,
   medicineOptions,
   uomOptions,
-  invoiceOptions,
+  invoiceItems,
   isSaving,
   onInvoiceChange,
   onReceiptChange,
@@ -1016,7 +1062,7 @@ function PurchasingActionModal({
   foodOptions: SelectOption[];
   medicineOptions: SelectOption[];
   uomOptions: SelectOption[];
-  invoiceOptions: SelectOption[];
+  invoiceItems: InventoryItem[];
   isSaving: boolean;
   onInvoiceChange: React.Dispatch<React.SetStateAction<InvoiceForm>>;
   onReceiptChange: React.Dispatch<React.SetStateAction<ReceiptForm>>;
@@ -1025,9 +1071,9 @@ function PurchasingActionModal({
   onSubmit: () => void;
 }) {
   const setInvoiceField = (key: keyof InvoiceForm, value: string) =>
-    onInvoiceChange((current) => ({ ...current, [key]: value }));
+    onInvoiceChange((current) => ({ ...current, [key]: value, ...(key === "branch_id" ? { target_inventory_id: "", target_location: "", additionalLines: current.additionalLines?.map((line) => ({ ...line, target_inventory_id: "", target_location: "" })) } : {}) }));
   const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) =>
-    onReceiptChange((current) => ({ ...current, [key]: value }));
+    onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", additionalLines: [] } : {}) }));
   const selectClass =
     "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
   const title =
@@ -1044,14 +1090,21 @@ function PurchasingActionModal({
     return [{ value: val, label: `#${val}` }, ...opts];
   };
 
-  const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : foodOptions;
+  const [invoiceSearch, setInvoiceSearch] = useState("");
+  const availableInvoices = useGetPurchaseInvoicesQuery({ search: invoiceSearch || undefined, per_page: 100 }, { skip: !isOpen || action !== "createReceipt" });
+  const invoiceOptions = (availableInvoices.currentData?.data || []).filter((invoice) => invoice.status !== "cancelled" && invoice.delivery_status !== "fully_received").map((invoice) => ({ value: String(invoice.id), label: invoice.invoice_number }));
+  const { currentData: receiptInvoice, isFetching: invoiceLoading, isError: invoiceError } = useGetPurchaseInvoiceQuery(receiptForm.purchase_invoice_id, { skip: !isOpen || action !== "createReceipt" || !receiptForm.purchase_invoice_id });
+  const receiptLines = receiptInvoice?.data.lines || [];
+  const remaining = (line: (typeof receiptLines)[number]) => Number(line.remaining_quantity ?? Math.max(0, Number(line.quantity) - Number(line.received_quantity || 0)));
+  const remainingFoc = (line: (typeof receiptLines)[number]) => Number(line.remaining_foc_quantity ?? Math.max(0, Number(line.foc_quantity || 0) - Number(line.received_foc_quantity || 0)));
+  const eligibleLines = receiptLines.filter((line) => remaining(line) > 0 || remainingFoc(line) > 0);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="m-4 max-w-4xl">
       <div className="space-y-4 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
         <p className="text-sm text-gray-500">
-          These fields produce the required Postman request payload.
+          Add the items to purchase or receive. Partial receipts leave remaining items available for later receipts.
         </p>
 
         {action === "cancelInvoice" && (
@@ -1098,6 +1151,7 @@ function PurchasingActionModal({
                   placeholder="Select branch"
                 />
               </FormField>
+              <FormField label="Currency" required><Input value={invoiceForm.currency_code} onChange={(event) => setInvoiceField("currency_code", event.target.value.toUpperCase())} /></FormField>
               <FormField label="Notes">
                 <Input
                   value={invoiceForm.notes}
@@ -1106,8 +1160,15 @@ function PurchasingActionModal({
               </FormField>
             </section>
 
-            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Invoice Line</h3>
+            {[invoiceForm, ...(invoiceForm.additionalLines || [])].map((invoiceForm, lineIndex) => {
+              const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : foodOptions;
+              const setInvoiceField = (key: keyof InvoiceForm, value: string) => onInvoiceChange((current) => {
+                const item = key === "item_id" ? invoiceItems.find((item) => String(item.id) === value) : undefined;
+                const change = { [key]: value, ...(key === "category" ? { item_id: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "" } : {}), ...(item ? { purchase_uom_id: String(item.purchase_uom_id || ""), stock_uom_id: String(item.stock_uom_id || ""), conversion_factor: String(item.uom_conversion || 1) } : {}) };
+                return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
+              });
+              return <React.Fragment key={lineIndex}>            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Invoice Line {lineIndex + 1}</h3>{lineIndex > 0 && <Button size="sm" variant="outline" onClick={() => onInvoiceChange((current) => ({ ...current, additionalLines: current.additionalLines?.filter((_, index) => index !== lineIndex - 1) }))}>Remove line</Button>}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField label="Category" required>
                   <select
@@ -1133,6 +1194,12 @@ function PurchasingActionModal({
                     onChange={(e) => setInvoiceField("purchase_uom_id", e.target.value)}
                     options={ensureOption(uomOptions, invoiceForm.purchase_uom_id)}
                     placeholder="Select purchase UOM"
+                  />
+                </FormField>
+                <FormField label="Description">
+                  <Input
+                    value={invoiceForm.description}
+                    onChange={(event) => setInvoiceField("description", event.target.value)}
                   />
                 </FormField>
                 <FormField label="Stock UOM" required>
@@ -1217,7 +1284,7 @@ function PurchasingActionModal({
                   <Select
                     value={invoiceForm.target_inventory_id}
                     onChange={(e) => setInvoiceField("target_inventory_id", e.target.value)}
-                    options={ensureOption(inventoryOptions, invoiceForm.target_inventory_id)}
+                    options={inventoryOptions.filter((option) => String(option.branch_id) === invoiceForm.branch_id)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
@@ -1228,7 +1295,9 @@ function PurchasingActionModal({
                   />
                 </FormField>
               </div>
-            </section>
+            </section></React.Fragment>;
+            })}
+            <Button size="sm" variant="outline" onClick={() => onInvoiceChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...invoiceFormFromPayload(foodInvoiceSample), additionalLines: [], item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", target_inventory_id: "", target_location: "" }] }))}>Add item</Button>
           </div>
         )}
 
@@ -1241,11 +1310,12 @@ function PurchasingActionModal({
                   onChange={(event) => setReceiptField("receipt_number", event.target.value)}
                 />
               </FormField>
+              <FormField label="Find Invoice"><Input value={invoiceSearch} onChange={(event) => setInvoiceSearch(event.target.value)} placeholder="Search invoice number" /></FormField>
               <FormField label="Purchase Invoice" required>
                 <Select
                   value={receiptForm.purchase_invoice_id}
                   onChange={(e) => setReceiptField("purchase_invoice_id", e.target.value)}
-                  options={ensureOption(invoiceOptions, receiptForm.purchase_invoice_id)}
+                  options={invoiceOptions}
                   placeholder="Select invoice"
                 />
               </FormField>
@@ -1271,23 +1341,27 @@ function PurchasingActionModal({
               </FormField>
             </section>
 
-            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Receipt Line</h3>
+            {invoiceError && <p className="text-sm text-red-600">Unable to load invoice items. Select the invoice again to retry.</p>}
+            {!invoiceLoading && receiptForm.purchase_invoice_id && !eligibleLines.length && <p className="text-sm">No remaining items available to receive.</p>}
+            {[receiptForm, ...(receiptForm.additionalLines || [])].map((receiptForm, lineIndex) => {
+              const selectedLine = receiptLines.find((line) => String(line.id) === receiptForm.purchase_invoice_line_id);
+              const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => onReceiptChange((current) => {
+                const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
+                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}) };
+                return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
+              });
+              return <React.Fragment key={lineIndex}>            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Receipt Line {lineIndex + 1}</h3>{lineIndex > 0 && <Button size="sm" variant="outline" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: current.additionalLines?.filter((_, index) => index !== lineIndex - 1) }))}>Remove line</Button>}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField label="Purchase Invoice Line ID (use Lines → id)" required>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={receiptForm.purchase_invoice_line_id}
-                    onChange={(event) =>
-                      setReceiptField("purchase_invoice_line_id", event.target.value)
-                    }
-                  />
+                <FormField label="Invoice Item (ordered / received / remaining)" required>
+                  <Select value={receiptForm.purchase_invoice_line_id} onChange={(event) => setReceiptField("purchase_invoice_line_id", event.target.value)} options={eligibleLines.map((line) => ({ value: String(line.id), label: `${String((line.item as { name?: string; code?: string } | undefined)?.name && `${(line.item as { code?: string }).code || ""} - ${(line.item as { name: string }).name}` || line.item_name || line.description || (line.category === "medicine" ? medicineOptions : foodOptions).find((option) => option.value === String(line.item_id))?.label || "Item #" + line.item_id)} · ${line.quantity} / ${line.received_quantity || 0} / ${remaining(line)} (FOC remaining: ${remainingFoc(line)})` }))} placeholder={invoiceLoading ? "Loading invoice items..." : "Select item"} disabled={invoiceLoading || invoiceError} />
                 </FormField>
                 <FormField label="Accepted Quantity" required>
                   <Input
                     type="number"
                     step="any"
+                    min="0"
+                    max={selectedLine ? remaining(selectedLine) : 0}
                     value={receiptForm.accepted_quantity}
                     onChange={(event) => setReceiptField("accepted_quantity", event.target.value)}
                   />
@@ -1296,6 +1370,8 @@ function PurchasingActionModal({
                   <Input
                     type="number"
                     step="any"
+                    min="0"
+                    max={selectedLine ? remainingFoc(selectedLine) : 0}
                     value={receiptForm.accepted_foc_quantity}
                     onChange={(event) =>
                       setReceiptField("accepted_foc_quantity", event.target.value)
@@ -1314,7 +1390,7 @@ function PurchasingActionModal({
                   <Select
                     value={receiptForm.target_inventory_id}
                     onChange={(e) => setReceiptField("target_inventory_id", e.target.value)}
-                    options={ensureOption(inventoryOptions, receiptForm.target_inventory_id)}
+                    options={inventoryOptions.filter((option) => option.branch_id === receiptInvoice?.data.branch_id)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
@@ -1340,7 +1416,7 @@ function PurchasingActionModal({
                 </FormField>
                 <FormField label="Manufacturing Date">
                   <DatePicker
-                    id="purchase-receipt-manufacturing-date"
+                    id={`purchase-receipt-manufacturing-date-${lineIndex}`}
                     defaultDate={receiptForm.manufacturing_date || undefined}
                     placeholder="Select manufacturing date"
                     onChange={(_, dateStr) => setReceiptField("manufacturing_date", dateStr)}
@@ -1348,7 +1424,7 @@ function PurchasingActionModal({
                 </FormField>
                 <FormField label="Expiry Date">
                   <DatePicker
-                    id="purchase-receipt-expiry-date"
+                    id={`purchase-receipt-expiry-date-${lineIndex}`}
                     defaultDate={receiptForm.expiry_date || undefined}
                     placeholder="Select expiry date"
                     onChange={(_, dateStr) => setReceiptField("expiry_date", dateStr)}
@@ -1398,7 +1474,9 @@ function PurchasingActionModal({
                   />
                 </FormField>
               </div>
-            </section>
+            </section></React.Fragment>;
+            })}
+            <Button size="sm" variant="outline" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "" }] }))}>Add receipt item</Button>
           </div>
         )}
 
@@ -1409,7 +1487,7 @@ function PurchasingActionModal({
           <Button
             type="button"
             size="sm"
-            disabled={isSaving || (action === "cancelInvoice" && !cancelReason.trim())}
+            disabled={isSaving || (action === "createReceipt" && (invoiceLoading || invoiceError || !receiptInvoice)) || (action === "cancelInvoice" && !cancelReason.trim())}
             onClick={onSubmit}
           >
             {isSaving ? "Saving..." : "Save"}

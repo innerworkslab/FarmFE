@@ -1,4 +1,6 @@
 "use client";
+import { useGetFarmLocationOptionsQuery } from "@/redux/features/setup/FarmInformationApiSlice";
+
 
 import React, { useState } from "react";
 import {
@@ -42,6 +44,7 @@ export default function FarmInformationPage() {
     pen_cage_pond: "",
   });
 
+  const { currentData: locationOptions, isFetching: locationsLoading, isError: locationsError } = useGetFarmLocationOptionsQuery(form.branch_id, { skip: !isModalOpen || !form.branch_id, refetchOnMountOrArgChange: true });
   const handleOpenAdd = () => {
     const defaultBranchId = branches[0]?.id || 1;
     setEditingItem(null);
@@ -67,6 +70,7 @@ export default function FarmInformationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (locationsLoading || locationsError || !locationOptions?.data.barns.includes(form.house_barn) || !locationOptions?.data.pens_cages_ponds.includes(form.pen_cage_pond)) { toast.error("Select valid locations for this branch"); return; }
     try {
       if (editingItem) {
         await updateFarmInfo({ id: editingItem.id, body: form }).unwrap();
@@ -205,7 +209,7 @@ export default function FarmInformationPage() {
               <select
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                 value={form.branch_id}
-                onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value) })}
+                onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value), house_barn: "", pen_cage_pond: "" })}
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
@@ -218,34 +222,23 @@ export default function FarmInformationPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   House / Barn *
                 </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. Barn PM"
-                  value={form.house_barn}
-                  onChange={(e) => setForm({ ...form, house_barn: e.target.value })}
-                />
+                <select className="w-full rounded-lg border p-2 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.house_barn || ""} onChange={(event) => setForm({ ...form, house_barn: event.target.value, pen_cage_pond: "" })}><option value="">Select location</option>{locationOptions?.data.barns.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Pen / Cage / Pond *
                 </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. Pen PM"
-                  value={form.pen_cage_pond}
-                  onChange={(e) => setForm({ ...form, pen_cage_pond: e.target.value })}
-                />
+                <select className="w-full rounded-lg border p-2 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.pen_cage_pond || ""} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })}><option value="">Select location</option>{locationOptions?.data.pens_cages_ponds.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
             </div>
 
+            {locationsError && <p className="text-sm text-red-600">Unable to load location options. Close and reopen to retry.</p>}
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isCreating || isUpdating}>
+              <Button type="submit" size="sm" disabled={isCreating || isUpdating || locationsLoading || locationsError}>
                 {isCreating || isUpdating ? "Saving..." : editingItem ? "Update Housing" : "Create Housing"}
               </Button>
             </div>

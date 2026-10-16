@@ -86,10 +86,10 @@ export default function FoodsPage() {
       category: item.category || "feed",
       target_animal_type: item.target_animal_type || "",
       purchase_price: Number(item.purchase_price || 0),
-      uom_conversion: Number(item.uom_conversion || 1),
+      uom_conversion: Number(item.unit_roles?.conversion_factor || item.uom_conversion || 1),
       consumption_uom_id: item.consumption_uom_id || 1,
-      purchase_uom_id: item.purchase_uom_id || 1,
-      stock_uom_id: item.stock_uom_id || 1,
+      purchase_uom_id: item.unit_roles?.conversion_unit.id || item.purchase_uom_id || 1,
+      stock_uom_id: item.unit_roles?.base_unit.id || item.stock_uom_id || 1,
       default_supplier_id: item.default_supplier_id || null,
       batch_tracking: !!item.batch_tracking,
       expiry_tracking: !!item.expiry_tracking,
@@ -392,22 +392,25 @@ export default function FoodsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  UOM Conversion Ratio *
+                  Base units per purchase / conversion unit *
                 </label>
                 <Input
                   type="number"
                   required
                   placeholder="1"
+                  min="0.000001"
+                  step="any"
                   value={form.uom_conversion}
                   onChange={(e) => setForm({ ...form, uom_conversion: Number(e.target.value) })}
                 />
               </div>
             </div>
 
+            <p className="text-xs text-gray-500">1 {uoms.find((unit) => unit.id === form.purchase_uom_id)?.name || "purchase unit"} = {form.uom_conversion} {uoms.find((unit) => unit.id === form.stock_uom_id)?.name || "base units"}. Inventory is tracked in the base stock unit.</p>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Stock UOM
+                  Base Stock Unit
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -424,7 +427,7 @@ export default function FoodsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Purchase UOM
+                  Purchase / Conversion Unit
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -472,7 +475,7 @@ export default function FoodsPage() {
                 }
               >
                 <option value="">None</option>
-                {suppliers.map((s) => (
+                {suppliers.filter((supplier) => (supplier.types || [supplier.type]).includes("food")).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.code})
                   </option>

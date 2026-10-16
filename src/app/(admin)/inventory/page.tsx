@@ -1,5 +1,6 @@
 "use client";
 
+import InventoryBalanceFilters from "@/components/inventory/InventoryBalanceFilters";
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -9,6 +10,7 @@ import {
   useCreateInventoryAdjustmentMutation,
   useGetInventoryAdjustmentsQuery,
   useGetInventoryBalancesQuery,
+  useGetInventoryItemsQuery,
   useGetInventoryConfirmationsQuery,
   useGetInventoryLedgerQuery,
   useLazyGetInventoryAdjustmentQuery,
@@ -273,6 +275,8 @@ export default function InventoryPage() {
       ? tabParam
       : "adjustments";
   const [tab, setTab] = useState<InventoryTab>(initialTab);
+  const [balanceFilters, setBalanceFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
+  const [balancePage, setBalancePage] = useState(1);
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetAdjustment, setTargetAdjustment] = useState<InventoryAdjustment | null>(null);
@@ -282,9 +286,11 @@ export default function InventoryPage() {
 
   const { data: adjustmentsData, isLoading: adjustmentsLoading } =
     useGetInventoryAdjustmentsQuery();
-  const { data: balancesData, isLoading: balancesLoading } = useGetInventoryBalancesQuery({
+  const { currentData: balancesData, isFetching: balancesLoading, isError: balancesError } = useGetInventoryBalancesQuery({
     per_page: 15,
-  });
+    page: balancePage,
+    ...balanceFilters,
+  }, { skip: balanceFilters.from_date > balanceFilters.to_date });
   const { data: ledgerData, isLoading: ledgerLoading } = useGetInventoryLedgerQuery({
     per_page: 15,
   });
@@ -298,6 +304,8 @@ export default function InventoryPage() {
   const { data: medicinesData } = useGetMedicinesQuery({ per_page: 100 });
   const { data: animalsData } = useGetAnimalsQuery({ per_page: 100 });
   const { data: equipmentData } = useGetEquipmentListQuery({ per_page: 100 });
+  const { data: inventoryItemsData } = useGetInventoryItemsQuery({ per_page: 100, status: "active" });
+  const inventoryItems = inventoryItemsData?.data || [];
   const { data: uomsData } = useGetUomsQuery({ per_page: 100 });
   const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
 
@@ -315,6 +323,7 @@ export default function InventoryPage() {
   const ledger = ledgerData?.data || [];
   const confirmations = confirmationsData?.data || [];
   const branches = branchesData?.data || [];
+  const uoms = uomsData?.data || [];
   const setupInventories = inventoriesSetupData?.data || [];
   const itemOptionsByCategory = {
     food: foodsData?.data.map(namedOption) || [],
@@ -437,6 +446,8 @@ export default function InventoryPage() {
   const getItemLabel = (category?: string, itemId?: number | string) => {
     if (!itemId) return "-";
     const id = Number(itemId);
+    const inventoryItem = inventoryItems.find((item) => item.id === id && (!category || item.category === category));
+    if (inventoryItem) return `${inventoryItem.name} (${inventoryItem.code})`;
     if (category === "food") {
       const food = foodsData?.data.find((f) => f.id === id);
       return food ? `${food.name} (${food.code})` : `Food #${id}`;
@@ -554,6 +565,10 @@ export default function InventoryPage() {
       )}
 
       {tab === "balances" && (
+        <div className="space-y-4">
+          <InventoryBalanceFilters value={balanceFilters} onChange={(value) => { setBalanceFilters(value); setBalancePage(1); }} inventories={inventoriesSetupData?.data || []} items={inventoryItems} />
+          {balanceFilters.from_date > balanceFilters.to_date && <p className="text-red-600">Start date must be before or equal to end date.</p>}
+          {balancesError && <p className="text-red-600">Unable to load inventory balances.</p>}
         <DataPanel loading={balancesLoading} empty="No inventory balances found.">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -564,7 +579,11 @@ export default function InventoryPage() {
                   "Category",
                   "Warehouse",
                   "Location",
-                  "Quantity",
+                  "Opening",
+                  "In",
+                  "Out",
+                  "Closing",
+                  "Stock Unit",
                   "Available",
                   "Lot / Batch",
                   "Actions",
@@ -600,11 +619,10 @@ export default function InventoryPage() {
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatValue(item.location)}
                   </TableCell>
-                  <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
-                    {formatValue(item.quantity)}
-                  </TableCell>
+                  {["opening_quantity", "in_quantity", "out_quantity", "closing_quantity"].map((key) => <TableCell key={key} className="px-5 py-3.5 text-right text-sm tabular-nums">{formatValue(item[key])}</TableCell>)}
+                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || formatValue(item.stock_uom_id)}</TableCell>
                   <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                    {formatValue(item.available_quantity ?? item.quantity)}
+                    {formatValue(item.available_quantity)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}
@@ -622,6 +640,8 @@ export default function InventoryPage() {
             </TableBody>
           </Table>
         </DataPanel>
+          <div className="flex items-center gap-3"><Button size="sm" variant="outline" disabled={balancePage <= 1} onClick={() => setBalancePage(balancePage - 1)}>Previous</Button><span className="text-sm">Page {balancePage}</span><Button size="sm" variant="outline" disabled={balancePage >= Number(balancesData?.meta?.last_page || 1)} onClick={() => setBalancePage(balancePage + 1)}>Next</Button></div>
+        </div>
       )}
 
       {tab === "ledger" && (

@@ -59,6 +59,10 @@ export interface InventoryPayload {
 
 export const inventoryApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getInventoryLocationOptions: builder.query<{ data: { building_zones: string[]; rack_bins: string[] } }, number>({
+      query: (branchId) => `setup/inventories/location-options?branch_id=${branchId}`,
+      providesTags: ["inventories"],
+    }),
     getInventories: builder.query<
       InventoryListResponse,
       { per_page?: number; page?: number; search?: string } | void
@@ -119,6 +123,7 @@ export const inventoryApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useGetInventoryLocationOptionsQuery,
   useGetInventoriesQuery,
   useGetInventoryQuery,
   useCreateInventoryMutation,

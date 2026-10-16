@@ -52,6 +52,7 @@ export interface Movement {
   in_transaction_id?: number;
 }
 export interface PaymentSummary {
+  eligible_cashbooks?: { id: number; name: string; currency_code: string; branch_id: number }[];
   invoice_id: number;
   currency_code: string;
   total_amount: string;

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw } from "lucide-react";
@@ -99,6 +99,12 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
   const [branch, setBranch] = useState("");
   const [page, setPage] = useState(1);
   const [invoice, setInvoice] = useState("");
+  useEffect(() => {
+    if (section !== "supplier-payments") return;
+    const params = new URLSearchParams(window.location.search);
+    setBranch(params.get("branch_id") || "");
+    setInvoice(params.get("invoice_id") || "");
+  }, [section]);
   const [advance, setAdvance] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -258,8 +264,8 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
                 {
                   key: "cashbook_id",
                   label: "Payment cashbook",
-                  options: books
-                    .filter((b) => b.currency_code === paymentCurrency)
+                  options: (payments.currentData?.data.eligible_cashbooks || [])
+                    .filter((b) => b.currency_code === paymentCurrency && String(b.branch_id) === branch)
                     .map((b) => ({ value: String(b.id), label: `${b.name} · ${b.currency_code}` })),
                 },
                 { key: "category_id", label: "Cash-out category", options: options("out") },
@@ -755,7 +761,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
               </p>
             </div>
             <Button
-              disabled={!payments.currentData}
+              disabled={!payments.currentData || !paymentCurrency || !payments.currentData.data.eligible_cashbooks?.length}
               onClick={() =>
                 open(
                   { kind: "payment", title: "New supplier payment draft" },
@@ -767,6 +773,9 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
               New payment
             </Button>
           </div>
+          {payments.isError && <p className="mb-3 text-sm text-red-600">Unable to load invoice payments.</p>}
+          {payments.currentData && !paymentCurrency && <p className="mb-3 text-sm text-red-600">This invoice has no currency. Set the invoice currency before making a payment.</p>}
+          {payments.currentData && paymentCurrency && !payments.currentData.data.eligible_cashbooks?.length && <p className="mb-3 text-sm text-gray-500">No active compatible cashbooks are available for this invoice.</p>}
           {movementTable(payments.currentData?.data.payments || [], "payment")}
         </section>
       )}

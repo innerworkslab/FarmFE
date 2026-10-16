@@ -9,6 +9,7 @@ export interface Food {
   category: "feed" | "supplement" | "other" | string;
   target_animal_type?: string | null;
   purchase_price: string | number;
+  unit_roles?: { base_unit: { id: number; name: string; code: string }; conversion_unit: { id: number; name: string; code: string }; conversion_factor: string | number; conversion_direction: string };
   uom_conversion: number;
   consumption_uom_id: number;
   purchase_uom_id: number;
@@ -86,7 +87,7 @@ export const foodApiSlice = farmApi.injectEndpoints({
       query: (payload) => ({
         url: "setup/foods",
         method: "POST",
-        body: payload,
+        body: { ...payload, base_uom_id: payload.stock_uom_id, conversion_uom_id: payload.purchase_uom_id },
       }),
       invalidatesTags: ["foods"],
     }),
@@ -98,7 +99,7 @@ export const foodApiSlice = farmApi.injectEndpoints({
       query: ({ id, ...payload }) => ({
         url: `setup/foods/${id}`,
         method: "POST",
-        body: payload,
+        body: { ...payload, base_uom_id: payload.stock_uom_id, conversion_uom_id: payload.purchase_uom_id },
       }),
       invalidatesTags: ["foods"],
     }),

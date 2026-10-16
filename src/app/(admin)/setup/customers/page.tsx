@@ -18,13 +18,17 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
 import Loading from "@/components/common/Loading";
+import LedgerAdjustmentModal from "@/components/financial/LedgerAdjustmentModal";
+import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Pencil, Trash2, ShoppingCart, SlidersHorizontal } from "lucide-react";
 
 export default function CustomersPage() {
+  const [adjustmentCustomer, setAdjustmentCustomer] = useState<Customer | null>(null);
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetCustomersQuery({ search: search || undefined });
 
+  const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
   const customers = data?.data || [];
 
   const [createCustomer, { isLoading: isCreating }] = useCreateCustomerMutation();
@@ -42,7 +46,6 @@ export default function CustomersPage() {
     type: "retail",
     phone_number: "",
     state_region: "",
-    payment_terms: "cash",
     opening_balance: 0,
     delivery_address: "",
     credit_limit: 0,
@@ -57,7 +60,6 @@ export default function CustomersPage() {
       type: "retail",
       phone_number: "",
       state_region: "",
-      payment_terms: "cash",
       opening_balance: 0,
       delivery_address: "",
       credit_limit: 0,
@@ -74,7 +76,7 @@ export default function CustomersPage() {
       type: item.type || "retail",
       phone_number: item.phone_number || "",
       state_region: item.state_region || "",
-      payment_terms: item.payment_terms || "cash",
+      preferred_branch_id: item.preferred_branch_id || null,
       opening_balance: Number(item.opening_balance || 0),
       delivery_address: item.delivery_address || "",
       credit_limit: Number(item.credit_limit || 0),
@@ -85,9 +87,10 @@ export default function CustomersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingItem && Number(form.opening_balance) !== 0 && !form.preferred_branch_id) { toast.error("Select a branch for the opening receivable"); return; }
     try {
       if (editingItem) {
-        await updateCustomer({ id: editingItem.id, body: form }).unwrap();
+        await updateCustomer({ id: editingItem.id, body: { ...form, opening_balance: undefined } }).unwrap();
         toast.success("Customer updated successfully");
       } else {
         await createCustomer(form).unwrap();
@@ -181,6 +184,7 @@ export default function CustomersPage() {
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Type</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Phone</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Credit Limit</TableCell>
+                  <TableCell isHeader className="px-5 py-3 text-right text-gray-500 font-medium text-xs">Opening Balance</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Status</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Actions</TableCell>
                 </TableRow>
@@ -194,6 +198,9 @@ export default function CustomersPage() {
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm uppercase text-xs font-semibold">{item.type}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.phone_number || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.credit_limit ? `${item.credit_limit}` : "-"}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-right tabular-nums text-gray-500 text-sm">
+                      {Number(item.opening_balance ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -206,7 +213,8 @@ export default function CustomersPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 min-w-[260px]">
+                        <TableActionButton label="Adjust AR" tone="blue" title="Post a receivable balance adjustment" onClick={() => setAdjustmentCustomer(item)} icon={<SlidersHorizontal size={14} />} />
                         <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
                         <Switch
                           checked={item.status === "active"}
@@ -224,6 +232,9 @@ export default function CustomersPage() {
       </div>
 
       {/* Create / Edit Modal */}
+      {adjustmentCustomer && (
+        <LedgerAdjustmentModal kind="customer" party={adjustmentCustomer} onClose={() => setAdjustmentCustomer(null)} />
+      )}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-[550px] m-4">
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -298,21 +309,10 @@ export default function CustomersPage() {
                   onChange={(e) => setForm({ ...form, state_region: e.target.value })}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Payment Terms
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  value={form.payment_terms || "cash"}
-                  onChange={(e) => setForm({ ...form, payment_terms: e.target.value })}
-                >
-                  <option value="cash">Cash</option>
-                  <option value="credit">Credit</option>
-                </select>
-              </div>
+              <div><label className="block text-xs mb-1">Preferred Branch</label><select className="w-full rounded-lg border p-2" value={form.preferred_branch_id || ""} onChange={(event) => setForm({ ...form, preferred_branch_id: Number(event.target.value) || null })}><option value="">Select branch</option>{branchesData?.data.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></div>
             </div>
 
+            <p className="text-xs text-gray-500">{editingItem ? `Opening balance date: ${editingItem.opening_balance_date || "No opening recorded"}. Corrections require an AR ledger adjustment.` : "A non-zero opening balance is posted to customer AR using the current business date."}</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -321,6 +321,9 @@ export default function CustomersPage() {
                 <Input
                   type="number"
                   placeholder="0"
+                  disabled={!!editingItem}
+                  min="0"
+                  step="any"
                   value={form.opening_balance}
                   onChange={(e) => setForm({ ...form, opening_balance: Number(e.target.value) })}
                 />

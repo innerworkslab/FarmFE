@@ -28,6 +28,7 @@ export interface SingleResponse<T> {
 }
 
 export interface PurchaseInvoiceLinePayload {
+  description?: string | null;
   category: "food" | "medicine" | string;
   item_id: number;
   purchase_uom_id: number;
@@ -47,6 +48,7 @@ export interface PurchaseInvoiceLinePayload {
 }
 
 export interface PurchaseInvoicePayload {
+  currency_code?: string;
   invoice_number?: string;
   invoice_date: string;
   supplier_id: number;

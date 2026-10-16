@@ -48,6 +48,10 @@ export interface FarmInformationPayload {
 
 export const farmInformationApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getFarmLocationOptions: builder.query<{ data: { barns: string[]; pens_cages_ponds: string[] } }, number>({
+      query: (branchId) => `setup/farm-information/location-options?branch_id=${branchId}`,
+      providesTags: ["farmInformation"],
+    }),
     getFarmInformationList: builder.query<
       FarmInformationListResponse,
       { per_page?: number; page?: number; search?: string } | void
@@ -103,6 +107,7 @@ export const farmInformationApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useGetFarmLocationOptionsQuery,
   useGetFarmInformationListQuery,
   useGetFarmInformationQuery,
   useCreateFarmInformationMutation,

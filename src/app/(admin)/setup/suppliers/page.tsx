@@ -17,11 +17,16 @@ import { Modal } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import MultiSelect from "@/components/form/MultiSelect";
 import Loading from "@/components/common/Loading";
+import LedgerAdjustmentModal from "@/components/financial/LedgerAdjustmentModal";
+import SupplierPayablesModal from "@/components/financial/SupplierPayablesModal";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Truck } from "lucide-react";
+import { Plus, Pencil, Trash2, Truck, BookOpen, SlidersHorizontal } from "lucide-react";
 
 export default function SuppliersPage() {
+  const [adjustmentSupplier, setAdjustmentSupplier] = useState<Supplier | null>(null);
+  const [payablesSupplier, setPayablesSupplier] = useState<Supplier | null>(null);
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetSuppliersQuery({ search: search || undefined });
   const { data: branchesData } = useGetBranchesQuery();
@@ -41,7 +46,8 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<SupplierPayload>({
     code: "",
     name: "",
-    type: "food",
+    types: ["food"],
+    opening_balance_currency_code: "MMK",
     phone_number: "",
     preferred_branch_id: null,
     opening_balance_type: "none",
@@ -55,7 +61,8 @@ export default function SuppliersPage() {
     setForm({
       code: "",
       name: "",
-      type: "food",
+      types: ["food"],
+    opening_balance_currency_code: "MMK",
       phone_number: "",
       preferred_branch_id: null,
       opening_balance_type: "none",
@@ -71,7 +78,8 @@ export default function SuppliersPage() {
     setForm({
       code: item.code,
       name: item.name,
-      type: item.type || "food",
+      types: item.types?.length ? item.types : [item.type || "food"],
+      opening_balance_currency_code: item.opening_balance_currency_code || "MMK",
       phone_number: item.phone_number || "",
       preferred_branch_id: item.preferred_branch_id || null,
       opening_balance_type: item.opening_balance_type || "none",
@@ -86,6 +94,8 @@ export default function SuppliersPage() {
     e.preventDefault();
     const payload: SupplierPayload = { ...form };
 
+    if (!editingItem && Number(form.opening_balance) !== 0 && !form.preferred_branch_id) { toast.error("Select a branch for the opening payable"); return; }
+    if (!form.types.length) { toast.error("Select at least one supplier type"); return; }
     try {
       if (editingItem) {
         await updateSupplier({ id: editingItem.id, body: payload }).unwrap();
@@ -191,7 +201,7 @@ export default function SuppliersPage() {
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{index + 1}</TableCell>
                     <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">{item.code}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm uppercase text-xs font-semibold">{item.type}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm uppercase text-xs font-semibold">{(item.types?.length ? item.types : [item.type]).join(", ")}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.phone_number || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <span
@@ -205,7 +215,9 @@ export default function SuppliersPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 min-w-[300px]">
+                        <TableActionButton label="View AP" tone="green" title="View payable balances and ledger" onClick={() => setPayablesSupplier(item)} icon={<BookOpen size={14} />} />
+                        <TableActionButton label="Adjust AP" tone="blue" title="Post a payable balance adjustment" onClick={() => setAdjustmentSupplier(item)} icon={<SlidersHorizontal size={14} />} />
                         <TableActionButton label="Edit" tone="neutral" onClick={() => handleOpenEdit(item)} icon={<Pencil size={14} />} />
                         <Switch
                           checked={item.status === "active"}
@@ -222,7 +234,20 @@ export default function SuppliersPage() {
         )}
       </div>
 
+      {payablesSupplier && (
+        <SupplierPayablesModal
+          supplier={payablesSupplier}
+          onClose={() => setPayablesSupplier(null)}
+          onAdjust={() => {
+            setAdjustmentSupplier(payablesSupplier);
+            setPayablesSupplier(null);
+          }}
+        />
+      )}
       {/* Create / Edit Modal */}
+      {adjustmentSupplier && (
+        <LedgerAdjustmentModal kind="supplier" party={adjustmentSupplier} onClose={() => setAdjustmentSupplier(null)} />
+      )}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-[550px] m-4">
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -258,19 +283,16 @@ export default function SuppliersPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Supplier Type *
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value as "food" | "medicine" | "equipment" | "other" })}
-                >
-                  <option value="food">Food / Feed</option>
-                  <option value="medicine">Medicine / Vaccine</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="other">Other</option>
-                </select>
+                <MultiSelect
+                  label="Supplier Type *"
+                  options={["food", "medicine", "animal", "equipment", "service"].map((type) => ({
+                    value: type,
+                    text: type.charAt(0).toUpperCase() + type.slice(1),
+                    selected: form.types.includes(type),
+                  }))}
+                  selectedValues={form.types}
+                  onChange={(types) => setForm({ ...form, types })}
+                />
               </div>
 
               <div>
@@ -313,8 +335,9 @@ export default function SuppliersPage() {
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  disabled={!!editingItem}
                   value={form.opening_balance_type || "none"}
-                  onChange={(e) => setForm({ ...form, opening_balance_type: e.target.value as "none" | "debit" | "credit" })}
+                  onChange={(e) => setForm({ ...form, opening_balance: 0, opening_balance_type: e.target.value as "none" | "debit" | "credit" })}
                 >
                   <option value="none">None</option>
                   <option value="debit">Debit</option>
@@ -335,6 +358,8 @@ export default function SuppliersPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3"><label className="text-sm">Opening Balance<Input type="number" min="0" step="any" disabled={!!editingItem || form.opening_balance_type === "none"} value={form.opening_balance || 0} onChange={(event) => setForm({ ...form, opening_balance: Number(event.target.value) })} /></label><label className="text-sm">Opening Currency<Input required value={form.opening_balance_currency_code || ""} disabled={!!editingItem} onChange={(event) => setForm({ ...form, opening_balance_currency_code: event.target.value.toUpperCase() })} /></label></div>
+            <p className="text-xs text-gray-500">Credit: amount owed to supplier. Debit: supplier credit in your favor. A non-zero opening posts to AP on the current business date. Existing openings require an AP adjustment.</p>
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel

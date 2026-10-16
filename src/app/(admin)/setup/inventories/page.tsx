@@ -1,4 +1,6 @@
 "use client";
+import { useGetInventoryLocationOptionsQuery } from "@/redux/features/setup/InventoryApiSlice";
+
 
 import React, { useState } from "react";
 import {
@@ -60,6 +62,7 @@ export default function InventoriesPage() {
     inventory_gl_account: "",
     status: "active",
   });
+  const { currentData: locationOptions, isFetching: locationsLoading, isError: locationsError } = useGetInventoryLocationOptionsQuery(form.branch_id, { skip: !isModalOpen || !form.branch_id, refetchOnMountOrArgChange: true });
   const handleOpenAdd = () => {
     const defaultBranchId = branches[0]?.id || 1;
     setEditingItem(null);
@@ -97,6 +100,7 @@ export default function InventoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (locationsLoading || locationsError || (form.building_zone && !locationOptions?.data.building_zones.includes(form.building_zone)) || (form.rack_bin && !locationOptions?.data.rack_bins.includes(form.rack_bin))) { toast.error("Select valid locations for this branch"); return; }
     const payload: InventoryPayload = {
       ...form,
     };
@@ -307,7 +311,7 @@ export default function InventoriesPage() {
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                   value={form.branch_id}
-                  onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value), building_zone: "", rack_bin: "" })}
                 >
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
@@ -334,24 +338,14 @@ export default function InventoriesPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Building Zone
                 </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Zone A"
-                  value={form.building_zone || ""}
-                  onChange={(e) => setForm({ ...form, building_zone: e.target.value })}
-                />
+                <select className="w-full rounded-lg border p-2 dark:bg-gray-800"  disabled={locationsLoading || locationsError} value={form.building_zone || ""} onChange={(event) => setForm({ ...form, building_zone: event.target.value, rack_bin: "" })}><option value="">Select location</option>{locationOptions?.data.building_zones.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Rack / Bin
                 </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. R1-B2"
-                  value={form.rack_bin || ""}
-                  onChange={(e) => setForm({ ...form, rack_bin: e.target.value })}
-                />
+                <select className="w-full rounded-lg border p-2 dark:bg-gray-800"  disabled={locationsLoading || locationsError} value={form.rack_bin || ""} onChange={(event) => setForm({ ...form, rack_bin: event.target.value })}><option value="">Select location</option>{locationOptions?.data.rack_bins.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>
@@ -390,11 +384,12 @@ export default function InventoriesPage() {
               </select>
             </div>
 
+            {locationsError && <p className="text-sm text-red-600">Unable to load location options. Close and reopen to retry.</p>}
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isCreating || isUpdating}>
+              <Button type="submit" size="sm" disabled={isCreating || isUpdating || locationsLoading || locationsError}>
                 {isCreating || isUpdating ? "Saving..." : editingItem ? "Update Inventory" : "Create Inventory"}
               </Button>
             </div>

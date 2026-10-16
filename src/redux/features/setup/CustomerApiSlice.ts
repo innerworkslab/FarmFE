@@ -1,4 +1,5 @@
 import { farmApi } from "@/redux/services/farmApi";
+import { LedgerAdjustmentEntry, LedgerAdjustmentPayload } from "@/types/ledgerAdjustment";
 
 export interface Customer {
   id: number;
@@ -8,9 +9,9 @@ export interface Customer {
   phone_number: string;
   state_region?: string | null;
   township?: string | null;
-  payment_terms?: string | null;
   price_level?: "standard" | "wholesale" | "vip" | string;
   opening_balance?: string | number;
+  opening_balance_date?: string;
   delivery_address?: string | null;
   credit_limit?: string | number;
   preferred_branch_id?: number | null;
@@ -50,7 +51,6 @@ export interface CreateCustomerPayload {
   phone_number: string;
   state_region?: string;
   township?: string;
-  payment_terms?: string;
   price_level?: string;
   opening_balance?: number;
   delivery_address?: string;
@@ -68,7 +68,6 @@ export interface UpdateCustomerPayload {
   phone_number?: string;
   state_region?: string;
   township?: string;
-  payment_terms?: string;
   price_level?: string;
   opening_balance?: number;
   delivery_address?: string;
@@ -79,6 +78,17 @@ export interface UpdateCustomerPayload {
 
 export const customerApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    createCustomerReceivableAdjustment: builder.mutation<
+      { data: LedgerAdjustmentEntry },
+      { id: number; body: LedgerAdjustmentPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `setup/customers/${id}/receivables/adjustments`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["customers", "sales"],
+    }),
     getCustomers: builder.query<
       CustomerListResponse,
       { page?: number; per_page?: number; search?: string } | void
@@ -139,6 +149,7 @@ export const customerApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useCreateCustomerReceivableAdjustmentMutation,
   useGetCustomersQuery,
   useGetCustomerQuery,
   useCreateCustomerMutation,
