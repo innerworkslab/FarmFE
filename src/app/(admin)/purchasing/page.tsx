@@ -368,6 +368,7 @@ export default function PurchasingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createInvoiceType = searchParams.get("createInvoice");
+  const createReceiptType = searchParams.get("createReceipt");
   const tabParam = searchParams.get("tab");
   const initialTab: PurchasingTab =
     tabParam === "receipts" || tabParam === "balances" || tabParam === "ledger"
@@ -383,7 +384,7 @@ export default function PurchasingPage() {
     invoiceFormFromPayload(foodInvoiceSample)
   );
   const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() =>
-    receiptFormFromPayload(receiptSample)
+    ({ ...receiptFormFromPayload(receiptSample), expiry_date: "" })
   );
   const [cancelReason, setCancelReason] = useState("Supplier cancelled before any receipt.");
 
@@ -539,6 +540,11 @@ export default function PurchasingPage() {
       router.push(`/purchasing?tab=invoices&createInvoice=${invoiceType}`);
       return;
     }
+    if (action === "createReceipt" && !createReceiptType) {
+      const receiptType = sample === medicineReceiptSample ? "medicine" : "food";
+      router.push(`/purchasing?tab=receipts&createReceipt=${receiptType}`);
+      return;
+    }
     setJsonAction(action);
     setTargetInvoice(invoice || null);
     if (action === "createInvoice" && sample)
@@ -562,6 +568,15 @@ export default function PurchasingPage() {
       );
     }
   }, [createInvoiceType]);
+
+  React.useEffect(() => {
+    if (createReceiptType === "food" || createReceiptType === "medicine") {
+      void openFormAction(
+        "createReceipt",
+        createReceiptType === "medicine" ? medicineReceiptSample : receiptSample
+      );
+    }
+  }, [createReceiptType]);
 
   const runFormAction = async () => {
     if (!jsonAction) return;
@@ -589,6 +604,10 @@ export default function PurchasingPage() {
         for (const line of payload.lines) {
           const source = invoice.lines?.find((item) => item.id === line.purchase_invoice_line_id);
           if (!source) throw new Error("Selected item does not belong to this invoice.");
+          if (["food", "medicine"].includes(source.category || "") && !line.receipt_lot_number?.trim()) throw new Error("Receipt lot number is required for food and medicine receipts.");
+          if (source.category === "medicine" && line.cold_chain_required && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) throw new Error("Cold-chain status is required when cold chain is enabled.");
+          const inventoryItem = inventoryItems.find((item) => item.id === source.item_id && item.category === source.category);
+          if (inventoryItem?.expiry_tracking && !line.expiry_date) throw new Error("Expiry date is required for this item.");
           const remaining = Number(source.remaining_quantity ?? Math.max(0, Number(source.quantity) - Number(source.received_quantity || 0)));
           const remainingFoc = Number(source.remaining_foc_quantity ?? Math.max(0, Number(source.foc_quantity || 0) - Number(source.received_foc_quantity || 0)));
           if (line.accepted_quantity > remaining || Number(line.accepted_foc_quantity || 0) > remainingFoc) throw new Error("Receipt quantity exceeds the remaining invoice quantity.");
@@ -598,6 +617,7 @@ export default function PurchasingPage() {
       setJsonAction(null);
       toast.success("Purchasing API request saved successfully");
       if (createInvoiceType) router.replace("/purchasing?tab=invoices");
+      if (createReceiptType) router.replace("/purchasing?tab=receipts");
     } catch (error: unknown) {
       const err = error as { data?: { message?: string }; message?: string };
       toast.error(err?.data?.message || err?.message || "Purchasing API request failed");
@@ -628,22 +648,29 @@ export default function PurchasingPage() {
     }
   };
 
-  if (createInvoiceType === "food" || createInvoiceType === "medicine") {
+  if (
+    createInvoiceType === "food" ||
+    createInvoiceType === "medicine" ||
+    createReceiptType === "food" ||
+    createReceiptType === "medicine"
+  ) {
+    const isCreatingReceipt = createReceiptType === "food" || createReceiptType === "medicine";
+    const backToList = isCreatingReceipt ? "/purchasing?tab=receipts" : "/purchasing?tab=invoices";
     return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
         <button
           type="button"
-          onClick={() => router.push("/purchasing?tab=invoices")}
+          onClick={() => router.push(backToList)}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
         >
           <ArrowLeft size={16} /> Back to invoices
         </button>
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Purchase Invoice</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Enter the supplier invoice details and items to purchase.</p>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{isCreatingReceipt ? "Create Purchase Receipt" : "Create Purchase Invoice"}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{isCreatingReceipt ? "Record the items received from the supplier." : "Enter the supplier invoice details and items to purchase."}</p>
         </div>
         <PurchasingActionModal
-          action="createInvoice"
+          action={isCreatingReceipt ? "createReceipt" : "createInvoice"}
           isOpen
           pageMode
           invoiceForm={invoiceForm}
@@ -660,7 +687,7 @@ export default function PurchasingPage() {
           onInvoiceChange={setInvoiceForm}
           onReceiptChange={setReceiptForm}
           onCancelReasonChange={setCancelReason}
-          onClose={() => router.push("/purchasing?tab=invoices")}
+          onClose={() => router.push(backToList)}
           onSubmit={runFormAction}
         />
       </div>
@@ -1031,7 +1058,7 @@ export default function PurchasingPage() {
 
       <PurchasingActionModal
         action={jsonAction}
-        isOpen={!!jsonAction && jsonAction !== "createInvoice"}
+        isOpen={!!jsonAction && jsonAction !== "createInvoice" && jsonAction !== "createReceipt"}
         invoiceForm={invoiceForm}
         receiptForm={receiptForm}
         cancelReason={cancelReason}
@@ -1159,6 +1186,7 @@ function PurchasingActionModal({
   const remainingFoc = (line: (typeof receiptLines)[number]) => Number(line.remaining_foc_quantity ?? Math.max(0, Number(line.foc_quantity || 0) - Number(line.received_foc_quantity || 0)));
   const eligibleLines = receiptLines.filter((line) => remaining(line) > 0 || remainingFoc(line) > 0);
   const hasMultipleInvoiceItems = (invoiceForm.additionalLines?.length || 0) > 0;
+  const hasMultipleReceiptItems = (receiptForm.additionalLines?.length || 0) > 0;
 
   const content = (
       <div className={pageMode ? "space-y-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6" : "space-y-4 p-6"}>
@@ -1379,8 +1407,8 @@ function PurchasingActionModal({
         )}
 
         {action === "createReceipt" && (
-          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-2">
-            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className={`${pageMode ? "" : "max-h-[60vh] overflow-y-auto"} space-y-5 pr-2`}>
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <FormField label="Receipt Number">
                 <Input
                   value={receiptForm.receipt_number}
@@ -1422,14 +1450,30 @@ function PurchasingActionModal({
             {!invoiceLoading && receiptForm.purchase_invoice_id && !eligibleLines.length && <p className="text-sm">No remaining items available to receive.</p>}
             {[receiptForm, ...(receiptForm.additionalLines || [])].map((receiptForm, lineIndex) => {
               const selectedLine = receiptLines.find((line) => String(line.id) === receiptForm.purchase_invoice_line_id);
+              const selectedItem = invoiceItems.find((item) => item.id === selectedLine?.item_id && item.category === selectedLine?.category);
               const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => onReceiptChange((current) => {
                 const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
                 const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}) };
                 return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
               });
               return <React.Fragment key={lineIndex}>            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <h3 className="mb-4 text-sm font-bold text-gray-800 dark:text-white">Receipt Line {lineIndex + 1}</h3>{lineIndex > 0 && <Button size="sm" variant="outline" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: current.additionalLines?.filter((_, index) => index !== lineIndex - 1) }))}>Remove line</Button>}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white">Item {lineIndex + 1}</h3>
+                <button
+                  type="button"
+                  aria-label={`Remove item ${lineIndex + 1}`}
+                  title={hasMultipleReceiptItems ? "Remove item" : "At least one item is required"}
+                  disabled={!hasMultipleReceiptItems}
+                  onClick={() => onReceiptChange((current) => {
+                    const [first, ...additionalLines] = [current, ...(current.additionalLines || [])].filter((_, index) => index !== lineIndex);
+                    return { ...first, additionalLines };
+                  })}
+                  className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <FormField label="Invoice Item (ordered / received / remaining)" required>
                   <Select value={receiptForm.purchase_invoice_line_id} onChange={(event) => setReceiptField("purchase_invoice_line_id", event.target.value)} options={eligibleLines.map((line) => ({ value: String(line.id), label: `${String((line.item as { name?: string; code?: string } | undefined)?.name && `${(line.item as { code?: string }).code || ""} - ${(line.item as { name: string }).name}` || line.item_name || line.description || (line.category === "medicine" ? medicineOptions : foodOptions).find((option) => option.value === String(line.item_id))?.label || "Item #" + line.item_id)} · ${line.quantity} / ${line.received_quantity || 0} / ${remaining(line)} (FOC remaining: ${remainingFoc(line)})` }))} placeholder={invoiceLoading ? "Loading invoice items..." : "Select item"} disabled={invoiceLoading || invoiceError} />
                 </FormField>
@@ -1485,7 +1529,7 @@ function PurchasingActionModal({
                     }
                   />
                 </FormField>
-                <FormField label="Receipt Lot Number">
+                <FormField label="Receipt Lot Number" required={!selectedLine || selectedLine.category === "food" || selectedLine.category === "medicine"}>
                   <Input
                     value={receiptForm.receipt_lot_number}
                     onChange={(event) => setReceiptField("receipt_lot_number", event.target.value)}
@@ -1499,11 +1543,12 @@ function PurchasingActionModal({
                     onChange={(_, dateStr) => setReceiptField("manufacturing_date", dateStr)}
                   />
                 </FormField>
-                <FormField label="Expiry Date">
+                <FormField label="Expiry Date" required={!selectedLine || Boolean(selectedItem?.expiry_tracking)}>
                   <DatePicker
                     id={`purchase-receipt-expiry-date-${lineIndex}`}
-                    defaultDate={receiptForm.expiry_date || undefined}
+                  value={receiptForm.expiry_date}
                     placeholder="Select expiry date"
+                  required={Boolean(selectedItem?.expiry_tracking)}
                     onChange={(_, dateStr) => setReceiptField("expiry_date", dateStr)}
                   />
                 </FormField>
@@ -1517,15 +1562,17 @@ function PurchasingActionModal({
                   />{" "}
                   Cold chain required
                 </label>
-                <FormField label="Cold Chain Status">
+                <FormField label="Cold Chain Status" required={receiptForm.cold_chain_required}>
                   <select
                     value={receiptForm.cold_chain_status}
                     onChange={(event) => setReceiptField("cold_chain_status", event.target.value)}
                     className={selectClass}
+                    required={receiptForm.cold_chain_required}
                   >
-                    <option value="">none</option>
+                    <option value="">Select status</option>
+                    <option value="compliant">compliant</option>
                     <option value="breached">breached</option>
-                    <option value="ok">ok</option>
+                    <option value="unknown">unknown</option>
                   </select>
                 </FormField>
                 <FormField label="Observed Temperature">
@@ -1553,7 +1600,7 @@ function PurchasingActionModal({
               </div>
             </section></React.Fragment>;
             })}
-            <Button size="sm" variant="outline" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "" }] }))}>Add receipt item</Button>
+            <Button size="sm" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "" }] }))}>Add item</Button>
           </div>
         )}
 
