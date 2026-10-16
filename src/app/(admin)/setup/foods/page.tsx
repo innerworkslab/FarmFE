@@ -18,6 +18,7 @@ import { Modal } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wheat } from "lucide-react";
@@ -345,127 +346,109 @@ export default function FoodsPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category *
                 </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                <Select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                >
-                  <option value="feed">Feed</option>
-                  <option value="supplement">Supplement</option>
-                  <option value="mineral">Mineral</option>
-                  <option value="other">Other</option>
-                </select>
+                  options={[
+                    { value: "feed", label: "Feed" },
+                    { value: "supplement", label: "Supplement" },
+                    { value: "mineral", label: "Mineral" },
+                    { value: "other", label: "Other" },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Target Animal Type
                 </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                <Select
                   value={form.target_animal_type || ""}
                   onChange={(e) => setForm({ ...form, target_animal_type: e.target.value })}
-                >
-                  <option value="">All Animals</option>
-                  <option value="cattle">Cattle</option>
-                  <option value="poultry">Poultry</option>
-                  <option value="swine">Swine</option>
-                  <option value="goat">Goat</option>
-                  <option value="sheep">Sheep</option>
-                </select>
+                  options={[
+                    { value: "", label: "All Animals" },
+                    { value: "cattle", label: "Cattle" },
+                    { value: "poultry", label: "Poultry" },
+                    { value: "swine", label: "Swine" },
+                    { value: "goat", label: "Goat" },
+                    { value: "sheep", label: "Sheep" },
+                  ]}
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <section className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Purchase Price *
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white">Purchase &amp; stock units</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <span className="mb-1 block">Purchase / Conversion Unit</span>
+                  <Select
+                  value={form.purchase_uom_id}
+                  onChange={(e) => setForm({ ...form, purchase_uom_id: Number(e.target.value) })}
+                    options={uoms.map((u) => ({ value: String(u.id), label: `${u.symbol} (${u.name})` }))}
+                  />
                 </label>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <span className="mb-1 block">Base Stock Unit</span>
+                  <Select
+                  value={form.stock_uom_id}
+                  onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
+                    options={uoms.map((u) => ({ value: String(u.id), label: `${u.symbol} (${u.name})` }))}
+                  />
+                </label>
+              </div>
+              <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+                <label htmlFor="food-unit-conversion" className="mb-2 block text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                  Purchase → base conversion *
+                </label>
+                <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-100">
+                  <span>1 {uoms.find((unit) => unit.id === form.purchase_uom_id)?.name || "purchase unit"}</span>
+                  <span className="text-gray-400">=</span>
+                  <div className="w-28">
+                    <Input
+                      id="food-unit-conversion"
+                      type="number"
+                      required
+                      placeholder="1"
+                      min="0.000001"
+                      step="any"
+                      value={form.uom_conversion}
+                      onChange={(event) => setForm({ ...form, uom_conversion: Number(event.target.value) })}
+                    />
+                  </div>
+                  <span>{uoms.find((unit) => unit.id === form.stock_uom_id)?.name || "base units"}</span>
+                </div>
+              </div>
+            </section>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="mb-1 block">Purchase Price *</span>
                 <Input
                   type="number"
                   required
                   placeholder="0"
                   value={form.purchase_price}
-                  onChange={(e) => setForm({ ...form, purchase_price: Number(e.target.value) })}
+                  onChange={(event) => setForm({ ...form, purchase_price: Number(event.target.value) })}
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Base units per purchase / conversion unit *
-                </label>
-                <Input
-                  type="number"
-                  required
-                  placeholder="1"
-                  min="0.000001"
-                  step="any"
-                  value={form.uom_conversion}
-                  onChange={(e) => setForm({ ...form, uom_conversion: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-500">1 {uoms.find((unit) => unit.id === form.purchase_uom_id)?.name || "purchase unit"} = {form.uom_conversion} {uoms.find((unit) => unit.id === form.stock_uom_id)?.name || "base units"}. Inventory is tracked in the base stock unit.</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Base Stock Unit
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  value={form.stock_uom_id}
-                  onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
-                >
-                  {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.symbol} ({u.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Purchase / Conversion Unit
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  value={form.purchase_uom_id}
-                  onChange={(e) => setForm({ ...form, purchase_uom_id: Number(e.target.value) })}
-                >
-                  {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.symbol} ({u.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Consumption UOM
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+              </label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="mb-1 block">Consumption UOM</span>
+                <Select
                   value={form.consumption_uom_id}
                   onChange={(e) => setForm({ ...form, consumption_uom_id: Number(e.target.value) })}
-                >
-                  {uoms.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.symbol} ({u.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  options={uoms.map((u) => ({ value: String(u.id), label: `${u.symbol} (${u.name})` }))}
+                />
+              </label>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Default Supplier
               </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+              <Select
                 value={form.default_supplier_id || ""}
                 onChange={(e) =>
                   setForm({
@@ -473,14 +456,13 @@ export default function FoodsPage() {
                     default_supplier_id: e.target.value ? Number(e.target.value) : null,
                   })
                 }
-              >
-                <option value="">None</option>
-                {suppliers.filter((supplier) => (supplier.types || [supplier.type]).includes("food")).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.code})
-                  </option>
-                ))}
-              </select>
+                  options={[
+                    { value: "", label: "None" },
+                    ...suppliers
+                      .filter((supplier) => (supplier.types || [supplier.type]).includes("food"))
+                      .map((supplier) => ({ value: String(supplier.id), label: `${supplier.name} (${supplier.code})` })),
+                  ]}
+              />
             </div>
 
             <div className="flex items-center gap-6 py-2">
