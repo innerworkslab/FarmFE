@@ -377,6 +377,8 @@ export default function PurchasingPage() {
   const [tab, setTab] = useState<PurchasingTab>(initialTab);
   const [balanceFilters, setBalanceFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
   const [balancePage, setBalancePage] = useState(1);
+  const [ledgerFilters, setLedgerFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
+  const [ledgerPage, setLedgerPage] = useState(1);
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetInvoice, setTargetInvoice] = useState<PurchaseInvoice | null>(null);
@@ -410,11 +412,15 @@ export default function PurchasingPage() {
     per_page: 100,
     status: "active",
   });
-  const { data: ledgerData, isLoading: ledgerLoading } = useGetInventoryLedgerQuery({
+  const { currentData: ledgerData, isFetching: ledgerLoading, isError: ledgerError } = useGetInventoryLedgerQuery({
     source_type: "purchase_receipt",
     transaction_type: "purchase_receipt",
     per_page: 15,
-  });
+    page: ledgerPage,
+    date_from: ledgerFilters.from_date,
+    date_to: ledgerFilters.to_date,
+    inventory_id: ledgerFilters.inventory_id,
+  }, { skip: ledgerFilters.from_date > ledgerFilters.to_date });
 
   const [createInvoice, createInvoiceState] = useCreatePurchaseInvoiceMutation();
   const [showInvoice] = useLazyGetPurchaseInvoiceQuery();
@@ -980,6 +986,10 @@ export default function PurchasingPage() {
       )}
 
       {tab === "ledger" && (
+        <div className="space-y-4">
+        <InventoryBalanceFilters value={ledgerFilters} onChange={(value) => { setLedgerFilters(value); setLedgerPage(1); }} inventories={setupInventories} items={inventoryItems} showItemAndLocation={false} />
+        {ledgerFilters.from_date > ledgerFilters.to_date && <p className="text-red-600">Start date must be before or equal to end date.</p>}
+        {ledgerError && <p className="text-red-600">Unable to load purchase ledger entries.</p>}
         <DataPanel loading={ledgerLoading} empty="No purchase ledger entries found.">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -1054,6 +1064,8 @@ export default function PurchasingPage() {
             </TableBody>
           </Table>
         </DataPanel>
+        <div className="flex items-center gap-3"><Button size="sm" variant="outline" disabled={ledgerPage <= 1} onClick={() => setLedgerPage(ledgerPage - 1)}>Previous</Button><span className="text-sm">Page {ledgerPage}</span><Button size="sm" variant="outline" disabled={ledgerPage >= Number(ledgerData?.meta?.last_page || 1)} onClick={() => setLedgerPage(ledgerPage + 1)}>Next</Button></div>
+        </div>
       )}
 
       <PurchasingActionModal

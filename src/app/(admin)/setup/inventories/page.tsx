@@ -338,14 +338,14 @@ export default function InventoriesPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Building Zone
                 </label>
-                <select className="w-full rounded-lg border p-2 dark:bg-gray-800"  disabled={locationsLoading || locationsError} value={form.building_zone || ""} onChange={(event) => setForm({ ...form, building_zone: event.target.value, rack_bin: "" })}><option value="">Select location</option>{locationOptions?.data.building_zones.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" disabled={locationsLoading || locationsError} value={form.building_zone || ""} onChange={(event) => setForm({ ...form, building_zone: event.target.value, rack_bin: "" })}><option value="">Select location</option>{locationOptions?.data.building_zones.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Rack / Bin
                 </label>
-                <select className="w-full rounded-lg border p-2 dark:bg-gray-800"  disabled={locationsLoading || locationsError} value={form.rack_bin || ""} onChange={(event) => setForm({ ...form, rack_bin: event.target.value })}><option value="">Select location</option>{locationOptions?.data.rack_bins.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" disabled={locationsLoading || locationsError} value={form.rack_bin || ""} onChange={(event) => setForm({ ...form, rack_bin: event.target.value })}><option value="">Select location</option>{locationOptions?.data.rack_bins.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>

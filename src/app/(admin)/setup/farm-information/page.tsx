@@ -222,14 +222,14 @@ export default function FarmInformationPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   House / Barn *
                 </label>
-                <select className="w-full rounded-lg border p-2 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.house_barn || ""} onChange={(event) => setForm({ ...form, house_barn: event.target.value, pen_cage_pond: "" })}><option value="">Select location</option>{locationOptions?.data.barns.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.house_barn || ""} onChange={(event) => setForm({ ...form, house_barn: event.target.value, pen_cage_pond: "" })}><option value="">Select location</option>{locationOptions?.data.barns.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Pen / Cage / Pond *
                 </label>
-                <select className="w-full rounded-lg border p-2 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.pen_cage_pond || ""} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })}><option value="">Select location</option>{locationOptions?.data.pens_cages_ponds.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.pen_cage_pond || ""} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })}><option value="">Select location</option>{locationOptions?.data.pens_cages_ponds.map((value) => <option key={value} value={value}>{value}</option>)}</select>
               </div>
             </div>
 

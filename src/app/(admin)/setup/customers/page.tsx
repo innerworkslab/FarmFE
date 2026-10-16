@@ -309,7 +309,7 @@ export default function CustomersPage() {
                   onChange={(e) => setForm({ ...form, state_region: e.target.value })}
                 />
               </div>
-              <div><label className="block text-xs mb-1">Preferred Branch</label><select className="w-full rounded-lg border p-2" value={form.preferred_branch_id || ""} onChange={(event) => setForm({ ...form, preferred_branch_id: Number(event.target.value) || null })}><option value="">Select branch</option>{branchesData?.data.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></div>
+              <div><label className="block text-xs mb-1">Preferred Branch</label><select className="h-11 w-full rounded-lg border px-4 py-2.5" value={form.preferred_branch_id || ""} onChange={(event) => setForm({ ...form, preferred_branch_id: Number(event.target.value) || null })}><option value="">Select branch</option>{branchesData?.data.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></div>
             </div>
 
             <p className="text-xs text-gray-500">{editingItem ? `Opening balance date: ${editingItem.opening_balance_date || "No opening recorded"}. Corrections require an AR ledger adjustment.` : "A non-zero opening balance is posted to customer AR using the current business date."}</p>
