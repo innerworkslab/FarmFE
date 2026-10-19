@@ -25,6 +25,10 @@ import SupplierPayablesModal from "@/components/financial/SupplierPayablesModal"
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Truck, BookOpen, SlidersHorizontal } from "lucide-react";
 
+type SupplierForm = Omit<SupplierPayload, "opening_balance"> & {
+  opening_balance: string | number;
+};
+
 export default function SuppliersPage() {
   const [adjustmentSupplier, setAdjustmentSupplier] = useState<Supplier | null>(null);
   const [payablesSupplier, setPayablesSupplier] = useState<Supplier | null>(null);
@@ -44,7 +48,7 @@ export default function SuppliersPage() {
   const [editingItem, setEditingItem] = useState<Supplier | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [form, setForm] = useState<SupplierPayload>({
+  const [form, setForm] = useState<SupplierForm>({
     code: "",
     name: "",
     types: ["food"],
@@ -87,7 +91,7 @@ export default function SuppliersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: SupplierPayload = { ...form };
+    const payload: SupplierPayload = { ...form, opening_balance: Number(form.opening_balance) };
 
     if (!editingItem && Number(form.opening_balance) !== 0 && !form.preferred_branch_id) { toast.error("Select a branch for the opening payable"); return; }
     if (!form.types.length) { toast.error("Select at least one supplier type"); return; }
@@ -327,7 +331,7 @@ export default function SuppliersPage() {
             <div className="grid grid-cols-2 gap-3">
               <label className="text-sm">
                 Opening Balance
-                <Input type="number" min="0" step="any" disabled={!!editingItem} value={form.opening_balance || 0} onChange={(event) => setForm({ ...form, opening_balance: Number(event.target.value) })} />
+                <Input type="number" min="0" step="any" disabled={!!editingItem} value={form.opening_balance} onChange={(event) => setForm({ ...form, opening_balance: event.target.value })} />
               </label>
               <label className="text-sm">
                 Opening Currency *

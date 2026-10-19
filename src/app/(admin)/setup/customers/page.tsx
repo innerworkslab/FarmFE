@@ -24,6 +24,11 @@ import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ShoppingCart, SlidersHorizontal, BookOpen } from "lucide-react";
 
+type CustomerForm = Omit<CustomerPayload, "opening_balance" | "credit_limit"> & {
+  opening_balance: string | number;
+  credit_limit: string | number;
+};
+
 export default function CustomersPage() {
   const [receivablesCustomer, setReceivablesCustomer] = useState<Customer | null>(null);
   const [adjustmentCustomer, setAdjustmentCustomer] = useState<Customer | null>(null);
@@ -42,7 +47,7 @@ export default function CustomersPage() {
   const [editingItem, setEditingItem] = useState<Customer | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [form, setForm] = useState<CustomerPayload>({
+  const [form, setForm] = useState<CustomerForm>({
     code: "",
     name: "",
     type: "retail",
@@ -89,13 +94,18 @@ export default function CustomersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload: CustomerPayload = {
+      ...form,
+      opening_balance: Number(form.opening_balance),
+      credit_limit: Number(form.credit_limit),
+    };
     if (!editingItem && Number(form.opening_balance) !== 0 && !form.preferred_branch_id) { toast.error("Select a branch for the opening receivable"); return; }
     try {
       if (editingItem) {
-        await updateCustomer({ id: editingItem.id, body: { ...form, opening_balance: undefined } }).unwrap();
+        await updateCustomer({ id: editingItem.id, body: { ...payload, opening_balance: undefined } }).unwrap();
         toast.success("Customer updated successfully");
       } else {
-        await createCustomer(form).unwrap();
+        await createCustomer(payload).unwrap();
         toast.success("Customer created successfully");
       }
       setIsModalOpen(false);
@@ -338,7 +348,7 @@ export default function CustomersPage() {
                   min="0"
                   step="any"
                   value={form.opening_balance}
-                  onChange={(e) => setForm({ ...form, opening_balance: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, opening_balance: e.target.value })}
                 />
               </div>
               <div>
@@ -349,7 +359,7 @@ export default function CustomersPage() {
                   type="number"
                   placeholder="0"
                   value={form.credit_limit}
-                  onChange={(e) => setForm({ ...form, credit_limit: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, credit_limit: e.target.value })}
                 />
               </div>
             </div>
