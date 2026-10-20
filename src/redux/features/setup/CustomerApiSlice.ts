@@ -62,7 +62,7 @@ export interface CustomerReceivablesResponse {
 }
 
 export interface CreateCustomerPayload {
-  code: string;
+  code?: string;
   name: string;
   type: "retail" | "wholesale" | string;
   phone_number: string;
