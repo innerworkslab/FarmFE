@@ -105,7 +105,7 @@ export default function StaffAdvanceBalancesPage() {
                       <div className="text-xs font-normal text-gray-500">{balance.staff_code}</div>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {balance.branch?.name ?? `#${balance.branch_id}`}
+                      {balance.branch?.name ?? "-"}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
                       {balance.employment_status}

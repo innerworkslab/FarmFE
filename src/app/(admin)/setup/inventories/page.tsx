@@ -213,7 +213,7 @@ export default function InventoriesPage() {
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.type}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 font-medium text-sm">
-                      {branches.find((b) => b.id === item.branch_id)?.name || item.branch?.name || `Branch #${item.branch_id}`}
+                      {branches.find((b) => b.id === item.branch_id)?.name || item.branch?.name || "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">
                       <div className="flex flex-wrap gap-1">

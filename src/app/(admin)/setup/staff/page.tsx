@@ -127,7 +127,7 @@ export default function StaffPage() {
                     {staff.name}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                    {staff.branch?.name ?? `#${staff.branch_id}`}
+                    {staff.branch?.name ?? "-"}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                     {staff.phone_number || "—"}

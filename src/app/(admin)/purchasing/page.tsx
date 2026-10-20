@@ -1,7 +1,7 @@
 "use client";
 
 import InventoryBalanceFilters from "@/components/inventory/InventoryBalanceFilters";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   PurchaseInvoice,
@@ -28,6 +28,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components
 import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import { Switch } from "@/components/ui/switch";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import DatePicker from "@/components/form/date-picker";
@@ -47,6 +48,7 @@ import {
   Eye,
   ArrowLeft,
   Plus,
+  Pencil,
   ReceiptText,
   ScrollText,
   Trash2,
@@ -260,28 +262,27 @@ const toInvoicePayload = (
   supplier_id: Number(form.supplier_id),
   branch_id: Number(form.branch_id),
   ...(form.notes ? { notes: form.notes } : {}),
-  lines: [
-    {
-      category: form.category,
-      ...(form.description ? { description: form.description } : {}),
-      item_id: Number(form.item_id),
-      purchase_uom_id: Number(form.purchase_uom_id),
-      stock_uom_id: Number(form.stock_uom_id),
-      conversion_factor: Number(form.conversion_factor),
-      quantity: Number(form.quantity),
-      unit_price: Number(form.unit_price),
-      ...(form.discount_type ? { discount_type: form.discount_type } : {}),
-      ...(form.discount_value ? { discount_value: Number(form.discount_value) } : {}),
-      ...(form.foc_type ? { foc_type: form.foc_type } : {}),
-      ...(form.foc_value ? { foc_value: Number(form.foc_value) } : {}),
-      ...(form.tax_rate ? { tax_rate: Number(form.tax_rate) } : {}),
-      ...(form.target_inventory_id
-        ? { target_inventory_id: Number(form.target_inventory_id) }
+  lines: [form, ...(form.additionalLines || [])]
+    .filter((line) => line.item_id)
+    .map((line) => ({
+      category: line.category,
+      ...(line.description ? { description: line.description } : {}),
+      item_id: Number(line.item_id),
+      purchase_uom_id: Number(line.purchase_uom_id),
+      stock_uom_id: Number(line.stock_uom_id),
+      conversion_factor: Number(line.conversion_factor),
+      quantity: Number(line.quantity),
+      unit_price: Number(line.unit_price),
+      ...(line.discount_type ? { discount_type: line.discount_type } : {}),
+      ...(line.discount_value ? { discount_value: Number(line.discount_value) } : {}),
+      ...(line.foc_type ? { foc_type: line.foc_type } : {}),
+      ...(line.foc_value ? { foc_value: Number(line.foc_value) } : {}),
+      ...(line.tax_rate ? { tax_rate: Number(line.tax_rate) } : {}),
+      ...(line.target_inventory_id
+        ? { target_inventory_id: Number(line.target_inventory_id) }
         : {}),
-      ...(form.target_location ? { target_location: form.target_location } : {}),
-    },
-    ...(form.additionalLines || []).flatMap((line) => toInvoicePayload(line, false).lines),
-  ],
+      ...(line.target_location ? { target_location: line.target_location } : {}),
+    })),
 });
 
 const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm => {
@@ -318,30 +319,27 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
   receipt_date: form.receipt_date,
   idempotency_key: form.idempotency_key,
   ...(form.notes ? { notes: form.notes } : {}),
-  lines: [
-    {
-      purchase_invoice_line_id: Number(form.purchase_invoice_line_id),
-      accepted_quantity: Number(form.accepted_quantity),
-      ...(form.accepted_foc_quantity
-        ? { accepted_foc_quantity: Number(form.accepted_foc_quantity) }
+  lines: [form, ...(form.additionalLines || [])].filter((line) => line.purchase_invoice_line_id).map((line) => ({
+      purchase_invoice_line_id: Number(line.purchase_invoice_line_id),
+      accepted_quantity: Number(line.accepted_quantity),
+      ...(line.accepted_foc_quantity
+        ? { accepted_foc_quantity: Number(line.accepted_foc_quantity) }
         : {}),
-      ...(form.rejected_quantity ? { rejected_quantity: Number(form.rejected_quantity) } : {}),
-      target_inventory_id: Number(form.target_inventory_id),
-      target_location: form.target_location,
-      ...(form.supplier_batch_number ? { supplier_batch_number: form.supplier_batch_number } : {}),
-      ...(form.receipt_lot_number ? { receipt_lot_number: form.receipt_lot_number } : {}),
-      ...(form.manufacturing_date ? { manufacturing_date: form.manufacturing_date } : {}),
-      ...(form.expiry_date ? { expiry_date: form.expiry_date } : {}),
-      ...(form.cold_chain_required ? { cold_chain_required: true } : {}),
-      ...(form.cold_chain_status ? { cold_chain_status: form.cold_chain_status } : {}),
-      ...(form.observed_temperature
-        ? { observed_temperature: Number(form.observed_temperature) }
+      ...(line.rejected_quantity ? { rejected_quantity: Number(line.rejected_quantity) } : {}),
+      target_inventory_id: Number(line.target_inventory_id),
+      target_location: line.target_location,
+      ...(line.supplier_batch_number ? { supplier_batch_number: line.supplier_batch_number } : {}),
+      ...(line.receipt_lot_number ? { receipt_lot_number: line.receipt_lot_number } : {}),
+      ...(line.manufacturing_date ? { manufacturing_date: line.manufacturing_date } : {}),
+      ...(line.expiry_date ? { expiry_date: line.expiry_date } : {}),
+      ...(line.cold_chain_required ? { cold_chain_required: true } : {}),
+      ...(line.cold_chain_status ? { cold_chain_status: line.cold_chain_status } : {}),
+      ...(line.observed_temperature
+        ? { observed_temperature: Number(line.observed_temperature) }
         : {}),
-      ...(form.temperature_uom ? { temperature_uom: form.temperature_uom } : {}),
-      ...(form.exception_reason ? { exception_reason: form.exception_reason } : {}),
-    },
-    ...(form.additionalLines || []).flatMap((line) => toReceiptPayload(line).lines),
-  ],
+      ...(line.temperature_uom ? { temperature_uom: line.temperature_uom } : {}),
+      ...(line.exception_reason ? { exception_reason: line.exception_reason } : {}),
+    })),
 });
 
 const formatValue = (value: unknown) => {
@@ -385,6 +383,8 @@ export default function PurchasingPage() {
   const [invoiceForm, setInvoiceForm] = useState<InvoiceForm>(() =>
     invoiceFormFromPayload(foodInvoiceSample)
   );
+  const [invoiceFieldErrors, setInvoiceFieldErrors] = useState<Record<string, string>>({});
+  const [receiptFieldErrors, setReceiptFieldErrors] = useState<Record<string, string>>({});
   const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() =>
     ({ ...receiptFormFromPayload(receiptSample), expiry_date: "" })
   );
@@ -466,17 +466,17 @@ export default function PurchasingPage() {
     if (inventoryItem) return `${inventoryItem.name} (${inventoryItem.code})`;
     if (category === "food") {
       const food = foods.find((f) => f.id === id);
-      return food ? `${food.name} (${food.code})` : `Food #${id}`;
+      return food ? `${food.name} (${food.code})` : "-";
     }
     if (category === "medicine") {
       const med = medicines.find((m) => m.id === id);
-      return med ? `${med.name} (${med.code})` : `Medicine #${id}`;
+      return med ? `${med.name} (${med.code})` : "-";
     }
     const food = foods.find((f) => f.id === id);
     if (food) return `${food.name} (${food.code})`;
     const med = medicines.find((m) => m.id === id);
     if (med) return `${med.name} (${med.code})`;
-    return `Item #${id}`;
+    return "-";
   };
 
   const namedOption = (item: { id: number; code?: string; name?: string }) => ({
@@ -588,8 +588,36 @@ export default function PurchasingPage() {
     if (!jsonAction) return;
     try {
       if (jsonAction === "createInvoice" || jsonAction === "updateInvoice") {
+        setInvoiceFieldErrors({});
         const payload = toInvoicePayload(invoiceForm, true);
-        if (!payload.currency_code || !payload.supplier_id || !payload.branch_id || payload.lines.some((line) => ![line.quantity, line.conversion_factor, line.unit_price].every(Number.isFinite) || !line.item_id || !line.purchase_uom_id || !line.stock_uom_id || line.quantity <= 0 || line.conversion_factor <= 0 || line.unit_price < 0)) throw new Error("Complete all invoice lines with valid units, quantity and price.");
+        const lineErrors: Record<string, string> = {};
+        const selectedLines = [invoiceForm, ...(invoiceForm.additionalLines || [])]
+          .map((line, index) => ({ line, index }))
+          .filter(({ line }) => line.item_id);
+        selectedLines.forEach(({ line, index }) => {
+          if (!line.purchase_uom_id) lineErrors[`lines.${index}.purchase_uom_id`] = "Select a purchase UOM.";
+          if (!line.stock_uom_id) lineErrors[`lines.${index}.stock_uom_id`] = "Select a stock UOM.";
+          if (!line.target_inventory_id) lineErrors[`lines.${index}.target_inventory_id`] = "Select a target warehouse.";
+          if (!Number.isFinite(Number(line.conversion_factor)) || Number(line.conversion_factor) <= 0) lineErrors[`lines.${index}.conversion_factor`] = "Enter a conversion factor greater than zero.";
+          if (!Number.isFinite(Number(line.quantity)) || Number(line.quantity) <= 0) lineErrors[`lines.${index}.quantity`] = "Enter a quantity greater than zero.";
+          if (!Number.isFinite(Number(line.unit_price)) || Number(line.unit_price) < 0) lineErrors[`lines.${index}.unit_price`] = "Enter a valid unit price.";
+        });
+        if (!selectedLines.length) lineErrors["lines.0.item_id"] = "Select an item before submitting the invoice.";
+        if (Object.keys(lineErrors).length) {
+          setInvoiceFieldErrors(lineErrors);
+          toast.error("Please fix the highlighted invoice item fields.");
+          return;
+        }
+        const headerErrors: Record<string, string> = {};
+        if (!invoiceForm.invoice_date) headerErrors.invoice_date = "Select an invoice date.";
+        if (!invoiceForm.supplier_id) headerErrors.supplier_id = "Select a supplier.";
+        if (!invoiceForm.branch_id) headerErrors.branch_id = "Select a branch.";
+        if (!payload.currency_code) headerErrors.currency_code = "Enter a currency.";
+        if (Object.keys(headerErrors).length) {
+          setInvoiceFieldErrors(headerErrors);
+          toast.error("Please complete the highlighted invoice details.");
+          return;
+        }
       }
       if (jsonAction === "createInvoice")
         await createInvoice(toInvoicePayload(invoiceForm, true)).unwrap();
@@ -603,20 +631,58 @@ export default function PurchasingPage() {
         await cancelInvoice({ id: targetInvoice.id, reason: cancelReason }).unwrap();
       }
       if (jsonAction === "createReceipt") {
+        setReceiptFieldErrors({});
         const payload = toReceiptPayload(receiptForm);
-        if (!payload.purchase_invoice_id || payload.lines.some((line) => ![line.accepted_quantity, Number(line.accepted_foc_quantity || 0), Number(line.rejected_quantity || 0)].every(Number.isFinite) || !line.purchase_invoice_line_id || !line.target_inventory_id || line.accepted_quantity < 0 || Number(line.accepted_foc_quantity || 0) < 0 || Number(line.rejected_quantity || 0) < 0 || !(line.accepted_quantity + Number(line.accepted_foc_quantity || 0) + Number(line.rejected_quantity || 0) > 0))) throw new Error("Select receipt items and enter valid quantities and warehouses.");
-        if (new Set(payload.lines.map((line) => line.purchase_invoice_line_id)).size !== payload.lines.length) throw new Error("Each item can appear only once per receipt.");
+        const headerErrors: Record<string, string> = {};
+        if (!receiptForm.purchase_invoice_id) headerErrors.purchase_invoice_id = "Select a purchase invoice.";
+        if (!receiptForm.receipt_date) headerErrors.receipt_date = "Select a receipt date.";
+        if (!receiptForm.idempotency_key) headerErrors.idempotency_key = "Enter an idempotency key.";
+        if (Object.keys(headerErrors).length) {
+          setReceiptFieldErrors(headerErrors);
+          toast.error("Please complete the highlighted receipt details.");
+          return;
+        }
+        const receiptLineErrors: Record<string, string> = {};
+        [receiptForm, ...(receiptForm.additionalLines || [])].forEach((line, index) => {
+          if (!line.purchase_invoice_line_id) return;
+          const accepted = Number(line.accepted_quantity);
+          const foc = Number(line.accepted_foc_quantity || 0);
+          const rejected = Number(line.rejected_quantity || 0);
+          if (!Number.isFinite(accepted) || accepted < 0 || accepted + foc + rejected <= 0) receiptLineErrors[`lines.${index}.accepted_quantity`] = "Enter a valid received quantity.";
+          if (!Number.isFinite(foc) || foc < 0) receiptLineErrors[`lines.${index}.accepted_foc_quantity`] = "Enter a valid FOC quantity.";
+          if (!Number.isFinite(rejected) || rejected < 0) receiptLineErrors[`lines.${index}.rejected_quantity`] = "Enter a valid rejected quantity.";
+          if (!line.target_inventory_id) receiptLineErrors[`lines.${index}.target_inventory_id`] = "Select a target warehouse.";
+          if (!line.target_location) receiptLineErrors[`lines.${index}.target_location`] = "Enter a target location.";
+        });
+        if (!payload.lines.length) receiptLineErrors["lines.0.purchase_invoice_line_id"] = "Select an invoice item before adding it.";
+        if (Object.keys(receiptLineErrors).length) {
+          setReceiptFieldErrors(receiptLineErrors);
+          toast.error("Please fix the highlighted receipt item fields.");
+          return;
+        }
+        const duplicateIndex = payload.lines.findIndex((line, index) => payload.lines.findIndex((candidate) => candidate.purchase_invoice_line_id === line.purchase_invoice_line_id) !== index);
+        if (duplicateIndex >= 0) {
+          setReceiptFieldErrors({ [`lines.${duplicateIndex}.purchase_invoice_line_id`]: "Each invoice item can appear only once per receipt." });
+          toast.error("Remove the duplicate receipt item.");
+          return;
+        }
         const invoice = (await showInvoice(payload.purchase_invoice_id).unwrap()).data;
-        for (const line of payload.lines) {
+        const sourceErrors: Record<string, string> = {};
+        for (const [lineIndex, line] of payload.lines.entries()) {
           const source = invoice.lines?.find((item) => item.id === line.purchase_invoice_line_id);
-          if (!source) throw new Error("Selected item does not belong to this invoice.");
-          if (["food", "medicine"].includes(source.category || "") && !line.receipt_lot_number?.trim()) throw new Error("Receipt lot number is required for food and medicine receipts.");
-          if (source.category === "medicine" && line.cold_chain_required && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) throw new Error("Cold-chain status is required when cold chain is enabled.");
+          if (!source) { sourceErrors[`lines.${lineIndex}.purchase_invoice_line_id`] = "Select an item from this invoice."; continue; }
+          if (["food", "medicine"].includes(source.category || "") && !line.receipt_lot_number?.trim()) sourceErrors[`lines.${lineIndex}.receipt_lot_number`] = "Receipt lot number is required for food and medicine receipts.";
+          if (source.category === "medicine" && line.cold_chain_required && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) sourceErrors[`lines.${lineIndex}.cold_chain_status`] = "Cold-chain status is required when cold chain is enabled.";
           const inventoryItem = inventoryItems.find((item) => item.id === source.item_id && item.category === source.category);
-          if (inventoryItem?.expiry_tracking && !line.expiry_date) throw new Error("Expiry date is required for this item.");
+          if (inventoryItem?.expiry_tracking && !line.expiry_date) sourceErrors[`lines.${lineIndex}.expiry_date`] = "Expiry date is required for this item.";
           const remaining = Number(source.remaining_quantity ?? Math.max(0, Number(source.quantity) - Number(source.received_quantity || 0)));
           const remainingFoc = Number(source.remaining_foc_quantity ?? Math.max(0, Number(source.foc_quantity || 0) - Number(source.received_foc_quantity || 0)));
-          if (line.accepted_quantity > remaining || Number(line.accepted_foc_quantity || 0) > remainingFoc) throw new Error("Receipt quantity exceeds the remaining invoice quantity.");
+          if (line.accepted_quantity > remaining || Number(line.accepted_foc_quantity || 0) > remainingFoc) sourceErrors[`lines.${lineIndex}.accepted_quantity`] = "Receipt quantity exceeds the remaining invoice quantity.";
+        }
+        if (Object.keys(sourceErrors).length) {
+          setReceiptFieldErrors(sourceErrors);
+          toast.error("Please fix the highlighted receipt item fields.");
+          return;
         }
         await createReceipt(payload).unwrap();
       }
@@ -625,7 +691,20 @@ export default function PurchasingPage() {
       if (createInvoiceType) router.replace("/purchasing?tab=invoices");
       if (createReceiptType) router.replace("/purchasing?tab=receipts");
     } catch (error: unknown) {
-      const err = error as { data?: { message?: string }; message?: string };
+      const err = error as { data?: { message?: string; errors?: Record<string, string | string[]> }; message?: string };
+      if (err.data?.errors) {
+        const isReceiptError = jsonAction === "createReceipt";
+        const lineIndexes = isReceiptError
+          ? [receiptForm, ...(receiptForm.additionalLines || [])].map((line, index) => line.purchase_invoice_line_id ? index : -1).filter((index) => index >= 0)
+          : [invoiceForm, ...(invoiceForm.additionalLines || [])].map((line, index) => line.item_id ? index : -1).filter((index) => index >= 0);
+        const mappedErrors = Object.fromEntries(Object.entries(err.data.errors).map(([key, value]) => {
+          const lineError = key.match(/^lines\.(\d+)\.(.+)$/);
+          const fieldKey = lineError ? `lines.${lineIndexes[Number(lineError[1])] ?? lineError[1]}.${lineError[2]}` : key;
+          return [fieldKey, Array.isArray(value) ? value[0] : value];
+        }));
+        if (isReceiptError) setReceiptFieldErrors(mappedErrors);
+        else setInvoiceFieldErrors(mappedErrors);
+      }
       toast.error(err?.data?.message || err?.message || "Purchasing API request failed");
     }
   };
@@ -689,6 +768,10 @@ export default function PurchasingPage() {
           medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
           uomOptions={uoms.map((u) => ({ value: String(u.id), label: `${u.code} - ${u.name} (${u.symbol})` }))}
           invoiceItems={inventoryItems}
+          invoiceFieldErrors={invoiceFieldErrors}
+          receiptFieldErrors={receiptFieldErrors}
+          onClearInvoiceFieldError={(key) => setInvoiceFieldErrors((current) => key === "*" ? {} : Object.fromEntries(Object.entries(current).filter(([field]) => field !== key)))}
+          onClearReceiptFieldError={(key) => setReceiptFieldErrors((current) => key === "*" ? {} : Object.fromEntries(Object.entries(current).filter(([field]) => field !== key)))}
           isSaving={isMutating}
           onInvoiceChange={setInvoiceForm}
           onReceiptChange={setReceiptForm}
@@ -787,10 +870,10 @@ export default function PurchasingPage() {
                     {formatReadableDate(item.invoice_date)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {supplierMap.get(item.supplier_id) || `Supplier #${item.supplier_id}`}
+                    {supplierMap.get(item.supplier_id) || "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {branchMap.get(item.branch_id) || `Branch #${item.branch_id}`}
+                    {branchMap.get(item.branch_id) || "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <span
@@ -865,7 +948,7 @@ export default function PurchasingPage() {
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">
                     {invoiceMap.get(item.purchase_invoice_id)?.invoice_number ||
-                      `Invoice #${item.purchase_invoice_id}`}
+                      "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatReadableDate(item.receipt_date)}
@@ -955,18 +1038,18 @@ export default function PurchasingPage() {
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-300">
                     {inventoryMap.get(Number(item.inventory_id)) ||
-                      `Warehouse #${item.inventory_id}`}
+                      "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatValue(item.location)}
                   </TableCell>
                   {["opening_quantity", "in_quantity", "out_quantity", "closing_quantity"].map((key) => <TableCell key={key} className="px-5 py-3.5 text-right text-sm tabular-nums">{formatValue(item[key])}</TableCell>)}
-                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || formatValue(item.stock_uom_id)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || "-"}</TableCell>
                   <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                     {formatValue(item.available_quantity)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                    {item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}
+                    {item.stock_lot_id ? String((item.stock_lot as Record<string, unknown> | undefined)?.receipt_lot_number || (item.stock_lot as Record<string, unknown> | undefined)?.lot_number || "-") : "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <TableActionButton
@@ -1032,7 +1115,7 @@ export default function PurchasingPage() {
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {String(item.source_type || "").replace(/_/g, " ")} #
-                    {formatValue(item.source_id)}
+                    {String(item.source_reference || item.source_number || "Source transaction")}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {getItemLabel(String(item.category || ""), item.item_id as number)}
@@ -1088,6 +1171,10 @@ export default function PurchasingPage() {
           label: `${u.code} - ${u.name} (${u.symbol})`,
         }))}
         invoiceItems={inventoryItems}
+        invoiceFieldErrors={invoiceFieldErrors}
+        receiptFieldErrors={receiptFieldErrors}
+        onClearInvoiceFieldError={(key) => setInvoiceFieldErrors((current) => key === "*" ? {} : Object.fromEntries(Object.entries(current).filter(([field]) => field !== key)))}
+        onClearReceiptFieldError={(key) => setReceiptFieldErrors((current) => key === "*" ? {} : Object.fromEntries(Object.entries(current).filter(([field]) => field !== key)))}
         isSaving={isMutating}
         onInvoiceChange={setInvoiceForm}
         onReceiptChange={setReceiptForm}
@@ -1096,7 +1183,7 @@ export default function PurchasingPage() {
         onSubmit={runFormAction}
       />
 
-      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} />
+      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} warehouses={setupInventories} invoices={invoices} items={inventoryItems} />
     </div>
   );
 }
@@ -1142,6 +1229,10 @@ function PurchasingActionModal({
   medicineOptions,
   uomOptions,
   invoiceItems,
+  invoiceFieldErrors,
+  receiptFieldErrors,
+  onClearInvoiceFieldError,
+  onClearReceiptFieldError,
   isSaving,
   onInvoiceChange,
   onReceiptChange,
@@ -1162,6 +1253,10 @@ function PurchasingActionModal({
   medicineOptions: SelectOption[];
   uomOptions: SelectOption[];
   invoiceItems: InventoryItem[];
+  invoiceFieldErrors: Record<string, string>;
+  receiptFieldErrors: Record<string, string>;
+  onClearInvoiceFieldError: (key: string) => void;
+  onClearReceiptFieldError: (key: string) => void;
   isSaving: boolean;
   onInvoiceChange: React.Dispatch<React.SetStateAction<InvoiceForm>>;
   onReceiptChange: React.Dispatch<React.SetStateAction<ReceiptForm>>;
@@ -1169,10 +1264,38 @@ function PurchasingActionModal({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const [activeInvoiceLineIndex, setActiveInvoiceLineIndex] = useState(0);
+  const [invoiceLinePending, setInvoiceLinePending] = useState(true);
+  const [activeReceiptLineIndex, setActiveReceiptLineIndex] = useState(0);
+  const [receiptLinePending, setReceiptLinePending] = useState(true);
+  const [localInvoiceFieldErrors, setLocalInvoiceFieldErrors] = useState<Record<string, string>>({});
+  const [localReceiptFieldErrors, setLocalReceiptFieldErrors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const lineError = Object.keys(invoiceFieldErrors).map((key) => key.match(/^lines\.(\d+)\./)).find(Boolean);
+    if (lineError) {
+      setActiveInvoiceLineIndex(Number(lineError[1]));
+      setInvoiceLinePending(false);
+    }
+  }, [invoiceFieldErrors]);
+  useEffect(() => {
+    const lineError = Object.keys(receiptFieldErrors).map((key) => key.match(/^lines\.(\d+)\./)).find(Boolean);
+    if (lineError) {
+      setActiveReceiptLineIndex(Number(lineError[1]));
+      setReceiptLinePending(false);
+    }
+  }, [receiptFieldErrors]);
   const setInvoiceField = (key: keyof InvoiceForm, value: string) =>
-    onInvoiceChange((current) => ({ ...current, [key]: value, ...(key === "branch_id" ? { target_inventory_id: "", target_location: "", additionalLines: current.additionalLines?.map((line) => ({ ...line, target_inventory_id: "", target_location: "" })) } : {}) }));
-  const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) =>
+    (onClearInvoiceFieldError(String(key)), onInvoiceChange((current) => ({ ...current, [key]: value, ...(key === "branch_id" ? { target_inventory_id: "", target_location: "", additionalLines: current.additionalLines?.map((line) => ({ ...line, target_inventory_id: "", target_location: "" })) } : {}) })));
+  const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => {
+    onClearReceiptFieldError(String(key));
+    if (key === "purchase_invoice_id") {
+      onClearReceiptFieldError("*");
+      setLocalReceiptFieldErrors({});
+      setActiveReceiptLineIndex(0);
+      setReceiptLinePending(true);
+    }
     onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", additionalLines: [] } : {}) }));
+  };
   const selectClass =
     "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
   const title =
@@ -1197,8 +1320,37 @@ function PurchasingActionModal({
   const remaining = (line: (typeof receiptLines)[number]) => Number(line.remaining_quantity ?? Math.max(0, Number(line.quantity) - Number(line.received_quantity || 0)));
   const remainingFoc = (line: (typeof receiptLines)[number]) => Number(line.remaining_foc_quantity ?? Math.max(0, Number(line.foc_quantity || 0) - Number(line.received_foc_quantity || 0)));
   const eligibleLines = receiptLines.filter((line) => remaining(line) > 0 || remainingFoc(line) > 0);
-  const hasMultipleInvoiceItems = (invoiceForm.additionalLines?.length || 0) > 0;
-  const hasMultipleReceiptItems = (receiptForm.additionalLines?.length || 0) > 0;
+  const invoiceLineSummaries = [invoiceForm, ...(invoiceForm.additionalLines || [])]
+    .map((line, index) => {
+      if (invoiceLinePending && index === activeInvoiceLineIndex) return null;
+      const options = line.category === "medicine" ? medicineOptions : foodOptions;
+      const item = options.find((option) => option.value === line.item_id);
+      const uom = uomOptions.find((option) => option.value === line.purchase_uom_id);
+      return item
+        ? {
+            index,
+            item: item.label,
+            category: line.category,
+            quantity: line.quantity,
+            uom: uom?.label || "—",
+            unitPrice: line.unit_price,
+          }
+        : null;
+    })
+    .filter((line): line is NonNullable<typeof line> => line !== null);
+  const invoiceLines = [invoiceForm, ...(invoiceForm.additionalLines || [])];
+  const activeInvoiceLine = invoiceLines[Math.min(activeInvoiceLineIndex, invoiceLines.length - 1)] || invoiceForm;
+  const receiptLinesInForm = [receiptForm, ...(receiptForm.additionalLines || [])];
+  const activeReceiptLine = receiptLinesInForm[Math.min(activeReceiptLineIndex, receiptLinesInForm.length - 1)] || receiptForm;
+  const activeSelectedReceiptLine = receiptLines.find((line) => String(line.id) === activeReceiptLine.purchase_invoice_line_id);
+  const activeSelectedReceiptItem = invoiceItems.find((item) => item.id === activeSelectedReceiptLine?.item_id && item.category === activeSelectedReceiptLine?.category);
+  const receiptLineSummaries = receiptLinesInForm.map((line, index) => {
+    if (receiptLinePending && index === activeReceiptLineIndex) return null;
+    const source = receiptLines.find((receiptLine) => String(receiptLine.id) === line.purchase_invoice_line_id);
+    if (!source) return null;
+    const item = invoiceItems.find((inventoryItem) => inventoryItem.id === source.item_id && inventoryItem.category === source.category);
+    return { index, item: item?.name || source.item_name || source.description || "-", accepted: line.accepted_quantity || "—", remaining: remaining(source) };
+  }).filter((line): line is NonNullable<typeof line> => line !== null);
 
   const content = (
       <div className={pageMode ? "space-y-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6" : "space-y-4 p-6"}>
@@ -1229,7 +1381,7 @@ function PurchasingActionModal({
                   />
                 </FormField>
               )}
-              <FormField label="Invoice Date" required>
+              <FormField label="Invoice Date" required error={invoiceFieldErrors.invoice_date}>
                 <DatePicker
                   id="purchase-invoice-date"
                   defaultDate={invoiceForm.invoice_date || undefined}
@@ -1237,7 +1389,7 @@ function PurchasingActionModal({
                   onChange={(_, dateStr) => setInvoiceField("invoice_date", dateStr)}
                 />
               </FormField>
-              <FormField label="Supplier" required>
+              <FormField label="Supplier" required error={invoiceFieldErrors.supplier_id}>
                 <Select
                   value={invoiceForm.supplier_id}
                   onChange={(e) => setInvoiceField("supplier_id", e.target.value)}
@@ -1245,7 +1397,7 @@ function PurchasingActionModal({
                   placeholder="Select supplier"
                 />
               </FormField>
-              <FormField label="Branch" required>
+              <FormField label="Branch" required error={invoiceFieldErrors.branch_id}>
                 <Select
                   value={invoiceForm.branch_id}
                   onChange={(e) => setInvoiceField("branch_id", e.target.value)}
@@ -1253,7 +1405,7 @@ function PurchasingActionModal({
                   placeholder="Select branch"
                 />
               </FormField>
-              <FormField label="Currency" required><Input value={invoiceForm.currency_code} onChange={(event) => setInvoiceField("currency_code", event.target.value.toUpperCase())} /></FormField>
+              <FormField label="Currency" required error={invoiceFieldErrors.currency_code}><Input value={invoiceForm.currency_code} onChange={(event) => setInvoiceField("currency_code", event.target.value.toUpperCase())} /></FormField>
               <FormField label="Notes">
                 <Input
                   value={invoiceForm.notes}
@@ -1262,29 +1414,27 @@ function PurchasingActionModal({
               </FormField>
             </section>
 
-            {[invoiceForm, ...(invoiceForm.additionalLines || [])].map((invoiceForm, lineIndex) => {
+            {[[activeInvoiceLine, activeInvoiceLineIndex] as const].map(([invoiceForm, lineIndex]) => {
               const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : foodOptions;
-              const setInvoiceField = (key: keyof InvoiceForm, value: string) => onInvoiceChange((current) => {
+              const lineError = (field: string) => localInvoiceFieldErrors[field] || invoiceFieldErrors[`lines.${lineIndex}.${field}`];
+              const setInvoiceField = (key: keyof InvoiceForm, value: string) => {
                 const item = key === "item_id" ? invoiceItems.find((item) => String(item.id) === value) : undefined;
-                const change = { [key]: value, ...(key === "category" ? { item_id: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "" } : {}), ...(item ? { purchase_uom_id: String(item.purchase_uom_id || ""), stock_uom_id: String(item.stock_uom_id || ""), conversion_factor: String(item.uom_conversion || 1) } : {}) };
-                return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
-              });
+                const clearedKeys = [key, ...(item ? ["purchase_uom_id", "stock_uom_id", "conversion_factor"] : []), ...(key === "category" ? ["item_id", "purchase_uom_id", "stock_uom_id", "conversion_factor"] : [])];
+                clearedKeys.forEach((field) => onClearInvoiceFieldError(`lines.${lineIndex}.${field}`));
+                setLocalInvoiceFieldErrors((errors) => {
+                  const next = { ...errors };
+                  clearedKeys.forEach((field) => delete next[field]);
+                  return next;
+                });
+                onInvoiceChange((current) => {
+                  const change = { [key]: value, ...(key === "category" ? { item_id: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "" } : {}), ...(item ? { purchase_uom_id: String(item.purchase_uom_id || ""), stock_uom_id: String(item.stock_uom_id || ""), conversion_factor: String(item.uom_conversion || 1) } : {}) };
+                  return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
+                });
+              };
               return <React.Fragment key={lineIndex}>            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-800 dark:text-white">Item {lineIndex + 1}</h3>
-                <button
-                  type="button"
-                  aria-label={`Remove item ${lineIndex + 1}`}
-                  title={hasMultipleInvoiceItems ? "Remove item" : "At least one item is required"}
-                  disabled={!hasMultipleInvoiceItems}
-                  onClick={() => onInvoiceChange((current) => {
-                    const [first, ...additionalLines] = [current, ...(current.additionalLines || [])].filter((_, index) => index !== lineIndex);
-                    return { ...first, additionalLines };
-                  })}
-                  className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
-                >
-                  <Trash2 size={16} />
-                </button>
+                {invoiceLineSummaries.some((line) => line.index === lineIndex) && <span className="text-xs text-gray-500">Editing selected item</span>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <FormField label="Category" required>
@@ -1297,7 +1447,7 @@ function PurchasingActionModal({
                     <option value="medicine">medicine</option>
                   </select>
                 </FormField>
-                <FormField label="Item" required>
+                <FormField label="Item" required error={lineError("item_id")}>
                   <Select
                     value={invoiceForm.item_id}
                     onChange={(e) => setInvoiceField("item_id", e.target.value)}
@@ -1305,7 +1455,7 @@ function PurchasingActionModal({
                     placeholder="Select item"
                   />
                 </FormField>
-                <FormField label="Purchase UOM" required>
+                <FormField label="Purchase UOM" required error={lineError("purchase_uom_id")}>
                   <Select
                     value={invoiceForm.purchase_uom_id}
                     onChange={(e) => setInvoiceField("purchase_uom_id", e.target.value)}
@@ -1319,7 +1469,7 @@ function PurchasingActionModal({
                     onChange={(event) => setInvoiceField("description", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Stock UOM" required>
+                <FormField label="Stock UOM" required error={lineError("stock_uom_id")}>
                   <Select
                     value={invoiceForm.stock_uom_id}
                     onChange={(e) => setInvoiceField("stock_uom_id", e.target.value)}
@@ -1327,7 +1477,7 @@ function PurchasingActionModal({
                     placeholder="Select stock UOM"
                   />
                 </FormField>
-                <FormField label="Conversion Factor" required>
+                <FormField label="Conversion Factor" required error={lineError("conversion_factor")}>
                   <Input
                     type="number"
                     step="any"
@@ -1335,7 +1485,7 @@ function PurchasingActionModal({
                     onChange={(event) => setInvoiceField("conversion_factor", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Quantity" required>
+                <FormField label="Quantity" required error={lineError("quantity")}>
                   <Input
                     type="number"
                     step="any"
@@ -1343,7 +1493,7 @@ function PurchasingActionModal({
                     onChange={(event) => setInvoiceField("quantity", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Unit Price" required>
+                <FormField label="Unit Price" required error={lineError("unit_price")}>
                   <Input
                     type="number"
                     step="any"
@@ -1397,7 +1547,7 @@ function PurchasingActionModal({
                     onChange={(event) => setInvoiceField("tax_rate", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Target Warehouse">
+                <FormField label="Target Warehouse" required error={lineError("target_inventory_id")}>
                   <Select
                     value={invoiceForm.target_inventory_id}
                     onChange={(e) => setInvoiceField("target_inventory_id", e.target.value)}
@@ -1414,7 +1564,87 @@ function PurchasingActionModal({
               </div>
             </section></React.Fragment>;
             })}
-            <Button size="sm" onClick={() => onInvoiceChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...invoiceFormFromPayload(foodInvoiceSample), additionalLines: [], item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", target_inventory_id: "", target_location: "" }] }))}>Add item</Button>
+            <Button size="sm" onClick={() => {
+              const conversionFactor = Number(activeInvoiceLine.conversion_factor);
+              const quantity = Number(activeInvoiceLine.quantity);
+              const unitPrice = Number(activeInvoiceLine.unit_price);
+              const errors: Record<string, string> = {};
+              if (!activeInvoiceLine.item_id) errors.item_id = "Select an item.";
+              if (!activeInvoiceLine.purchase_uom_id) errors.purchase_uom_id = "Select a purchase UOM.";
+              if (!activeInvoiceLine.stock_uom_id) errors.stock_uom_id = "Select a stock UOM.";
+              if (!Number.isFinite(conversionFactor) || conversionFactor <= 0) errors.conversion_factor = "Enter a conversion factor greater than zero.";
+              if (!Number.isFinite(quantity) || quantity <= 0) errors.quantity = "Enter a quantity greater than zero.";
+              if (!Number.isFinite(unitPrice) || unitPrice < 0) errors.unit_price = "Enter a valid unit price.";
+              if (!activeInvoiceLine.target_inventory_id) errors.target_inventory_id = "Select a target warehouse.";
+              setLocalInvoiceFieldErrors(errors);
+              if (Object.keys(errors).length) {
+                const targetError = errors.target_inventory_id;
+                if (targetError) toast.error(targetError);
+                return;
+              }
+              setInvoiceLinePending(true);
+              setActiveInvoiceLineIndex(invoiceLines.length);
+              onInvoiceChange((current) => {
+              const blankLine = { ...invoiceFormFromPayload(foodInvoiceSample), additionalLines: [], item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", target_inventory_id: "", target_location: "" };
+              return { ...current, additionalLines: [...(current.additionalLines || []), blankLine] };
+              });
+            }}>Add item</Button>
+            <section className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white">Invoice items</h3>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                  {invoiceLineSummaries.length}
+                </span>
+              </div>
+              {invoiceLineSummaries.length ? (
+                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Table>
+                    <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
+                      <TableRow>
+                        {["Item", "Category", "Quantity", "Purchase UOM", "Unit Price", "Actions"].map((label) => (
+                          <TableCell key={label} isHeader className="whitespace-nowrap px-3 py-2 text-xs font-medium text-gray-500">
+                            {label}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {invoiceLineSummaries.map((line) => (
+                        <TableRow key={line.index}>
+                          <TableCell className="min-w-[180px] px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-200">
+                            {line.item}
+                          </TableCell>
+                          <TableCell className="px-3 py-2 text-sm capitalize text-gray-600 dark:text-gray-400">
+                            {line.category}
+                          </TableCell>
+                          <TableCell className="px-3 py-2 text-sm tabular-nums text-gray-700 dark:text-gray-300">
+                            {line.quantity || "—"}
+                          </TableCell>
+                          <TableCell className="min-w-[150px] px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                            {line.uom}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-3 py-2 text-right text-sm tabular-nums text-gray-700 dark:text-gray-300">
+                            {line.unitPrice ? `${invoiceForm.currency_code} ${Number(line.unitPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-3 py-2 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button type="button" aria-label={`Edit item ${line.index + 1}`} title="Edit item" onClick={() => { setActiveInvoiceLineIndex(line.index); setInvoiceLinePending(false); }} className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"><Pencil size={15} /></button>
+                              <button type="button" aria-label={`Delete item ${line.index + 1}`} title="Delete item" disabled={invoiceLines.length <= 1} onClick={() => {
+                                const remainingLines = invoiceLines.filter((_, index) => index !== line.index);
+                                onInvoiceChange((current) => ({ ...remainingLines[0], invoice_number: current.invoice_number, invoice_date: current.invoice_date, supplier_id: current.supplier_id, branch_id: current.branch_id, currency_code: current.currency_code, notes: current.notes, additionalLines: remainingLines.slice(1) }));
+                                setActiveInvoiceLineIndex((index) => Math.max(0, index > line.index ? index - 1 : Math.min(index, remainingLines.length - 1)));
+                              }} className="rounded-md border border-red-200 p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:text-red-400"><Trash2 size={15} /></button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Selected items will appear here.</p>
+              )}
+            </section>
           </div>
         )}
 
@@ -1428,7 +1658,7 @@ function PurchasingActionModal({
                 />
               </FormField>
               <FormField label="Find Invoice"><Input value={invoiceSearch} onChange={(event) => setInvoiceSearch(event.target.value)} placeholder="Search invoice number" /></FormField>
-              <FormField label="Purchase Invoice" required>
+              <FormField label="Purchase Invoice" required error={receiptFieldErrors.purchase_invoice_id}>
                 <Select
                   value={receiptForm.purchase_invoice_id}
                   onChange={(e) => setReceiptField("purchase_invoice_id", e.target.value)}
@@ -1436,7 +1666,7 @@ function PurchasingActionModal({
                   placeholder="Select invoice"
                 />
               </FormField>
-              <FormField label="Receipt Date" required>
+              <FormField label="Receipt Date" required error={receiptFieldErrors.receipt_date}>
                 <DatePicker
                   id="purchase-receipt-date"
                   defaultDate={receiptForm.receipt_date || undefined}
@@ -1444,7 +1674,7 @@ function PurchasingActionModal({
                   onChange={(_, dateStr) => setReceiptField("receipt_date", dateStr)}
                 />
               </FormField>
-              <FormField label="Idempotency Key" required>
+              <FormField label="Idempotency Key" required error={receiptFieldErrors.idempotency_key}>
                 <Input
                   value={receiptForm.idempotency_key}
                   onChange={(event) => setReceiptField("idempotency_key", event.target.value)}
@@ -1460,36 +1690,30 @@ function PurchasingActionModal({
 
             {invoiceError && <p className="text-sm text-red-600">Unable to load invoice items. Select the invoice again to retry.</p>}
             {!invoiceLoading && receiptForm.purchase_invoice_id && !eligibleLines.length && <p className="text-sm">No remaining items available to receive.</p>}
-            {[receiptForm, ...(receiptForm.additionalLines || [])].map((receiptForm, lineIndex) => {
+            {[[activeReceiptLine, activeReceiptLineIndex] as const].map(([receiptForm, lineIndex]) => {
               const selectedLine = receiptLines.find((line) => String(line.id) === receiptForm.purchase_invoice_line_id);
               const selectedItem = invoiceItems.find((item) => item.id === selectedLine?.item_id && item.category === selectedLine?.category);
-              const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => onReceiptChange((current) => {
+              const receiptLineError = (field: string) => localReceiptFieldErrors[field] || receiptFieldErrors[`lines.${lineIndex}.${field}`];
+              const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => {
+                const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity", "target_inventory_id", "target_location"] : [])];
+                clearedKeys.forEach((field) => onClearReceiptFieldError(`lines.${lineIndex}.${field}`));
+                setLocalReceiptFieldErrors((errors) => { const next = { ...errors }; clearedKeys.forEach((field) => delete next[field]); return next; });
+                onReceiptChange((current) => {
                 const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
-                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}) };
+                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}), ...(key === "cold_chain_required" && value === false ? { cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
                 return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
-              });
+                });
+              };
               return <React.Fragment key={lineIndex}>            <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-800 dark:text-white">Item {lineIndex + 1}</h3>
-                <button
-                  type="button"
-                  aria-label={`Remove item ${lineIndex + 1}`}
-                  title={hasMultipleReceiptItems ? "Remove item" : "At least one item is required"}
-                  disabled={!hasMultipleReceiptItems}
-                  onClick={() => onReceiptChange((current) => {
-                    const [first, ...additionalLines] = [current, ...(current.additionalLines || [])].filter((_, index) => index !== lineIndex);
-                    return { ...first, additionalLines };
-                  })}
-                  className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
-                >
-                  <Trash2 size={16} />
-                </button>
+                {receiptLineSummaries.some((line) => line.index === lineIndex) && <span className="text-xs text-gray-500">Editing selected item</span>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                <FormField label="Invoice Item (ordered / received / remaining)" required>
-                  <Select value={receiptForm.purchase_invoice_line_id} onChange={(event) => setReceiptField("purchase_invoice_line_id", event.target.value)} options={eligibleLines.map((line) => ({ value: String(line.id), label: `${String((line.item as { name?: string; code?: string } | undefined)?.name && `${(line.item as { code?: string }).code || ""} - ${(line.item as { name: string }).name}` || line.item_name || line.description || (line.category === "medicine" ? medicineOptions : foodOptions).find((option) => option.value === String(line.item_id))?.label || "Item #" + line.item_id)} · ${line.quantity} / ${line.received_quantity || 0} / ${remaining(line)} (FOC remaining: ${remainingFoc(line)})` }))} placeholder={invoiceLoading ? "Loading invoice items..." : "Select item"} disabled={invoiceLoading || invoiceError} />
+                <FormField label="Invoice Item (ordered / received / remaining)" required error={receiptLineError("purchase_invoice_line_id")}>
+                  <Select value={receiptForm.purchase_invoice_line_id} onChange={(event) => setReceiptField("purchase_invoice_line_id", event.target.value)} options={eligibleLines.filter((line) => !receiptLinesInForm.some((other, index) => index !== lineIndex && other.purchase_invoice_line_id === String(line.id))).map((line) => ({ value: String(line.id), label: `${String((line.item as { name?: string; code?: string } | undefined)?.name && `${(line.item as { code?: string }).code || ""} - ${(line.item as { name: string }).name}` || line.item_name || line.description || (line.category === "medicine" ? medicineOptions : foodOptions).find((option) => option.value === String(line.item_id))?.label || "Item #" + line.item_id)} · ${line.quantity} / ${line.received_quantity || 0} / ${remaining(line)} (FOC remaining: ${remainingFoc(line)})` }))} placeholder={invoiceLoading ? "Loading invoice items..." : "Select item"} disabled={invoiceLoading || invoiceError} />
                 </FormField>
-                <FormField label="Accepted Quantity" required>
+                <FormField label="Accepted Quantity" required error={receiptLineError("accepted_quantity")}>
                   <Input
                     type="number"
                     step="any"
@@ -1499,7 +1723,7 @@ function PurchasingActionModal({
                     onChange={(event) => setReceiptField("accepted_quantity", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Accepted FOC Quantity">
+                <FormField label="Accepted FOC Quantity" error={receiptLineError("accepted_foc_quantity")}>
                   <Input
                     type="number"
                     step="any"
@@ -1511,7 +1735,7 @@ function PurchasingActionModal({
                     }
                   />
                 </FormField>
-                <FormField label="Rejected Quantity">
+                <FormField label="Rejected Quantity" error={receiptLineError("rejected_quantity")}>
                   <Input
                     type="number"
                     step="any"
@@ -1519,7 +1743,7 @@ function PurchasingActionModal({
                     onChange={(event) => setReceiptField("rejected_quantity", event.target.value)}
                   />
                 </FormField>
-                <FormField label="Target Warehouse" required>
+                <FormField label="Target Warehouse" required error={receiptLineError("target_inventory_id")}>
                   <Select
                     value={receiptForm.target_inventory_id}
                     onChange={(e) => setReceiptField("target_inventory_id", e.target.value)}
@@ -1527,7 +1751,7 @@ function PurchasingActionModal({
                     placeholder="Select warehouse"
                   />
                 </FormField>
-                <FormField label="Target Location" required>
+                <FormField label="Target Location" required error={receiptLineError("target_location")}>
                   <Input
                     value={receiptForm.target_location}
                     onChange={(event) => setReceiptField("target_location", event.target.value)}
@@ -1541,7 +1765,7 @@ function PurchasingActionModal({
                     }
                   />
                 </FormField>
-                <FormField label="Receipt Lot Number" required={!selectedLine || selectedLine.category === "food" || selectedLine.category === "medicine"}>
+                <FormField label="Receipt Lot Number" required={!selectedLine || selectedLine.category === "food" || selectedLine.category === "medicine"} error={receiptLineError("receipt_lot_number")}>
                   <Input
                     value={receiptForm.receipt_lot_number}
                     onChange={(event) => setReceiptField("receipt_lot_number", event.target.value)}
@@ -1555,7 +1779,7 @@ function PurchasingActionModal({
                     onChange={(_, dateStr) => setReceiptField("manufacturing_date", dateStr)}
                   />
                 </FormField>
-                <FormField label="Expiry Date" required={!selectedLine || Boolean(selectedItem?.expiry_tracking)}>
+                <FormField label="Expiry Date" required={!selectedLine || Boolean(selectedItem?.expiry_tracking)} error={receiptLineError("expiry_date")}>
                   <DatePicker
                     id={`purchase-receipt-expiry-date-${lineIndex}`}
                   value={receiptForm.expiry_date}
@@ -1564,55 +1788,107 @@ function PurchasingActionModal({
                     onChange={(_, dateStr) => setReceiptField("expiry_date", dateStr)}
                   />
                 </FormField>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
+                <label className="flex h-full items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Switch
                     checked={receiptForm.cold_chain_required}
-                    onChange={(event) =>
-                      setReceiptField("cold_chain_required", event.target.checked)
-                    }
-                  />{" "}
+                    onCheckedChange={(checked) => setReceiptField("cold_chain_required", checked)}
+                    aria-label="Cold chain required"
+                  />
                   Cold chain required
                 </label>
-                <FormField label="Cold Chain Status" required={receiptForm.cold_chain_required}>
-                  <select
-                    value={receiptForm.cold_chain_status}
-                    onChange={(event) => setReceiptField("cold_chain_status", event.target.value)}
-                    className={selectClass}
-                    required={receiptForm.cold_chain_required}
-                  >
-                    <option value="">Select status</option>
-                    <option value="compliant">compliant</option>
-                    <option value="breached">breached</option>
-                    <option value="unknown">unknown</option>
-                  </select>
-                </FormField>
-                <FormField label="Observed Temperature">
-                  <Input
-                    type="number"
-                    step="any"
-                    value={receiptForm.observed_temperature}
-                    onChange={(event) =>
-                      setReceiptField("observed_temperature", event.target.value)
-                    }
-                  />
-                </FormField>
-                <FormField label="Temperature UOM">
-                  <Input
-                    value={receiptForm.temperature_uom}
-                    onChange={(event) => setReceiptField("temperature_uom", event.target.value)}
-                  />
-                </FormField>
-                <FormField label="Exception Reason">
-                  <Input
-                    value={receiptForm.exception_reason}
-                    onChange={(event) => setReceiptField("exception_reason", event.target.value)}
-                  />
-                </FormField>
+                {receiptForm.cold_chain_required && (
+                  <>
+                    <FormField label="Cold Chain Status" required error={receiptLineError("cold_chain_status")}>
+                      <Select
+                        value={receiptForm.cold_chain_status}
+                        onChange={(event) => setReceiptField("cold_chain_status", event.target.value)}
+                        options={[
+                          { value: "compliant", label: "Compliant" },
+                          { value: "breached", label: "Breached" },
+                          { value: "unknown", label: "Unknown" },
+                        ]}
+                        placeholder="Select status"
+                      />
+                    </FormField>
+                    <FormField label="Observed Temperature">
+                      <Input
+                        type="number"
+                        step="any"
+                        value={receiptForm.observed_temperature}
+                        onChange={(event) =>
+                          setReceiptField("observed_temperature", event.target.value)
+                        }
+                      />
+                    </FormField>
+                    <FormField label="Temperature UOM">
+                      <Input
+                        value={receiptForm.temperature_uom}
+                        onChange={(event) => setReceiptField("temperature_uom", event.target.value)}
+                      />
+                    </FormField>
+                    <FormField label="Exception Reason">
+                      <Input
+                        value={receiptForm.exception_reason}
+                        onChange={(event) => setReceiptField("exception_reason", event.target.value)}
+                      />
+                    </FormField>
+                  </>
+                )}
               </div>
             </section></React.Fragment>;
             })}
-            <Button size="sm" onClick={() => onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "" }] }))}>Add item</Button>
+            <Button size="sm" onClick={() => {
+              const accepted = Number(activeReceiptLine.accepted_quantity);
+              const acceptedFoc = Number(activeReceiptLine.accepted_foc_quantity || 0);
+              const rejected = Number(activeReceiptLine.rejected_quantity || 0);
+              const errors: Record<string, string> = {};
+              if (!activeReceiptLine.purchase_invoice_line_id) errors.purchase_invoice_line_id = "Select an invoice item.";
+              if (!Number.isFinite(accepted) || accepted < 0 || !Number.isFinite(acceptedFoc) || acceptedFoc < 0 || !Number.isFinite(rejected) || rejected < 0 || accepted + acceptedFoc + rejected <= 0) errors.accepted_quantity = "Enter a valid received, FOC, or rejected quantity.";
+              if (!Number.isFinite(acceptedFoc) || acceptedFoc < 0) errors.accepted_foc_quantity = "Enter a valid FOC quantity.";
+              if (!Number.isFinite(rejected) || rejected < 0) errors.rejected_quantity = "Enter a valid rejected quantity.";
+              if (!activeReceiptLine.target_inventory_id) errors.target_inventory_id = "Select a target warehouse.";
+              if (!activeReceiptLine.target_location) errors.target_location = "Enter a target location.";
+              if (receiptLinesInForm.some((line, index) => index !== activeReceiptLineIndex && line.purchase_invoice_line_id === activeReceiptLine.purchase_invoice_line_id && activeReceiptLine.purchase_invoice_line_id)) errors.purchase_invoice_line_id = "This invoice item is already on the receipt.";
+              if (activeSelectedReceiptLine && ["food", "medicine"].includes(activeSelectedReceiptLine.category || "") && !activeReceiptLine.receipt_lot_number.trim()) errors.receipt_lot_number = "Receipt lot number is required for food and medicine.";
+              if (activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
+              if (activeReceiptLine.cold_chain_required && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
+              setLocalReceiptFieldErrors(errors);
+              if (Object.keys(errors).length) {
+                toast.error("Please fix the highlighted receipt item fields.");
+                return;
+              }
+              setReceiptLinePending(true);
+              setActiveReceiptLineIndex(receiptLinesInForm.length);
+              onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "" }] }));
+            }}>Add item</Button>
+            <section className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white">Receipt items</h3>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">{receiptLineSummaries.length}</span>
+              </div>
+              {receiptLineSummaries.length ? (
+                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Table>
+                    <TableHeader className="bg-gray-50 dark:bg-gray-800/50"><TableRow>{["Item", "Accepted Quantity", "Remaining", "Actions"].map((label) => <TableCell key={label} isHeader className="whitespace-nowrap px-3 py-2 text-left text-xs font-medium text-gray-500">{label}</TableCell>)}</TableRow></TableHeader>
+                    <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {receiptLineSummaries.map((line) => <TableRow key={line.index}>
+                        <TableCell className="min-w-[180px] px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-200">{String(line.item)}</TableCell>
+                        <TableCell className="px-3 py-2 text-sm tabular-nums text-gray-700 dark:text-gray-300">{line.accepted}</TableCell>
+                        <TableCell className="px-3 py-2 text-sm tabular-nums text-gray-700 dark:text-gray-300">{line.remaining}</TableCell>
+                        <TableCell className="whitespace-nowrap px-3 py-2 text-right"><div className="flex justify-end gap-2">
+                          <button type="button" aria-label={`Edit receipt item ${line.index + 1}`} title="Edit item" onClick={() => { setActiveReceiptLineIndex(line.index); setReceiptLinePending(false); }} className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"><Pencil size={15} /></button>
+                          <button type="button" aria-label={`Delete receipt item ${line.index + 1}`} title="Delete item" disabled={receiptLinesInForm.length <= 1} onClick={() => {
+                            const remainingItems = receiptLinesInForm.filter((_, index) => index !== line.index);
+                            onReceiptChange((current) => ({ ...remainingItems[0], receipt_number: current.receipt_number, purchase_invoice_id: current.purchase_invoice_id, receipt_date: current.receipt_date, idempotency_key: current.idempotency_key, notes: current.notes, additionalLines: remainingItems.slice(1) }));
+                            setActiveReceiptLineIndex((index) => Math.max(0, index > line.index ? index - 1 : Math.min(index, remainingItems.length - 1)));
+                          }} className="rounded-md border border-red-200 p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:text-red-400"><Trash2 size={15} /></button>
+                        </div></TableCell>
+                      </TableRow>)}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : <p className="text-sm text-gray-500">Added receipt items will appear here.</p>}
+            </section>
           </div>
         )}
 
@@ -1643,10 +1919,12 @@ function PurchasingActionModal({
 function FormField({
   label,
   required,
+  error,
   children,
 }: {
   label: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -1656,6 +1934,7 @@ function FormField({
         {required && <span className="ml-1 text-red-500">*</span>}
       </span>
       {children}
+      {error && <span className="mt-1 block text-xs font-normal text-red-600 dark:text-red-400">{error}</span>}
     </label>
   );
 }
@@ -1667,7 +1946,15 @@ const responseRecord = (data: unknown): Record<string, unknown> | null => {
   return value as Record<string, unknown>;
 };
 
-function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () => void }) {
+function ResponseModal({ data, onClose, suppliers, branches, warehouses, invoices, items }: {
+  data: unknown | null;
+  onClose: () => void;
+  suppliers: Array<{ id: number; code?: string; name: string }>;
+  branches: Array<{ id: number; code?: string; name: string }>;
+  warehouses: Array<{ id: number; code?: string; name: string }>;
+  invoices: Array<{ id: number; invoice_number: string }>;
+  items: InventoryItem[];
+}) {
   const record = responseRecord(data);
   const fieldEntries = Object.entries(record || {}).filter(
     ([, value]) => !Array.isArray(value) && (value === null || typeof value !== "object")
@@ -1685,6 +1972,24 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
     "receipt_lot_number",
     "cold_chain_status",
   ];
+  const relatedValue = (key: string, value: unknown, line?: Record<string, unknown>) => {
+    const id = Number(value);
+    if (!Number.isFinite(id) || !value) return formatValue(value);
+    let related: { code?: string; name?: string } | undefined;
+    if (key === "supplier_id") related = suppliers.find((item) => item.id === id);
+    if (key === "branch_id") related = branches.find((item) => item.id === id);
+    if (key === "purchase_invoice_id") {
+      const invoice = invoices.find((item) => item.id === id);
+      if (invoice) return `${invoice.invoice_number} (#${id})`;
+    }
+    if (key === "target_inventory_id") related = warehouses.find((item) => item.id === id);
+    if (key === "item_id") {
+      const category = String(line?.category || "");
+      related = items.find((item) => item.id === id && (!category || item.category === category));
+    }
+    if (key === "purchase_invoice_line_id") return `Invoice item #${id}`;
+    return related ? `${related.code ? `${related.code} — ` : ""}${related.name || ""} (#${id})` : formatValue(value);
+  };
 
   return (
     <Modal isOpen={!!data} onClose={onClose} className="m-4 max-w-5xl">
@@ -1697,7 +2002,7 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {fieldEntries.map(([key, value]) => (
                 <FormField key={key} label={key}>
-                  <Input value={formatValue(value)} disabled />
+                  <Input value={relatedValue(key, value)} disabled />
                 </FormField>
               ))}
             </section>
@@ -1730,7 +2035,7 @@ function ResponseModal({ data, onClose }: { data: unknown | null; onClose: () =>
                               key={key}
                               className={`px-4 py-3 text-sm text-gray-500 ${isNumericColumn(key) ? "text-right tabular-nums" : ""}`}
                             >
-                              {formatValue(line[key])}
+                              {relatedValue(key, line[key], line)}
                             </TableCell>
                           ))}
                         </TableRow>

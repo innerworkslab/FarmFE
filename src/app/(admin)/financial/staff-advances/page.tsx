@@ -630,7 +630,7 @@ export default function StaffAdvancesPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Cashbook</p>
-                <p>{selectedAdvance.cashbook?.name ?? `#${selectedAdvance.cashbook_id}`}</p>
+                <p>{selectedAdvance.cashbook?.name ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Status</p>
@@ -872,9 +872,9 @@ export default function StaffAdvancesPage() {
               <dt className="text-gray-500">Amount</dt>
               <dd>{money(repaymentDetail.amount, repaymentDetail.cashbook?.currency_code)}</dd>
               <dt className="text-gray-500">Cashbook</dt>
-              <dd>{repaymentDetail.cashbook?.name ?? repaymentDetail.cashbook_id}</dd>
+              <dd>{repaymentDetail.cashbook?.name ?? "-"}</dd>
               <dt className="text-gray-500">Category</dt>
-              <dd>{repaymentDetail.category?.name ?? repaymentDetail.category_id}</dd>
+              <dd>{repaymentDetail.category?.name ?? "-"}</dd>
               <dt className="text-gray-500">Status</dt>
               <dd>
                 <Status value={repaymentDetail.status} />

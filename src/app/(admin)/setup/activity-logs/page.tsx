@@ -116,7 +116,7 @@ export default function ActivityLogsPage() {
                     isHeader
                     className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
                   >
-                    ID
+                    Activity
                   </TableCell>
                   <TableCell
                     isHeader
@@ -140,7 +140,7 @@ export default function ActivityLogsPage() {
                     isHeader
                     className="px-5 py-3 text-start text-gray-500 font-medium text-xs"
                   >
-                    Subject ID
+                    Record details
                   </TableCell>
                   <TableCell
                     isHeader
@@ -165,7 +165,7 @@ export default function ActivityLogsPage() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {logs.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">#{item.id}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.description || item.event}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white font-medium text-sm">
                       {item.log_name}
                     </TableCell>
@@ -178,10 +178,10 @@ export default function ActivityLogsPage() {
                       {item.subject_type?.split("\\").pop() || item.subject_type}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">
-                      #{item.subject_id}
+                      {item.description || item.subject_type?.split("\\").pop() || "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 font-medium text-sm">
-                      {adminMap.get(item.causer_id) || `User #${item.causer_id}`}
+                      {adminMap.get(item.causer_id) || "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">
                       {formatReadableDateTime(item.created_at)}
@@ -210,7 +210,7 @@ export default function ActivityLogsPage() {
       >
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            Activity Log #{selectedLog?.id}
+            Activity Log Details
           </h2>
           {selectedLog && (
             <div className="space-y-3 text-xs">
@@ -232,15 +232,15 @@ export default function ActivityLogsPage() {
                   </strong>
                 </div>
                 <div>
-                  <span className="text-gray-500">Subject ID:</span>{" "}
+                  <span className="text-gray-500">Record:</span>{" "}
                   <strong className="text-gray-800 dark:text-gray-200">
-                    #{selectedLog.subject_id}
+                    {selectedLog.description || selectedLog.subject_type?.split("\\").pop() || "-"}
                   </strong>
                 </div>
                 <div>
                   <span className="text-gray-500">Causer:</span>{" "}
                   <strong className="text-gray-800 dark:text-gray-200">
-                    {adminMap.get(selectedLog.causer_id) || `User #${selectedLog.causer_id}`}
+                    {adminMap.get(selectedLog.causer_id) || "-"}
                   </strong>
                 </div>
                 <div>

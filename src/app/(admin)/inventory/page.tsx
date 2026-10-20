@@ -456,15 +456,15 @@ export default function InventoryPage() {
     if (inventoryItem) return `${inventoryItem.name} (${inventoryItem.code})`;
     if (category === "food") {
       const food = foodsData?.data.find((f) => f.id === id);
-      return food ? `${food.name} (${food.code})` : `Food #${id}`;
+      return food ? `${food.name} (${food.code})` : "-";
     }
     if (category === "medicine") {
       const med = medicinesData?.data.find((m) => m.id === id);
-      return med ? `${med.name} (${med.code})` : `Medicine #${id}`;
+      return med ? `${med.name} (${med.code})` : "-";
     }
     if (category === "animal") {
       const animal = animalsData?.data.find((a) => a.id === id);
-      return animal ? `${animal.name} (${animal.code})` : `Animal #${id}`;
+      return animal ? `${animal.name} (${animal.code})` : "-";
     }
     if (category === "equipment") {
       const eq = equipmentData?.data.find((e) => e.id === id);
@@ -474,7 +474,7 @@ export default function InventoryPage() {
     if (food) return `${food.name} (${food.code})`;
     const med = medicinesData?.data.find((m) => m.id === id);
     if (med) return `${med.name} (${med.code})`;
-    return `Item #${id}`;
+    return "-";
   };
 
   return (
@@ -553,9 +553,9 @@ export default function InventoryPage() {
                   key={item.id}
                   item={item}
                   index={index}
-                  branchName={branchMap.get(item.branch_id) || `Branch #${item.branch_id}`}
+                  branchName={branchMap.get(item.branch_id) || "-"}
                   inventoryName={
-                    inventoryMap.get(item.inventory_id) || `Warehouse #${item.inventory_id}`
+                    inventoryMap.get(item.inventory_id) || "-"
                   }
                   onShow={() => showSavedResponse("adjustment", item.id, item)}
                   onUpdate={() => openFormAction("update", item)}
@@ -619,19 +619,18 @@ export default function InventoryPage() {
                     </span>
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-300">
-                    {inventoryMap.get(Number(item.inventory_id)) ||
-                      `Warehouse #${item.inventory_id}`}
+                    {inventoryMap.get(Number(item.inventory_id)) || "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
                     {formatValue(item.location)}
                   </TableCell>
                   {["opening_quantity", "in_quantity", "out_quantity", "closing_quantity"].map((key) => <TableCell key={key} className="px-5 py-3.5 text-right text-sm tabular-nums">{formatValue(item[key])}</TableCell>)}
-                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || formatValue(item.stock_uom_id)}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-sm">{uoms.find((uom) => uom.id === Number(item.stock_uom_id))?.symbol || "-"}</TableCell>
                   <TableCell className="px-5 py-3.5 text-right text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                     {formatValue(item.available_quantity)}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                    {item.stock_lot_id ? `Lot #${item.stock_lot_id}` : "-"}
+                    {item.stock_lot_id ? String((item.stock_lot as Record<string, unknown> | undefined)?.receipt_lot_number || (item.stock_lot as Record<string, unknown> | undefined)?.lot_number || "-") : "-"}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <TableActionButton
@@ -696,8 +695,7 @@ export default function InventoryPage() {
                     </span>
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                    {String(item.source_type || "").replace(/_/g, " ")} #
-                    {formatValue(item.source_id)}
+                    {String(item.source_type || "Source transaction").replace(/_/g, " ")}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                     {getItemLabel(String(item.category || ""), item.item_id as number)}
@@ -766,7 +764,7 @@ export default function InventoryPage() {
                     {item.confirmation_number}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                    {item.source_type?.replace(/_/g, " ")} #{item.source_id}
+                    {String(item.source_type || item.source_module || "Source transaction").replace(/_/g, " ")}
                   </TableCell>
                   <TableCell className="px-5 py-3.5 text-sm">
                     <span

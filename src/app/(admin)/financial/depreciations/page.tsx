@@ -463,7 +463,7 @@ export default function DepreciationsPage() {
                       {record.start_date}
                     </TableCell>
                     <TableCell className="min-w-36 px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                      {record.cashbook?.name ?? `#${record.cashbook_id}`}
+                      {record.cashbook?.name ?? "-"}
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span
@@ -687,7 +687,7 @@ export default function DepreciationsPage() {
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">
                   {selected.reference} ·{" "}
-                  {selected.cashbook?.name ?? `Cashbook #${selected.cashbook_id}`}
+                  {selected.cashbook?.name ?? "-"}
                 </p>
               </div>
               <span
@@ -833,7 +833,7 @@ export default function DepreciationsPage() {
               </h2>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {verificationRecord.asset_name} · {verificationRecord.reference} ·{" "}
-                {verificationRecord.cashbook?.name ?? `Cashbook #${verificationRecord.cashbook_id}`}
+                {verificationRecord.cashbook?.name ?? "-"}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

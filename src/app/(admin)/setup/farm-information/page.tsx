@@ -17,6 +17,7 @@ import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
+import Select from "@/components/form/Select";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Home } from "lucide-react";
@@ -39,18 +40,22 @@ export default function FarmInformationPage() {
 
   const [form, setForm] = useState<FarmInformationPayload>({
     name: "",
-    branch_id: 1,
+    branch_id: 0,
     house_barn: "",
     pen_cage_pond: "",
   });
 
   const { currentData: locationOptions, isFetching: locationsLoading, isError: locationsError } = useGetFarmLocationOptionsQuery(form.branch_id, { skip: !isModalOpen || !form.branch_id, refetchOnMountOrArgChange: true });
+  const barns = locationOptions?.data.barns || [];
+  const pens = locationOptions?.data.pens_cages_ponds || [];
+  const locationsUnavailable = !form.branch_id || !locationOptions || locationsLoading || locationsError;
+  const enterFirstBarn = !locationsUnavailable && barns.length === 0;
+  const enterFirstPen = !locationsUnavailable && pens.length === 0;
   const handleOpenAdd = () => {
-    const defaultBranchId = branches[0]?.id || 1;
     setEditingItem(null);
     setForm({
       name: "",
-      branch_id: defaultBranchId,
+      branch_id: 0,
       house_barn: "",
       pen_cage_pond: "",
     });
@@ -61,7 +66,7 @@ export default function FarmInformationPage() {
     setEditingItem(item);
     setForm({
       name: item.name,
-      branch_id: item.branch_id || 1,
+      branch_id: item.branch_id || 0,
       house_barn: item.house_barn || "",
       pen_cage_pond: item.pen_cage_pond || "",
     });
@@ -70,13 +75,14 @@ export default function FarmInformationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (locationsLoading || locationsError || !locationOptions?.data.barns.includes(form.house_barn) || !locationOptions?.data.pens_cages_ponds.includes(form.pen_cage_pond)) { toast.error("Select valid locations for this branch"); return; }
+    const payload = { ...form, house_barn: form.house_barn.trim(), pen_cage_pond: form.pen_cage_pond.trim() };
+    if (locationsUnavailable || !payload.house_barn || !payload.pen_cage_pond || (barns.length > 0 && !barns.includes(payload.house_barn)) || (pens.length > 0 && !pens.includes(payload.pen_cage_pond))) { toast.error("Enter or select valid locations for this branch"); return; }
     try {
       if (editingItem) {
-        await updateFarmInfo({ id: editingItem.id, body: form }).unwrap();
+        await updateFarmInfo({ id: editingItem.id, body: payload }).unwrap();
         toast.success("Farm location updated successfully");
       } else {
-        await createFarmInfo(form).unwrap();
+        await createFarmInfo(payload).unwrap();
         toast.success("Farm location created successfully");
       }
       setIsModalOpen(false);
@@ -164,7 +170,7 @@ export default function FarmInformationPage() {
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{index + 1}</TableCell>
                     <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-700 dark:text-gray-300 font-medium text-sm">
-                      {branches.find((b) => b.id === item.branch_id)?.name || item.branch?.name || `Branch #${item.branch_id}`}
+                      {branches.find((b) => b.id === item.branch_id)?.name || item.branch?.name || "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.house_barn || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.pen_cage_pond || "-"}</TableCell>
@@ -206,15 +212,13 @@ export default function FarmInformationPage() {
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Branch *
               </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                value={form.branch_id}
+              <Select
+                required
+                placeholder="Select branch"
+                value={form.branch_id || ""}
                 onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value), house_barn: "", pen_cage_pond: "" })}
-              >
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
-                ))}
-              </select>
+                options={branches.map((branch) => ({ value: String(branch.id), label: `${branch.name} (${branch.code})` }))}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -222,14 +226,28 @@ export default function FarmInformationPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   House / Barn *
                 </label>
-                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.house_barn || ""} onChange={(event) => setForm({ ...form, house_barn: event.target.value, pen_cage_pond: "" })}><option value="">Select location</option>{locationOptions?.data.barns.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                {enterFirstBarn ? (
+                  <>
+                    <Input required maxLength={255} placeholder="Enter first house / barn" value={form.house_barn} onChange={(event) => setForm({ ...form, house_barn: event.target.value })} />
+                    <p className="mt-1 text-xs text-gray-500">No houses or barns exist for this branch. Enter the first one.</p>
+                  </>
+                ) : (
+                  <Select required disabled={locationsUnavailable} placeholder={!form.branch_id ? "Select branch first" : locationsLoading ? "Loading locations..." : "Select house / barn"} value={form.house_barn} options={barns.map((value) => ({ value, label: value }))} onChange={(event) => setForm({ ...form, house_barn: event.target.value, pen_cage_pond: "" })} />
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Pen / Cage / Pond *
                 </label>
-                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" required disabled={locationsLoading || locationsError} value={form.pen_cage_pond || ""} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })}><option value="">Select location</option>{locationOptions?.data.pens_cages_ponds.map((value) => <option key={value} value={value}>{value}</option>)}</select>
+                {enterFirstPen ? (
+                  <>
+                    <Input required maxLength={255} placeholder="Enter first pen / cage / pond" value={form.pen_cage_pond} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })} />
+                    <p className="mt-1 text-xs text-gray-500">No pens, cages or ponds exist for this branch. Enter the first one.</p>
+                  </>
+                ) : (
+                  <Select required disabled={locationsUnavailable} placeholder={!form.branch_id ? "Select branch first" : locationsLoading ? "Loading locations..." : "Select pen / cage / pond"} value={form.pen_cage_pond} options={pens.map((value) => ({ value, label: value }))} onChange={(event) => setForm({ ...form, pen_cage_pond: event.target.value })} />
+                )}
               </div>
             </div>
 
@@ -238,7 +256,7 @@ export default function FarmInformationPage() {
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isCreating || isUpdating || locationsLoading || locationsError}>
+              <Button type="submit" size="sm" disabled={isCreating || isUpdating || locationsUnavailable}>
                 {isCreating || isUpdating ? "Saving..." : editingItem ? "Update Housing" : "Create Housing"}
               </Button>
             </div>

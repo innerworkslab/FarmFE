@@ -532,7 +532,7 @@ export default function FarmFeedingsPage() {
                       </TableCell>
                       <TableCell className="px-5 py-3.5 text-sm">
                         <p className="font-medium text-gray-700 dark:text-gray-300">
-                          {item.farm?.name || `Farm #${item.farm_information_id}`}
+                          {item.farm?.name || farms?.data?.find((farm) => farm.id === item.farm_information_id)?.name || "-"}
                         </p>
                         <p className="text-xs text-gray-500">
                           {item.target?.animal_type || "Animal"} ·{" "}
@@ -545,7 +545,7 @@ export default function FarmFeedingsPage() {
                         <span className="text-xs">{item.feeding_time}</span>
                       </TableCell>
                       <TableCell className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-300">
-                        {line?.food?.name || `Food #${line?.food_item_id || "-"}`}
+                        {line?.food?.name || foods?.data.find((food) => food.id === line?.food_item_id)?.name || "-"}
                       </TableCell>
                       <TableCell className="px-5 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">
                         {value(item.totals?.quantity)}
@@ -661,7 +661,7 @@ export default function FarmFeedingsPage() {
         onClose={() => setReverseTarget(null)}
         onReject={reverse}
       />
-      <FeedingDetail item={detail} loading={showState.isFetching} onClose={() => setDetail(null)} />
+      <FeedingDetail item={detail} loading={showState.isFetching} foods={foods?.data || []} inventories={inventories?.data || []} uoms={uoms?.data || []} onClose={() => setDetail(null)} />
     </div>
   );
 }
@@ -886,10 +886,16 @@ function RejectModal({
 function FeedingDetail({
   item,
   loading,
+  foods,
+  inventories,
+  uoms,
   onClose,
 }: {
   item: FarmFeeding | null;
   loading: boolean;
+  foods: { id: number; name?: string; item_name?: string }[];
+  inventories: { id: number; name: string }[];
+  uoms: { id: number; symbol: string }[];
   onClose: () => void;
 }) {
   const fields = item
@@ -905,7 +911,7 @@ function FeedingDetail({
         ["Time", item.feeding_time],
         ["Total Quantity", item.totals?.quantity],
         ["Wastage", item.totals?.wastage_quantity],
-        ["Posting Batch", item.posting_batch_id],
+        ["Inventory posting", item.posting_batch_id ? "Posted to inventory" : "Not posted"],
         ["Confirmation", item.confirmation?.confirmation_number],
         ["Rejection Reason", item.rejection_reason],
         ["Notes", item.notes],
@@ -958,13 +964,13 @@ function FeedingDetail({
                     {item?.lines?.map((line) => (
                       <TableRow key={line.id}>
                         <TableCell className="px-4 py-3 text-sm">
-                          {line.food?.name || `Food #${line.food_item_id}`}
+                          {line.food?.name || foods.find((food) => food.id === line.food_item_id)?.name || foods.find((food) => food.id === line.food_item_id)?.item_name || "-"}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-gray-500">
-                          {line.stock_lot?.receipt_lot_number || `#${line.stock_lot_id}`}
+                          {line.stock_lot?.receipt_lot_number || "-"}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-gray-500">
-                          #{line.inventory_id}
+                          {inventories.find((inventory) => inventory.id === line.inventory_id)?.name || "-"}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-right text-sm tabular-nums">
                           {line.quantity}
@@ -973,7 +979,7 @@ function FeedingDetail({
                           {line.wastage_quantity}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-gray-500">
-                          #{line.stock_uom_id}
+                          {uoms.find((uom) => uom.id === line.stock_uom_id)?.symbol || "-"}
                         </TableCell>
                       </TableRow>
                     ))}
