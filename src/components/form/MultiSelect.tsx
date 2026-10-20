@@ -8,6 +8,7 @@ interface Option {
 
 interface MultiSelectProps {
   label: string;
+  required?: boolean;
   options: Option[];
   defaultSelected?: string[];
   selectedValues?: string[];
@@ -17,6 +18,7 @@ interface MultiSelectProps {
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
   label,
+  required = false,
   options,
   defaultSelected = [],
   selectedValues,
@@ -62,6 +64,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     <div className="w-full">
       <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
         {label}
+        {required && <span className="text-red-500 dark:text-red-400"> *</span>}
       </label>
 
       <div className="relative z-20 inline-block w-full">

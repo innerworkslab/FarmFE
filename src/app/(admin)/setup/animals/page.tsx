@@ -246,7 +246,7 @@ export default function AnimalsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Animal Code *
+                  Animal Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -258,7 +258,7 @@ export default function AnimalsPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Name / Batch Title *
+                  Name / Batch Title <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -273,7 +273,7 @@ export default function AnimalsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Type *
+                  Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -298,7 +298,7 @@ export default function AnimalsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category *
+                  Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -330,7 +330,7 @@ export default function AnimalsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Gender *
+                  Gender <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -347,7 +347,7 @@ export default function AnimalsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Tracking Type *
+                  Tracking Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -362,7 +362,7 @@ export default function AnimalsPage() {
               {form.tracking_type === "individual" ? (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Ear Tag / RFID Number *
+                    Ear Tag / RFID Number <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <Input
                     type="text"

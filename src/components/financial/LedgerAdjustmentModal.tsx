@@ -137,7 +137,7 @@ export default function LedgerAdjustmentModal({
             </p>
             <fieldset disabled={isSaving} className="space-y-4">
               <label className="block text-sm text-gray-700 dark:text-gray-300">
-                Branch *
+                Branch <span className="text-red-500 dark:text-red-400">*</span>
                 <select
                   required
                   className="mt-1.5 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 dark:border-gray-700 dark:bg-gray-900"
@@ -154,7 +154,7 @@ export default function LedgerAdjustmentModal({
               </label>
               <fieldset>
                 <legend className="mb-2 text-sm text-gray-700 dark:text-gray-300">
-                  Adjustment *
+                  Adjustment <span className="text-red-500 dark:text-red-400">*</span>
                 </legend>
                 <div className="grid grid-cols-2 gap-3">
                   {(["increase", "decrease"] as const).map((value) => (
@@ -181,7 +181,7 @@ export default function LedgerAdjustmentModal({
                 </div>
               </fieldset>
               <label className="block text-sm text-gray-700 dark:text-gray-300">
-                Amount *
+                Amount <span className="text-red-500 dark:text-red-400">*</span>
                 <Input
                   required
                   type="number"
@@ -194,7 +194,7 @@ export default function LedgerAdjustmentModal({
               </label>
               {kind === "supplier" && (
                 <label className="block text-sm text-gray-700 dark:text-gray-300">
-                  Currency *
+                  Currency <span className="text-red-500 dark:text-red-400">*</span>
                   <Input
                     required
                     value={currency}
@@ -204,7 +204,7 @@ export default function LedgerAdjustmentModal({
                 </label>
               )}
               <label className="block text-sm text-gray-700 dark:text-gray-300">
-                Reason *
+                Reason <span className="text-red-500 dark:text-red-400">*</span>
                 <TextArea
                   required
                   rows={3}

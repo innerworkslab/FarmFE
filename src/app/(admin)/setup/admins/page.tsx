@@ -234,7 +234,7 @@ export default function AdminsPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Full Name *
+                Full Name <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"
@@ -247,7 +247,7 @@ export default function AdminsPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email Address *
+                Email Address <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="email"
@@ -260,7 +260,7 @@ export default function AdminsPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Username *
+                Username <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"
@@ -274,7 +274,7 @@ export default function AdminsPage() {
             {!editingItem && (
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Password *
+                  Password <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="password"

@@ -197,7 +197,7 @@ export default function FarmInformationPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Housing / Name *
+                Housing / Name <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"
@@ -210,7 +210,7 @@ export default function FarmInformationPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Branch *
+                Branch <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Select
                 required
@@ -224,7 +224,7 @@ export default function FarmInformationPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  House / Barn *
+                  House / Barn <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 {enterFirstBarn ? (
                   <>
@@ -238,7 +238,7 @@ export default function FarmInformationPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Pen / Cage / Pond *
+                  Pen / Cage / Pond <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 {enterFirstPen ? (
                   <>

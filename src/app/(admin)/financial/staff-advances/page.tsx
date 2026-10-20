@@ -485,7 +485,7 @@ export default function StaffAdvancesPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
-              <span className={labelClass}>Staff *</span>
+              <span className={labelClass}>Staff <span className="text-red-500 dark:text-red-400">*</span></span>
               <select
                 required
                 disabled={!!editingAdvance}
@@ -502,7 +502,7 @@ export default function StaffAdvancesPage() {
               </select>
             </label>
             <label>
-              <span className={labelClass}>Principal amount *</span>
+              <span className={labelClass}>Principal amount <span className="text-red-500 dark:text-red-400">*</span></span>
               <Input
                 required
                 type="number"
@@ -517,7 +517,7 @@ export default function StaffAdvancesPage() {
             {!editingAdvance && (
               <>
                 <label>
-                  <span className={labelClass}>Business date *</span>
+                  <span className={labelClass}>Business date <span className="text-red-500 dark:text-red-400">*</span></span>
                   <DatePicker
                     id="staff-advance-business-date"
                     defaultDate={advanceForm.business_date}
@@ -527,7 +527,7 @@ export default function StaffAdvancesPage() {
                   />
                 </label>
                 <label>
-                  <span className={labelClass}>Cashbook *</span>
+                  <span className={labelClass}>Cashbook <span className="text-red-500 dark:text-red-400">*</span></span>
                   <select
                     required
                     className={inputClass}
@@ -545,7 +545,7 @@ export default function StaffAdvancesPage() {
                   </select>
                 </label>
                 <label>
-                  <span className={labelClass}>Cash out category *</span>
+                  <span className={labelClass}>Cash out category <span className="text-red-500 dark:text-red-400">*</span></span>
                   <select
                     required
                     className={inputClass}
@@ -565,7 +565,7 @@ export default function StaffAdvancesPage() {
               </>
             )}
             <label className="sm:col-span-2">
-              <span className={labelClass}>Description *</span>
+              <span className={labelClass}>Description <span className="text-red-500 dark:text-red-400">*</span></span>
               <Input
                 required
                 value={advanceForm.description}
@@ -760,7 +760,7 @@ export default function StaffAdvancesPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
-              <span className={labelClass}>Amount *</span>
+              <span className={labelClass}>Amount <span className="text-red-500 dark:text-red-400">*</span></span>
               <Input
                 required
                 type="number"
@@ -773,7 +773,7 @@ export default function StaffAdvancesPage() {
             {!editingRepayment && (
               <>
                 <label>
-                  <span className={labelClass}>Business date *</span>
+                  <span className={labelClass}>Business date <span className="text-red-500 dark:text-red-400">*</span></span>
                   <DatePicker
                     id="staff-repayment-business-date"
                     defaultDate={repaymentForm.business_date}
@@ -783,7 +783,7 @@ export default function StaffAdvancesPage() {
                   />
                 </label>
                 <label>
-                  <span className={labelClass}>Cashbook *</span>
+                  <span className={labelClass}>Cashbook <span className="text-red-500 dark:text-red-400">*</span></span>
                   <select
                     required
                     className={inputClass}
@@ -801,7 +801,7 @@ export default function StaffAdvancesPage() {
                   </select>
                 </label>
                 <label>
-                  <span className={labelClass}>Cash in category *</span>
+                  <span className={labelClass}>Cash in category <span className="text-red-500 dark:text-red-400">*</span></span>
                   <select
                     required
                     className={inputClass}
@@ -830,7 +830,7 @@ export default function StaffAdvancesPage() {
               </>
             )}
             <label className="sm:col-span-2">
-              <span className={labelClass}>Description *</span>
+              <span className={labelClass}>Description <span className="text-red-500 dark:text-red-400">*</span></span>
               <Input
                 required
                 value={repaymentForm.description}
@@ -903,7 +903,7 @@ export default function StaffAdvancesPage() {
             {reverseTarget?.kind === "cancel" ? "Cancel repayment draft" : "Reverse transaction"}
           </h2>
           <label>
-            <span className={labelClass}>Reason *</span>
+            <span className={labelClass}>Reason <span className="text-red-500 dark:text-red-400">*</span></span>
             <Input
               required
               minLength={3}

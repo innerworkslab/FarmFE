@@ -94,7 +94,7 @@ export default function LoginForm() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <Label>Email or Username *</Label>
+              <Label>Email or Username <span className="text-red-500 dark:text-red-400">*</span></Label>
               <Input
                 placeholder="e.g. superadmin@example.com"
                 type="text"

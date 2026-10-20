@@ -254,7 +254,7 @@ export default function MedicinesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Medicine Code *
+                  Medicine Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -266,7 +266,7 @@ export default function MedicinesPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Medicine Name *
+                  Medicine Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -281,7 +281,7 @@ export default function MedicinesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Medicine Type *
+                  Medicine Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -298,7 +298,7 @@ export default function MedicinesPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Administration Category *
+                  Administration Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"

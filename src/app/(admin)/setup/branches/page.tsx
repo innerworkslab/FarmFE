@@ -215,7 +215,7 @@ export default function BranchesPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Branch Code *
+                Branch Code <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"
@@ -228,7 +228,7 @@ export default function BranchesPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Branch Name *
+                Branch Name <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"
@@ -241,7 +241,7 @@ export default function BranchesPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Phone Number *
+                Phone Number <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"

@@ -284,7 +284,7 @@ export default function EquipmentPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Code *
+                  Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -296,7 +296,7 @@ export default function EquipmentPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Equipment Name *
+                  Equipment Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -311,7 +311,7 @@ export default function EquipmentPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category *
+                  Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -329,7 +329,7 @@ export default function EquipmentPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Purchase Cost *
+                  Purchase Cost <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="number"
@@ -344,7 +344,7 @@ export default function EquipmentPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Brand *
+                  Brand <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -356,7 +356,7 @@ export default function EquipmentPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Model *
+                  Model <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"

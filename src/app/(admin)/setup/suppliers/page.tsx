@@ -259,7 +259,7 @@ export default function SuppliersPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Supplier Code *
+                  Supplier Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -271,7 +271,7 @@ export default function SuppliersPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Supplier Name *
+                  Supplier Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -286,7 +286,8 @@ export default function SuppliersPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <MultiSelect
-                  label="Supplier Type *"
+                  label="Supplier Type"
+                  required
                   options={["food", "medicine", "animal", "equipment", "service"].map((type) => ({
                     value: type,
                     text: type.charAt(0).toUpperCase() + type.slice(1),
@@ -299,7 +300,7 @@ export default function SuppliersPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number *
+                  Phone Number <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -334,7 +335,7 @@ export default function SuppliersPage() {
                 <Input type="number" min="0" step="any" disabled={!!editingItem} value={form.opening_balance} onChange={(event) => setForm({ ...form, opening_balance: event.target.value })} />
               </label>
               <label className="text-sm">
-                Opening Currency *
+                Opening Currency <span className="text-red-500 dark:text-red-400">*</span>
                 <Input required maxLength={3} pattern="[A-Z]{3}" value={form.opening_balance_currency_code || ""} disabled={!!editingItem} onChange={(event) => setForm({ ...form, opening_balance_currency_code: event.target.value.toUpperCase() })} />
               </label>
             </div>

@@ -178,7 +178,7 @@ export default function AssetCategoriesPage() {
           </div>
           <label className="block">
             <span className="mb-1.5 block text-xs font-semibold text-gray-600 dark:text-gray-300">
-              Name *
+              Name <span className="text-red-500 dark:text-red-400">*</span>
             </span>
             <input
               required

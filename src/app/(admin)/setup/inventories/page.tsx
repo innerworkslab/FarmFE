@@ -263,7 +263,7 @@ export default function InventoriesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Warehouse Code *
+                  Warehouse Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -275,7 +275,7 @@ export default function InventoriesPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Warehouse Name *
+                  Warehouse Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -290,7 +290,7 @@ export default function InventoriesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Inventory Type *
+                  Inventory Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -306,7 +306,7 @@ export default function InventoriesPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Branch *
+                  Branch <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -322,7 +322,7 @@ export default function InventoriesPage() {
 
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Physical Address *
+                Physical Address <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <Input
                 type="text"

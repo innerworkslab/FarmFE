@@ -268,7 +268,7 @@ export default function CustomersPage() {
               {editingItem && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Customer Code *
+                    Customer Code <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <Input
                     type="text"
@@ -281,7 +281,7 @@ export default function CustomersPage() {
               )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Customer Name *
+                  Customer Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -296,7 +296,7 @@ export default function CustomersPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Customer Type *
+                  Customer Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
@@ -310,7 +310,7 @@ export default function CustomersPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number *
+                  Phone Number <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"

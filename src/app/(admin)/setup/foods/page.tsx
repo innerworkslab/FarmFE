@@ -331,7 +331,7 @@ export default function FoodsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Code *
+                  Code <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -343,7 +343,7 @@ export default function FoodsPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Food Name *
+                  Food Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Input
                   type="text"
@@ -358,7 +358,7 @@ export default function FoodsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category *
+                  Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <Select
                   value={form.category}
@@ -415,7 +415,7 @@ export default function FoodsPage() {
               </div>
               <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
                 <label htmlFor="food-unit-conversion" className="mb-2 block text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                  Purchase → base conversion *
+                  Purchase → base conversion <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-100">
                   <span>1 {uoms.find((unit) => unit.id === form.purchase_uom_id)?.name || "purchase unit"}</span>
@@ -439,7 +439,7 @@ export default function FoodsPage() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                <span className="mb-1 block">Purchase Price *</span>
+                <span className="mb-1 block">Purchase Price <span className="text-red-500 dark:text-red-400">*</span></span>
                 <Input
                   type="number"
                   required

@@ -570,7 +570,7 @@ export default function DepreciationsPage() {
               ] as const
             ).map(([label, key, type]) => (
               <label key={key}>
-                <span className={labelClass}>{label} *</span>
+                <span className={labelClass}>{label} <span className="text-red-500 dark:text-red-400">*</span></span>
                 <input
                   required
                   min={type === "number" ? "0.01" : undefined}
@@ -583,7 +583,7 @@ export default function DepreciationsPage() {
               </label>
             ))}
             <div>
-              <span className={labelClass}>Start date *</span>
+              <span className={labelClass}>Start date <span className="text-red-500 dark:text-red-400">*</span></span>
               <DatePicker
                 id="depreciation-start-date"
                 defaultDate={form.start_date}
@@ -592,7 +592,7 @@ export default function DepreciationsPage() {
             </div>
             <label>
               <span className="mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
-                Asset category *
+                Asset category <span className="text-red-500 dark:text-red-400">*</span>
                 <Link
                   href="/financial/asset-categories"
                   className="font-medium text-brand-600 hover:underline dark:text-brand-400"
@@ -615,7 +615,7 @@ export default function DepreciationsPage() {
               </select>
             </label>
             <label>
-              <span className={labelClass}>Cashbook *</span>
+              <span className={labelClass}>Cashbook <span className="text-red-500 dark:text-red-400">*</span></span>
               <select
                 required
                 className={inputClass}
@@ -631,7 +631,7 @@ export default function DepreciationsPage() {
               </select>
             </label>
             <label>
-              <span className={labelClass}>Cash-out category *</span>
+              <span className={labelClass}>Cash-out category <span className="text-red-500 dark:text-red-400">*</span></span>
               <select
                 required
                 className={inputClass}
@@ -1101,7 +1101,7 @@ export default function DepreciationsPage() {
             </p>
           </div>
           <label>
-            <span className={labelClass}>Reason *</span>
+            <span className={labelClass}>Reason <span className="text-red-500 dark:text-red-400">*</span></span>
             <textarea
               required
               autoFocus

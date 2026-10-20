@@ -1261,7 +1261,7 @@ function Field({
     <label className="block">
       <span className={labelClass}>
         {label}
-        {required ? " *" : ""}
+        {required && <span className="text-red-500 dark:text-red-400"> *</span>}
       </span>
       {children}
     </label>
