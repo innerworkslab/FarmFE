@@ -672,7 +672,7 @@ export default function PurchasingPage() {
           const source = invoice.lines?.find((item) => item.id === line.purchase_invoice_line_id);
           if (!source) { sourceErrors[`lines.${lineIndex}.purchase_invoice_line_id`] = "Select an item from this invoice."; continue; }
           if (["food", "medicine"].includes(source.category || "") && !line.receipt_lot_number?.trim()) sourceErrors[`lines.${lineIndex}.receipt_lot_number`] = "Receipt lot number is required for food and medicine receipts.";
-          if (source.category === "medicine" && line.cold_chain_required && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) sourceErrors[`lines.${lineIndex}.cold_chain_status`] = "Cold-chain status is required when cold chain is enabled.";
+          if (source.category === "medicine" && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) sourceErrors[`lines.${lineIndex}.cold_chain_status`] = "Select a cold-chain status for medicine receipts.";
           const inventoryItem = inventoryItems.find((item) => item.id === source.item_id && item.category === source.category);
           if (inventoryItem?.expiry_tracking && !line.expiry_date) sourceErrors[`lines.${lineIndex}.expiry_date`] = "Expiry date is required for this item.";
           const remaining = Number(source.remaining_quantity ?? Math.max(0, Number(source.quantity) - Number(source.received_quantity || 0)));
@@ -1693,6 +1693,7 @@ function PurchasingActionModal({
             {[[activeReceiptLine, activeReceiptLineIndex] as const].map(([receiptForm, lineIndex]) => {
               const selectedLine = receiptLines.find((line) => String(line.id) === receiptForm.purchase_invoice_line_id);
               const selectedItem = invoiceItems.find((item) => item.id === selectedLine?.item_id && item.category === selectedLine?.category);
+              const coldChainStatusRequired = selectedLine?.category === "medicine";
               const receiptLineError = (field: string) => localReceiptFieldErrors[field] || receiptFieldErrors[`lines.${lineIndex}.${field}`];
               const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => {
                 const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity", "target_inventory_id", "target_location"] : [])];
@@ -1700,7 +1701,7 @@ function PurchasingActionModal({
                 setLocalReceiptFieldErrors((errors) => { const next = { ...errors }; clearedKeys.forEach((field) => delete next[field]); return next; });
                 onReceiptChange((current) => {
                 const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
-                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}), ...(key === "cold_chain_required" && value === false ? { cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
+                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: String(selected.target_inventory_id || ""), target_location: selected.target_location || "" } : {}), ...(key === "cold_chain_required" && value === false ? { ...(!coldChainStatusRequired ? { cold_chain_status: "" } : {}), observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
                 return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
                 });
               };
@@ -1796,9 +1797,9 @@ function PurchasingActionModal({
                   />
                   Cold chain required
                 </label>
-                {receiptForm.cold_chain_required && (
+                {(receiptForm.cold_chain_required || coldChainStatusRequired) && (
                   <>
-                    <FormField label="Cold Chain Status" required error={receiptLineError("cold_chain_status")}>
+                    <FormField label="Cold Chain Status" required={receiptForm.cold_chain_required || coldChainStatusRequired} error={receiptLineError("cold_chain_status")}>
                       <Select
                         value={receiptForm.cold_chain_status}
                         onChange={(event) => setReceiptField("cold_chain_status", event.target.value)}
@@ -1851,7 +1852,7 @@ function PurchasingActionModal({
               if (receiptLinesInForm.some((line, index) => index !== activeReceiptLineIndex && line.purchase_invoice_line_id === activeReceiptLine.purchase_invoice_line_id && activeReceiptLine.purchase_invoice_line_id)) errors.purchase_invoice_line_id = "This invoice item is already on the receipt.";
               if (activeSelectedReceiptLine && ["food", "medicine"].includes(activeSelectedReceiptLine.category || "") && !activeReceiptLine.receipt_lot_number.trim()) errors.receipt_lot_number = "Receipt lot number is required for food and medicine.";
               if (activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
-              if (activeReceiptLine.cold_chain_required && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
+              if ((activeReceiptLine.cold_chain_required || activeSelectedReceiptLine?.category === "medicine") && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
               setLocalReceiptFieldErrors(errors);
               if (Object.keys(errors).length) {
                 toast.error("Please fix the highlighted receipt item fields.");
