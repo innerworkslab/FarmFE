@@ -21,6 +21,10 @@ import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Pill } from "lucide-react";
 
+type MedicineForm = Omit<MedicinePayload, "uom_conversion"> & {
+  uom_conversion: string;
+};
+
 export default function MedicinesPage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetMedicinesQuery({ search: search || undefined });
@@ -38,7 +42,7 @@ export default function MedicinesPage() {
   const [editingItem, setEditingItem] = useState<Medicine | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [form, setForm] = useState<MedicinePayload>({
+  const [form, setForm] = useState<MedicineForm>({
     code: "",
     name: "",
     type: "vaccine",
@@ -46,7 +50,7 @@ export default function MedicinesPage() {
     usage_uom_id: 1,
     stock_uom_id: 1,
     purchase_uom_id: 1,
-    uom_conversion: 1,
+    uom_conversion: "1",
     batch_tracking: true,
     cold_chain_required: false,
     expiry_tracking: true,
@@ -64,7 +68,7 @@ export default function MedicinesPage() {
       usage_uom_id: defaultUomId,
       stock_uom_id: defaultUomId,
       purchase_uom_id: defaultUomId,
-      uom_conversion: 1,
+      uom_conversion: "1",
       batch_tracking: true,
       cold_chain_required: false,
       expiry_tracking: true,
@@ -83,7 +87,7 @@ export default function MedicinesPage() {
       usage_uom_id: item.usage_uom_id || 1,
       stock_uom_id: item.stock_uom_id || 1,
       purchase_uom_id: item.purchase_uom_id || 1,
-      uom_conversion: Number(item.uom_conversion || 1),
+      uom_conversion: String(item.uom_conversion ?? 1),
       batch_tracking: !!item.batch_tracking,
       cold_chain_required: !!item.cold_chain_required,
       expiry_tracking: !!item.expiry_tracking,
@@ -94,12 +98,16 @@ export default function MedicinesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload: MedicinePayload = {
+      ...form,
+      uom_conversion: Number(form.uom_conversion),
+    };
     try {
       if (editingItem) {
-        await updateMedicine({ id: editingItem.id, ...form }).unwrap();
+        await updateMedicine({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Medicine updated successfully");
       } else {
-        await createMedicine(form).unwrap();
+        await createMedicine(payload).unwrap();
         toast.success("Medicine created successfully");
       }
       setIsModalOpen(false);
@@ -359,7 +367,7 @@ export default function MedicinesPage() {
               <Input
                 type="number"
                 value={form.uom_conversion}
-                onChange={(e) => setForm({ ...form, uom_conversion: Number(e.target.value) })}
+                onChange={(e) => setForm({ ...form, uom_conversion: e.target.value })}
               />
             </div>
 

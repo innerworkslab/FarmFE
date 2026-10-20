@@ -23,6 +23,11 @@ import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wheat } from "lucide-react";
 
+type FoodForm = Omit<FoodPayload, "purchase_price" | "uom_conversion"> & {
+  purchase_price: string;
+  uom_conversion: string;
+};
+
 export default function FoodsPage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetFoodsQuery({ search: search || undefined });
@@ -42,13 +47,13 @@ export default function FoodsPage() {
   const [editingItem, setEditingItem] = useState<Food | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [form, setForm] = useState<FoodPayload>({
+  const [form, setForm] = useState<FoodForm>({
     code: "",
     name: "",
     category: "feed",
     target_animal_type: "cattle",
-    purchase_price: 10,
-    uom_conversion: 1,
+    purchase_price: "10",
+    uom_conversion: "1",
     consumption_uom_id: 1,
     purchase_uom_id: 1,
     stock_uom_id: 1,
@@ -66,8 +71,8 @@ export default function FoodsPage() {
       name: "",
       category: "feed",
       target_animal_type: "cattle",
-      purchase_price: 0,
-      uom_conversion: 1,
+      purchase_price: "0",
+      uom_conversion: "1",
       consumption_uom_id: defaultUomId,
       purchase_uom_id: defaultUomId,
       stock_uom_id: defaultUomId,
@@ -86,8 +91,8 @@ export default function FoodsPage() {
       name: item.name,
       category: item.category || "feed",
       target_animal_type: item.target_animal_type || "",
-      purchase_price: Number(item.purchase_price || 0),
-      uom_conversion: Number(item.unit_roles?.conversion_factor || item.uom_conversion || 1),
+      purchase_price: String(item.purchase_price ?? 0),
+      uom_conversion: String(item.unit_roles?.conversion_factor ?? item.uom_conversion ?? 1),
       consumption_uom_id: item.consumption_uom_id || 1,
       purchase_uom_id: item.unit_roles?.conversion_unit.id || item.purchase_uom_id || 1,
       stock_uom_id: item.unit_roles?.base_unit.id || item.stock_uom_id || 1,
@@ -101,12 +106,21 @@ export default function FoodsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.purchase_price === "" || form.uom_conversion === "") {
+      toast.error("Purchase price and purchase to base conversion are required");
+      return;
+    }
+    const payload: FoodPayload = {
+      ...form,
+      purchase_price: Number(form.purchase_price),
+      uom_conversion: Number(form.uom_conversion),
+    };
     try {
       if (editingItem) {
-        await updateFood({ id: editingItem.id, ...form }).unwrap();
+        await updateFood({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Food / Feed updated successfully");
       } else {
-        await createFood(form).unwrap();
+        await createFood(payload).unwrap();
         toast.success("Food / Feed created successfully");
       }
       setIsModalOpen(false);
@@ -415,7 +429,7 @@ export default function FoodsPage() {
                       min="0.000001"
                       step="any"
                       value={form.uom_conversion}
-                      onChange={(event) => setForm({ ...form, uom_conversion: Number(event.target.value) })}
+                      onChange={(event) => setForm({ ...form, uom_conversion: event.target.value })}
                     />
                   </div>
                   <span>{uoms.find((unit) => unit.id === form.stock_uom_id)?.name || "base units"}</span>
@@ -431,7 +445,7 @@ export default function FoodsPage() {
                   required
                   placeholder="0"
                   value={form.purchase_price}
-                  onChange={(event) => setForm({ ...form, purchase_price: Number(event.target.value) })}
+                  onChange={(event) => setForm({ ...form, purchase_price: event.target.value })}
                 />
               </label>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">

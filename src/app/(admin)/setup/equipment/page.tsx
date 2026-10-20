@@ -19,6 +19,10 @@ import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wrench } from "lucide-react";
 
+type EquipmentForm = Omit<EquipmentPayload, "purchase_cost"> & {
+  purchase_cost: string;
+};
+
 export default function EquipmentPage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useGetEquipmentListQuery({ search: search || undefined });
@@ -35,13 +39,13 @@ export default function EquipmentPage() {
   const [editingItem, setEditingItem] = useState<Equipment | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [form, setForm] = useState<EquipmentPayload>({
+  const [form, setForm] = useState<EquipmentForm>({
     code: "",
     name: "",
     category: "weighing",
     brand: "FarmTech",
     model: "PM-100",
-    purchase_cost: 1000,
+    purchase_cost: "1000",
     serial_number: "",
     manufacturer: "",
     supplier_id: null,
@@ -55,7 +59,7 @@ export default function EquipmentPage() {
       category: "weighing",
       brand: "",
       model: "",
-      purchase_cost: 0,
+      purchase_cost: "0",
       serial_number: "",
       manufacturer: "",
       supplier_id: null,
@@ -71,7 +75,7 @@ export default function EquipmentPage() {
       category: item.category || "weighing",
       brand: item.brand || "",
       model: item.model || "",
-      purchase_cost: Number(item.purchase_cost || 0),
+      purchase_cost: String(item.purchase_cost ?? 0),
       serial_number: item.serial_number || "",
       manufacturer: item.manufacturer || "",
       supplier_id: item.supplier_id || null,
@@ -81,12 +85,20 @@ export default function EquipmentPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.purchase_cost === "") {
+      toast.error("Purchase cost is required");
+      return;
+    }
+    const payload: EquipmentPayload = {
+      ...form,
+      purchase_cost: Number(form.purchase_cost),
+    };
     try {
       if (editingItem) {
-        await updateEquipment({ id: editingItem.id, body: form }).unwrap();
+        await updateEquipment({ id: editingItem.id, body: payload }).unwrap();
         toast.success("Equipment updated successfully");
       } else {
-        await createEquipment(form).unwrap();
+        await createEquipment(payload).unwrap();
         toast.success("Equipment created successfully");
       }
       setIsModalOpen(false);
@@ -324,7 +336,7 @@ export default function EquipmentPage() {
                   required
                   placeholder="0"
                   value={form.purchase_cost}
-                  onChange={(e) => setForm({ ...form, purchase_cost: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, purchase_cost: e.target.value })}
                 />
               </div>
             </div>
