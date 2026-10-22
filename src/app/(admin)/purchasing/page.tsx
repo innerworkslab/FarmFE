@@ -1339,6 +1339,7 @@ function PurchasingActionModal({
     })
     .filter((line): line is NonNullable<typeof line> => line !== null);
   const invoiceLines = [invoiceForm, ...(invoiceForm.additionalLines || [])];
+  const invoiceBranchId = invoiceForm.branch_id;
   const activeInvoiceLine = invoiceLines[Math.min(activeInvoiceLineIndex, invoiceLines.length - 1)] || invoiceForm;
   const receiptLinesInForm = [receiptForm, ...(receiptForm.additionalLines || [])];
   const activeReceiptLine = receiptLinesInForm[Math.min(activeReceiptLineIndex, receiptLinesInForm.length - 1)] || receiptForm;
@@ -1551,7 +1552,7 @@ function PurchasingActionModal({
                   <Select
                     value={invoiceForm.target_inventory_id}
                     onChange={(e) => setInvoiceField("target_inventory_id", e.target.value)}
-                    options={inventoryOptions.filter((option) => String(option.branch_id) === invoiceForm.branch_id)}
+                    options={inventoryOptions.filter((option) => String(option.branch_id) === invoiceBranchId)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
