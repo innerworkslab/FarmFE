@@ -116,7 +116,7 @@ export default function FarmAnimalViewPage() {
     (filters[key] || []).map((item) => ({ value: item, label: labelize(item) }));
   const farmOptions = farms.map((farm) => ({
     value: String(farm.id),
-    label: [farm.name, farm.branch?.name, farm.house_barn, farm.pen_cage_pond]
+    label: [farm.name, farm.branch?.name, farm.house_barn?.name, farm.pen_cage_pond?.name]
       .filter(Boolean)
       .join(" · "),
   }));

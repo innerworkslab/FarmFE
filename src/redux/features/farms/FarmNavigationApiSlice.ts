@@ -1,3 +1,4 @@
+import type { HouseBarn, PenCagePond } from "../setup/FarmLocationsApiSlice";
 import { farmApi } from "@/redux/services/farmApi";
 import type { FarmAnimalViewRow } from "./FarmAnimalViewApiSlice";
 
@@ -17,8 +18,10 @@ export interface FarmNavigationItem {
   farm_type?: string | null;
   animal_type?: string | null;
   branch?: { id: number; code: string; name: string; status?: string } | null;
-  house_barn?: string | null;
-  pen_cage_pond?: string | null;
+  house_barn_id?: number | null;
+  house_barn?: HouseBarn | null;
+  pen_cage_pond_id?: number | null;
+  pen_cage_pond?: PenCagePond | null;
   animal_count?: number;
   active_batch_count?: number;
   individual_animal_count?: number;

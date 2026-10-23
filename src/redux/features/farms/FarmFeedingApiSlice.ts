@@ -1,3 +1,4 @@
+import type { HouseBarn, PenCagePond } from "../setup/FarmLocationsApiSlice";
 import { farmApi } from "@/redux/services/farmApi";
 
 type QueryValue = string | number | null | undefined;
@@ -59,8 +60,10 @@ export interface FarmFeeding {
   farm?: {
     id: number;
     name: string;
-    house_barn?: string | null;
-    pen_cage_pond?: string | null;
+    house_barn_id?: number | null;
+  house_barn?: HouseBarn | null;
+    pen_cage_pond_id?: number | null;
+  pen_cage_pond?: PenCagePond | null;
   } | null;
   target?: {
     animal_balance_id: number;

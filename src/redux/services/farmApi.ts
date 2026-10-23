@@ -49,6 +49,8 @@ export const farmApi = createApi({
     "activityLogs",
     // Business Masters
     "customers",
+    "myanmarDivisions",
+    "myanmarTownships",
     "suppliers",
     "uoms",
     "foods",
@@ -56,6 +58,7 @@ export const farmApi = createApi({
     "animals",
     "equipment",
     "farmInformation",
+    "farmLocations",
     "inventories",
     // Inventory Foundation
     "inventoryAdjustments",

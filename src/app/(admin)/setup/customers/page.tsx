@@ -7,6 +7,8 @@ import {
   useUpdateCustomerMutation,
   useToggleCustomerStatusMutation,
   useDeleteCustomerMutation,
+  useGetMyanmarDivisionsQuery,
+  useGetMyanmarTownshipsQuery,
   Customer,
   CustomerPayload,
 } from "@/redux/features/setup/CustomerApiSlice";
@@ -36,6 +38,8 @@ export default function CustomersPage() {
   const { data, isLoading, refetch } = useGetCustomersQuery({ search: search || undefined });
 
   const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
+  const { data: divisionsData, isLoading: divisionsLoading, isError: divisionsError, refetch: refetchDivisions } = useGetMyanmarDivisionsQuery();
+  const divisions = divisionsData?.data || [];
   const customers = data?.data || [];
 
   const [createCustomer, { isLoading: isCreating }] = useCreateCustomerMutation();
@@ -58,6 +62,9 @@ export default function CustomersPage() {
     credit_limit: 0,
     status: "active",
   });
+  const selectedDivision = divisions.find((division) => division.name === form.state_region);
+  const { data: townshipsData, isLoading: townshipsLoading, isError: townshipsError, refetch: refetchTownships } = useGetMyanmarTownshipsQuery(selectedDivision?.id ?? 0, { skip: !selectedDivision });
+  const townships = townshipsData?.data || [];
 
   const handleOpenAdd = () => {
     setEditingItem(null);
@@ -67,6 +74,7 @@ export default function CustomersPage() {
       type: "retail",
       phone_number: "",
       state_region: "",
+      township: "",
       opening_balance: 0,
       delivery_address: "",
       credit_limit: 0,
@@ -83,6 +91,7 @@ export default function CustomersPage() {
       type: item.type || "retail",
       phone_number: item.phone_number || "",
       state_region: item.state_region || "",
+      township: item.township || "",
       preferred_branch_id: item.preferred_branch_id || null,
       opening_balance: Number(item.opening_balance || 0),
       delivery_address: item.delivery_address || "",
@@ -327,13 +336,15 @@ export default function CustomersPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   State / Region
                 </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Yangon"
-                  value={form.state_region || ""}
-                  onChange={(e) => setForm({ ...form, state_region: e.target.value })}
-                />
+                <select className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.state_region || ""} onChange={(e) => setForm({ ...form, state_region: e.target.value, township: "" })}>
+                  <option value="">Select State / Region</option>
+                  {form.state_region && !divisions.some((division) => division.name === form.state_region) && <option value={form.state_region}>{form.state_region}</option>}
+                  {divisions.map((division) => <option key={division.id} value={division.name}>{division.name}</option>)}
+                </select>
+                {divisionsLoading && <p className="mt-1 text-xs text-gray-500">Loading states and regions…</p>}
+                {divisionsError && <p role="alert" className="mt-1 text-xs text-red-600">Could not load states and regions. <button type="button" className="underline" onClick={() => void refetchDivisions()}>Retry</button></p>}
               </div>
+              <div><label className="block text-xs mb-1">Township</label><select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800" value={form.township || ""} disabled={!selectedDivision || townshipsLoading || townshipsError} onChange={(event) => setForm({ ...form, township: event.target.value })}><option value="">{!selectedDivision ? "Select State / Region first" : townshipsLoading ? "Loading townships…" : "Select township"}</option>{form.township && !townships.some((township) => township.name === form.township) && <option value={form.township}>{form.township}</option>}{townships.map((township) => <option key={township.id} value={township.name}>{township.name}</option>)}</select>{townshipsError && <p role="alert" className="mt-1 text-xs text-red-600">Could not load townships. <button type="button" className="underline" onClick={() => void refetchTownships()}>Retry</button></p>}</div>
               <div><label className="block text-xs mb-1">Preferred Branch</label><select className="h-11 w-full rounded-lg border px-4 py-2.5" value={form.preferred_branch_id || ""} onChange={(event) => setForm({ ...form, preferred_branch_id: Number(event.target.value) || null })}><option value="">Select branch</option>{branchesData?.data.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></div>
             </div>
 

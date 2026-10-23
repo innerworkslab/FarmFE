@@ -103,6 +103,16 @@ const CANONICAL_PERMISSIONS: { key: string; label: string; group: string }[] = [
   { key: "setup.uoms.update", label: "Update Units of Measure", group: "Masters: UOMs" },
   { key: "setup.uoms.delete", label: "Delete Units of Measure", group: "Masters: UOMs" },
 
+  // Business Masters: Farm Location Masters
+  { key: "setup.house_barns.view", label: "View Houses / Barns", group: "Masters: Houses / Barns" },
+  { key: "setup.house_barns.create", label: "Create Houses / Barns", group: "Masters: Houses / Barns" },
+  { key: "setup.house_barns.update", label: "Update Houses / Barns", group: "Masters: Houses / Barns" },
+  { key: "setup.house_barns.delete", label: "Delete Houses / Barns", group: "Masters: Houses / Barns" },
+  { key: "setup.pen_cage_ponds.view", label: "View Pens / Cages / Ponds", group: "Masters: Pens / Cages / Ponds" },
+  { key: "setup.pen_cage_ponds.create", label: "Create Pens / Cages / Ponds", group: "Masters: Pens / Cages / Ponds" },
+  { key: "setup.pen_cage_ponds.update", label: "Update Pens / Cages / Ponds", group: "Masters: Pens / Cages / Ponds" },
+  { key: "setup.pen_cage_ponds.delete", label: "Delete Pens / Cages / Ponds", group: "Masters: Pens / Cages / Ponds" },
+
   // Business Masters: Farm Housing / Info
   { key: "setup.farm-information.view", label: "View Farm Housing Info", group: "Masters: Farm Information" },
   { key: "setup.farm-information.create", label: "Create Farm Housing Info", group: "Masters: Farm Information" },

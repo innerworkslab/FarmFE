@@ -1,0 +1,233 @@
+{
+  "info": {
+    "_postman_id": "378bab90-cee7-4af5-a782-d042934f0eae",
+    "name": "Livestock ERP Myanmar states and townships API",
+    "description": "Set access_token to an active user's Sanctum token with customer view, create or update permission. Run divisions first, then townships. Selected names can be submitted as state_region and township to the existing customer APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-378bab90-cee7-4af5-a782-d042934f0eae?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "List states and regions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('States and regions returned', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().data).to.have.lengthOf(15); });\nif (pm.response.code === 200) { const division = pm.response.json().data.find(row => row.id === 15); pm.collectionVariables.set('division_id', division.id); pm.collectionVariables.set('state_region', division.name); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/divisions",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "divisions"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "List states and regions",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/divisions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "divisions"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "host",
+              "value": "localhost:8089"
+            },
+            {
+              "key": "connection",
+              "value": "close"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "PHP/8.3.23"
+            },
+            {
+              "key": "cache-control",
+              "value": "no-cache, private"
+            },
+            {
+              "key": "date",
+              "value": "Thu, 22 Oct 2026 16:05:17 GMT"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "vary",
+              "value": "Origin"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Ayeyarwady Region\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Bago Region\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"Chin State\"\n    },\n    {\n      \"id\": 4,\n      \"name\": \"Kachin State\"\n    },\n    {\n      \"id\": 5,\n      \"name\": \"Kayah State\"\n    },\n    {\n      \"id\": 6,\n      \"name\": \"Kayin State\"\n    },\n    {\n      \"id\": 7,\n      \"name\": \"Magway Region\"\n    },\n    {\n      \"id\": 8,\n      \"name\": \"Mandalay Region\"\n    },\n    {\n      \"id\": 9,\n      \"name\": \"Mon State\"\n    },\n    {\n      \"id\": 10,\n      \"name\": \"Naypyidaw Union Territory\"\n    },\n    {\n      \"id\": 11,\n      \"name\": \"Rakhine State\"\n    },\n    {\n      \"id\": 12,\n      \"name\": \"Sagaing Region\"\n    },\n    {\n      \"id\": 13,\n      \"name\": \"Shan State\"\n    },\n    {\n      \"id\": 14,\n      \"name\": \"Tanintharyi Region\"\n    },\n    {\n      \"id\": 15,\n      \"name\": \"Yangon Region\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "List townships in selected state or region",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Townships belong to selected division', () => { pm.response.to.have.status(200); const rows = pm.response.json().data; pm.expect(rows.length).to.be.above(0); rows.forEach(row => pm.expect(row.division_id).to.eql(Number(pm.variables.get('division_id')))); });",
+              "if (pm.response.code === 200 && pm.response.json().data.length) { pm.collectionVariables.set('township', pm.response.json().data[0].name); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/divisions/{{division_id}}/townships",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "divisions",
+            "{{division_id}}",
+            "townships"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "List townships in selected state or region",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup/divisions/{{division_id}}/townships",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "divisions",
+                "{{division_id}}",
+                "townships"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "host",
+              "value": "localhost:8089"
+            },
+            {
+              "key": "connection",
+              "value": "close"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "PHP/8.3.23"
+            },
+            {
+              "key": "cache-control",
+              "value": "no-cache, private"
+            },
+            {
+              "key": "date",
+              "value": "Thu, 22 Oct 2026 16:05:34 GMT"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "vary",
+              "value": "Origin"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"data\": [\n    {\n      \"id\": 29,\n      \"division_id\": 1,\n      \"name\": \"Ahmar\"\n    },\n    {\n      \"id\": 30,\n      \"division_id\": 1,\n      \"name\": \"Bogale\"\n    },\n    {\n      \"id\": 10,\n      \"division_id\": 1,\n      \"name\": \"Danuphyu\"\n    },\n    {\n      \"id\": 31,\n      \"division_id\": 1,\n      \"name\": \"Dedaye\"\n    },\n    {\n      \"id\": 14,\n      \"division_id\": 1,\n      \"name\": \"Einme\"\n    },\n    {\n      \"id\": 17,\n      \"division_id\": 1,\n      \"name\": \"Hainggyikyun\"\n    },\n    {\n      \"id\": 1,\n      \"division_id\": 1,\n      \"name\": \"Hinthada\"\n    },\n    {\n      \"id\": 2,\n      \"division_id\": 1,\n      \"name\": \"Ingapu\"\n    },\n    {\n      \"id\": 18,\n      \"division_id\": 1,\n      \"name\": \"Kangyidaunk\"\n    },\n    {\n      \"id\": 32,\n      \"division_id\": 1,\n      \"name\": \"Kyaiklat\"\n    },\n    {\n      \"id\": 3,\n      \"division_id\": 1,\n      \"name\": \"Kyangin\"\n    },\n    {\n      \"id\": 19,\n      \"division_id\": 1,\n      \"name\": \"Kyaunggon\"\n    },\n    {\n      \"id\": 20,\n      \"division_id\": 1,\n      \"name\": \"Kyonpyaw\"\n    },\n    {\n      \"id\": 7,\n      \"division_id\": 1,\n      \"name\": \"Labutta\"\n    },\n    {\n      \"id\": 4,\n      \"division_id\": 1,\n      \"name\": \"Lemyethna\"\n    },\n    {\n      \"id\": 11,\n      \"division_id\": 1,\n      \"name\": \"Ma-ubin\"\n    },\n    {\n      \"id\": 8,\n      \"division_id\": 1,\n      \"name\": \"Mawlamyinegyun\"\n    },\n    {\n      \"id\": 5,\n      \"division_id\": 1,\n      \"name\": \"Myanaung\"\n    },\n    {\n      \"id\": 15,\n      \"division_id\": 1,\n      \"name\": \"Myaungmya\"\n    },\n    {\n      \"id\": 21,\n      \"division_id\": 1,\n      \"name\": \"Ngapudaw\"\n    },\n    {\n      \"id\": 22,\n      \"division_id\": 1,\n      \"name\": \"Ngathaingchaung\"\n    },\n    {\n      \"id\": 23,\n      \"division_id\": 1,\n      \"name\": \"Ngayokaung\"\n    },\n    {\n      \"id\": 24,\n      \"division_id\": 1,\n      \"name\": \"Ngwehsaung\"\n    },\n    {\n      \"id\": 12,\n      \"division_id\": 1,\n      \"name\": \"Nyaungdon\"\n    },\n    {\n      \"id\": 13,\n      \"division_id\": 1,\n      \"name\": \"Pantanaw\"\n    },\n    {\n      \"id\": 25,\n      \"division_id\": 1,\n      \"name\": \"Pathein\"\n    },\n    {\n      \"id\": 33,\n      \"division_id\": 1,\n      \"name\": \"Pyapon\"\n    },\n    {\n      \"id\": 9,\n      \"division_id\": 1,\n      \"name\": \"Pyinsalu\"\n    },\n    {\n      \"id\": 26,\n      \"division_id\": 1,\n      \"name\": \"Shwethaungyan\"\n    },\n    {\n      \"id\": 27,\n      \"division_id\": 1,\n      \"name\": \"Thabaung\"\n    },\n    {\n      \"id\": 16,\n      \"division_id\": 1,\n      \"name\": \"Wakema\"\n    },\n    {\n      \"id\": 28,\n      \"division_id\": 1,\n      \"name\": \"Yekyi\"\n    },\n    {\n      \"id\": 6,\n      \"division_id\": 1,\n      \"name\": \"Zalun\"\n    }\n  ]\n}"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "division_id",
+      "value": "15"
+    },
+    {
+      "key": "state_region",
+      "value": ""
+    },
+    {
+      "key": "township",
+      "value": ""
+    }
+  ]
+}

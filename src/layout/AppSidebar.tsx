@@ -276,6 +276,8 @@ const AppSidebar: React.FC = () => {
           { name: "Medicines", path: "/setup/medicines", icon: <Pill size={14} /> },
           { name: "Animals", path: "/setup/animals", icon: <PawPrint size={14} /> },
           { name: "Equipment", path: "/setup/equipment", icon: <Wrench size={14} /> },
+          { name: "Houses / Barns", path: "/setup/house-barns", icon: <Home size={14} /> },
+          { name: "Pens / Cages / Ponds", path: "/setup/pen-cage-ponds", icon: <Home size={14} /> },
           { name: "Farm Information", path: "/setup/farm-information", icon: <Home size={14} /> },
           { name: "Inventories", path: "/setup/inventories", icon: <Warehouse size={14} /> },
         ],

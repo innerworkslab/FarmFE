@@ -93,8 +93,26 @@ export interface UpdateCustomerPayload {
   status?: string;
 }
 
+export interface MyanmarDivision {
+  id: number;
+  name: string;
+}
+export interface MyanmarTownship {
+  id: number;
+  division_id: number;
+  name: string;
+}
+
 export const customerApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
+    getMyanmarDivisions: builder.query<{ data: MyanmarDivision[] }, void>({
+      query: () => "setup/divisions",
+      providesTags: ["myanmarDivisions"],
+    }),
+    getMyanmarTownships: builder.query<{ data: MyanmarTownship[] }, number | string>({
+      query: (divisionId) => `setup/divisions/${divisionId}/townships`,
+      providesTags: ["myanmarTownships"],
+    }),
     getCustomerReceivables: builder.query<CustomerReceivablesResponse, number>({
       query: (id) => `setup/customers/${id}/receivables`,
       providesTags: ["customers", "sales", "financialFinal"],
@@ -141,7 +159,10 @@ export const customerApiSlice = farmApi.injectEndpoints({
 
     updateCustomer: builder.mutation<
       SingleCustomerResponse,
-      { id: number | string; body?: Partial<UpdateCustomerPayload> } & Partial<UpdateCustomerPayload>
+      {
+        id: number | string;
+        body?: Partial<UpdateCustomerPayload>;
+      } & Partial<UpdateCustomerPayload>
     >({
       query: ({ id, body, ...rest }) => ({
         url: `setup/customers/${id}`,
@@ -170,6 +191,8 @@ export const customerApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
+  useGetMyanmarDivisionsQuery,
+  useGetMyanmarTownshipsQuery,
   useGetCustomerReceivablesQuery,
   useCreateCustomerReceivableAdjustmentMutation,
   useGetCustomersQuery,

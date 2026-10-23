@@ -209,7 +209,7 @@ export default function FarmFeedingsPage() {
 
   const farmOptions = (farms?.data || []).map((farm) => ({
     value: String(farm.id),
-    label: [farm.name, farm.branch?.name, farm.house_barn, farm.pen_cage_pond]
+    label: [farm.name, farm.branch?.name, farm.house_barn?.name, farm.pen_cage_pond?.name]
       .filter(Boolean)
       .join(" · "),
   }));

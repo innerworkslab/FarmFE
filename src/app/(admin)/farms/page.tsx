@@ -117,7 +117,7 @@ export default function FarmsPage() {
                   </div>
                   <p className="mt-1 text-sm text-[#64748B] dark:text-gray-400">
                     {farm.farm_code} · {farm.branch?.name || "No branch"} ·{" "}
-                    {[farm.house_barn, farm.pen_cage_pond].filter(Boolean).join(" / ")}
+                    {[farm.house_barn?.name, farm.pen_cage_pond?.name].filter(Boolean).join(" / ")}
                   </p>
                 </div>
                 <span
@@ -141,8 +141,8 @@ export default function FarmsPage() {
                     ["Branch", farm.branch?.name],
                     ["Manager", farm.farm_manager?.name],
                     ["Manager Email", farm.farm_manager?.email],
-                    ["House / Barn", farm.house_barn],
-                    ["Pen / Cage / Pond", farm.pen_cage_pond],
+                    ["House / Barn", farm.house_barn?.name],
+                    ["Pen / Cage / Pond", farm.pen_cage_pond?.name],
                   ]}
                 />
                 <InfoPanel
@@ -365,7 +365,7 @@ export default function FarmsPage() {
                       {labelize(item.farm_type || item.animal_type)}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-sm text-gray-500">
-                      {[item.house_barn, item.pen_cage_pond].filter(Boolean).join(" / ") || "-"}
+                      {[item.house_barn?.name, item.pen_cage_pond?.name].filter(Boolean).join(" / ") || "-"}
                     </TableCell>
                     <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums">
                       <span className="font-semibold text-gray-900 dark:text-white">
