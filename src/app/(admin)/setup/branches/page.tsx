@@ -270,7 +270,7 @@ export default function BranchesPage() {
                 Status
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "inactive" })}
               >

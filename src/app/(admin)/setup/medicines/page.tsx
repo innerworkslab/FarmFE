@@ -182,7 +182,7 @@ export default function MedicinesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select aria-label="Filter by animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterAnimalType} onChange={(e) => setFilterAnimalType(e.target.value)}><option value="">All animal types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
+        <select aria-label="Filter by animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterAnimalType} onChange={(e) => setFilterAnimalType(e.target.value)}><option value="">All animal types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
       </div>
 
       {/* Table */}
@@ -294,7 +294,7 @@ export default function MedicinesPage() {
                   Medicine Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
                 >
@@ -311,7 +311,7 @@ export default function MedicinesPage() {
                   Administration Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                 >
@@ -326,7 +326,7 @@ export default function MedicinesPage() {
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Animal Type <span className="text-gray-400">(optional)</span></label>
               <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                 value={form.animal_type_id ?? ""}
                 onChange={(e) => setForm({ ...form, animal_type_id: e.target.value ? Number(e.target.value) : null })}
               >
@@ -341,7 +341,7 @@ export default function MedicinesPage() {
                   Purchase UOM
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.purchase_uom_id}
                   onChange={(e) => setForm({ ...form, purchase_uom_id: Number(e.target.value) })}
                 >
@@ -356,7 +356,7 @@ export default function MedicinesPage() {
                   Stock UOM
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.stock_uom_id}
                   onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
                 >
@@ -371,7 +371,7 @@ export default function MedicinesPage() {
                   Usage UOM
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.usage_uom_id}
                   onChange={(e) => setForm({ ...form, usage_uom_id: Number(e.target.value) })}
                 >

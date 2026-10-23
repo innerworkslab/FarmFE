@@ -169,9 +169,9 @@ export default function InventoriesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select aria-label="Filter branch" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}><option value="">All branches</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select>
-        <select aria-label="Filter inventory type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="">All types</option>{["feed", "medicine", "equipment", "general"].map((type) => <option key={type} value={type}>{type}</option>)}</select>
-        <select aria-label="Filter inventory status" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <select aria-label="Filter branch" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}><option value="">All branches</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select>
+        <select aria-label="Filter inventory type" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="">All types</option>{["feed", "medicine", "equipment", "general"].map((type) => <option key={type} value={type}>{type}</option>)}</select>
+        <select aria-label="Filter inventory status" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
       </div>
 
       {/* Table */}
@@ -287,7 +287,7 @@ export default function InventoriesPage() {
                   Inventory Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
                 >
@@ -303,7 +303,7 @@ export default function InventoriesPage() {
                   Branch <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.branch_id}
                   onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value) })}
                 >
@@ -355,7 +355,7 @@ export default function InventoriesPage() {
                 Status
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "inactive" })}
               >

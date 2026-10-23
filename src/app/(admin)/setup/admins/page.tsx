@@ -292,7 +292,7 @@ export default function AdminsPage() {
                   Role
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
                 >
@@ -310,7 +310,7 @@ export default function AdminsPage() {
                   Branch Assignment
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value ? Number(e.target.value) : "")}
                 >
@@ -329,7 +329,7 @@ export default function AdminsPage() {
                 Account Status
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                 value={form.account_status}
                 onChange={(e) => setForm({ ...form, account_status: e.target.value as "active" | "inactive" | "suspended" })}
               >

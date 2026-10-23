@@ -28,7 +28,7 @@ const emptyForm = (): StaffPayload => ({
   employment_status: "employed",
 });
 const inputClass =
-  "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white";
+  "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white";
 
 export default function StaffPage() {
   const [open, setOpen] = useState(false);

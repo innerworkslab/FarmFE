@@ -308,7 +308,7 @@ export default function CustomersPage() {
                   Customer Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value as "retail" | "wholesale" })}
                 >
@@ -336,7 +336,7 @@ export default function CustomersPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   State / Region
                 </label>
-                <select className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.state_region || ""} onChange={(e) => setForm({ ...form, state_region: e.target.value, township: "" })}>
+                <select className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.state_region || ""} onChange={(e) => setForm({ ...form, state_region: e.target.value, township: "" })}>
                   <option value="">Select State / Region</option>
                   {form.state_region && !divisions.some((division) => division.name === form.state_region) && <option value={form.state_region}>{form.state_region}</option>}
                   {divisions.map((division) => <option key={division.id} value={division.name}>{division.name}</option>)}

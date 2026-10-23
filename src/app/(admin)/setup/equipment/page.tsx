@@ -314,7 +314,7 @@ export default function EquipmentPage() {
                   Category <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                 >
@@ -398,7 +398,7 @@ export default function EquipmentPage() {
                 Supplier
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                 value={form.supplier_id || ""}
                 onChange={(e) =>
                   setForm({ ...form, supplier_id: e.target.value ? Number(e.target.value) : null })

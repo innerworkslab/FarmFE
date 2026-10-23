@@ -86,7 +86,7 @@ export default function ActivityLogsPage() {
         {/* Filter */}
         <div className="w-full sm:w-48">
           <select
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
             value={logName}
             onChange={(e) => setLogName(e.target.value)}
           >

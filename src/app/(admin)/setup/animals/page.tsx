@@ -193,10 +193,10 @@ export default function AnimalsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select aria-label="Filter animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTypeId} onChange={(e) => { setFilterTypeId(e.target.value); setFilterCategoryId(""); setFilterBreedId(""); }}><option value="">All types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
-        <select aria-label="Filter animal category" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)}><option value="">All categories</option>{filterCategories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-        <select aria-label="Filter animal breed" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBreedId} onChange={(e) => setFilterBreedId(e.target.value)}><option value="">All breeds</option>{filterBreeds.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-        <select aria-label="Filter tracking type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTracking} onChange={(e) => setFilterTracking(e.target.value as "" | "individual" | "batch")}><option value="">All tracking types</option><option value="batch">Batch</option><option value="individual">Individual</option></select>
+        <select aria-label="Filter animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTypeId} onChange={(e) => { setFilterTypeId(e.target.value); setFilterCategoryId(""); setFilterBreedId(""); }}><option value="">All types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
+        <select aria-label="Filter animal category" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)}><option value="">All categories</option>{filterCategories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+        <select aria-label="Filter animal breed" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBreedId} onChange={(e) => setFilterBreedId(e.target.value)}><option value="">All breeds</option>{filterBreeds.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+        <select aria-label="Filter tracking type" className="h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTracking} onChange={(e) => setFilterTracking(e.target.value as "" | "individual" | "batch")}><option value="">All tracking types</option><option value="batch">Batch</option><option value="individual">Individual</option></select>
       </div>
 
       {/* Table */}
@@ -295,7 +295,7 @@ export default function AnimalsPage() {
                   <button type="button" aria-label="Add animal type" title="Add animal type" onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-types"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   required
                   value={form.animal_type_id}
                   onChange={(e) => {
@@ -319,7 +319,7 @@ export default function AnimalsPage() {
                   <button type="button" aria-label="Add animal category" title="Add animal category" disabled={!form.animal_type_id} onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-categories"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-40 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   required
                   value={form.animal_category_id}
                   onChange={(e) => setForm({ ...form, animal_category_id: e.target.value, animal_breed_id: "" })}
@@ -338,7 +338,7 @@ export default function AnimalsPage() {
                   <button type="button" aria-label="Add animal breed" title="Add animal breed" disabled={!form.animal_type_id} onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-breeds"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-40 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   required
                   value={form.animal_breed_id}
                   onChange={(e) => setForm({ ...form, animal_breed_id: e.target.value })}
@@ -354,7 +354,7 @@ export default function AnimalsPage() {
                   Gender <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.gender}
                   onChange={(e) => setForm({ ...form, gender: e.target.value as "male" | "female" | "mixed" })}
                 >
@@ -382,7 +382,7 @@ export default function AnimalsPage() {
                   Tracking Type <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  className="h-11 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none"
                   value={form.tracking_type}
                   onChange={(e) => setForm({ ...form, tracking_type: e.target.value as "individual" | "batch" })}
                 >
