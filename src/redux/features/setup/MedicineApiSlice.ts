@@ -8,6 +8,8 @@ export interface Medicine {
   name: string;
   type: "vaccine" | "antibiotic" | "vitamin" | "other" | string;
   category: "injection" | "oral" | "topical" | string;
+  animal_type_id?: number | null;
+  animal_type?: { id: number; name: string } | null;
   usage_uom_id: number;
   stock_uom_id: number;
   purchase_uom_id?: number;
@@ -47,6 +49,7 @@ export interface MedicinePayload {
   name: string;
   type: string;
   category: string;
+  animal_type_id?: number | null;
   usage_uom_id: number;
   stock_uom_id: number;
   purchase_uom_id?: number;
@@ -61,13 +64,14 @@ export const medicineApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
     getMedicines: builder.query<
       MedicineListResponse,
-      { per_page?: number; page?: number; search?: string } | void
+      { per_page?: number; page?: number; search?: string; animal_type_id?: number } | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
         if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
         if (params?.page) queryParams.append("page", params.page.toString());
         if (params?.search) queryParams.append("search", params.search);
+        if (params?.animal_type_id) queryParams.append("animal_type_id", String(params.animal_type_id));
         const str = queryParams.toString();
         return `setup/medicines${str ? `?${str}` : ""}`;
       },

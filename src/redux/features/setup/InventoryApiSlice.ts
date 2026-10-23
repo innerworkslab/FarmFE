@@ -9,8 +9,6 @@ export interface Inventory {
   type: "feed" | "medicine" | "equipment" | "general" | string;
   branch_id: number;
   physical_address: string;
-  building_zone?: string | null;
-  rack_bin?: string | null;
   allowed_item_categories: string[];
   inventory_gl_account?: string | null;
   status: "active" | "inactive";
@@ -51,27 +49,24 @@ export interface InventoryPayload {
   branch_id: number;
   physical_address: string;
   allowed_item_categories: string[];
-  building_zone?: string;
-  rack_bin?: string;
   inventory_gl_account?: string;
   status?: "active" | "inactive";
 }
 
 export const inventoryApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
-    getInventoryLocationOptions: builder.query<{ data: { building_zones: string[]; rack_bins: string[] } }, number>({
-      query: (branchId) => `setup/inventories/location-options?branch_id=${branchId}`,
-      providesTags: ["inventories"],
-    }),
     getInventories: builder.query<
       InventoryListResponse,
-      { per_page?: number; page?: number; search?: string } | void
+      { per_page?: number; page?: number; search?: string; branch_id?: number; type?: string; status?: "active" | "inactive" } | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
         if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
         if (params?.page) queryParams.append("page", params.page.toString());
         if (params?.search) queryParams.append("search", params.search);
+        if (params?.branch_id) queryParams.append("branch_id", String(params.branch_id));
+        if (params?.type) queryParams.append("type", params.type);
+        if (params?.status) queryParams.append("status", params.status);
         const str = queryParams.toString();
         return `setup/inventories${str ? `?${str}` : ""}`;
       },
@@ -123,7 +118,6 @@ export const inventoryApiSlice = farmApi.injectEndpoints({
 });
 
 export const {
-  useGetInventoryLocationOptionsQuery,
   useGetInventoriesQuery,
   useGetInventoryQuery,
   useCreateInventoryMutation,

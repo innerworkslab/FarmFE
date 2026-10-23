@@ -1,6 +1,4 @@
 "use client";
-import { useGetInventoryLocationOptionsQuery } from "@/redux/features/setup/InventoryApiSlice";
-
 
 import React, { useState } from "react";
 import {
@@ -29,14 +27,15 @@ const ITEM_CATEGORY_OPTIONS = [
   { value: "equipment", text: "Equipment", selected: false },
   { value: "food", text: "Food / Feed", selected: false },
   { value: "medicine", text: "Medicine", selected: false },
-  // Keep legacy values visible so existing warehouses can be edited safely.
-  { value: "feed", text: "Feed (legacy)", selected: false },
 ];
 
 export default function InventoriesPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, refetch } = useGetInventoriesQuery({ search: search || undefined });
-  const { data: branchesData } = useGetBranchesQuery();
+  const [filterBranch, setFilterBranch] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const { data, isLoading, refetch } = useGetInventoriesQuery({ per_page: 100, search: search || undefined, branch_id: filterBranch ? Number(filterBranch) : undefined, type: filterType || undefined, status: (filterStatus || undefined) as "active" | "inactive" | undefined });
+  const { data: branchesData } = useGetBranchesQuery({ status: "active", per_page: 100 });
 
   const inventories = data?.data || [];
   const branches = branchesData?.data || [];
@@ -53,28 +52,23 @@ export default function InventoriesPage() {
   const [form, setForm] = useState<InventoryPayload>({
     code: "",
     name: "",
-    type: "feed",
+    type: "general",
     branch_id: 1,
     physical_address: "",
     allowed_item_categories: ["food"],
-    building_zone: "",
-    rack_bin: "",
     inventory_gl_account: "",
     status: "active",
   });
-  const { currentData: locationOptions, isFetching: locationsLoading, isError: locationsError } = useGetInventoryLocationOptionsQuery(form.branch_id, { skip: !isModalOpen || !form.branch_id, refetchOnMountOrArgChange: true });
   const handleOpenAdd = () => {
     const defaultBranchId = branches[0]?.id || 1;
     setEditingItem(null);
     setForm({
       code: "",
       name: "",
-      type: "feed",
+      type: "general",
       branch_id: defaultBranchId,
       physical_address: "",
       allowed_item_categories: ["food"],
-      building_zone: "",
-      rack_bin: "",
       inventory_gl_account: "",
       status: "active",
     });
@@ -89,9 +83,7 @@ export default function InventoriesPage() {
       type: item.type || "feed",
       branch_id: item.branch_id || 1,
       physical_address: item.physical_address || "",
-      allowed_item_categories: item.allowed_item_categories || [],
-      building_zone: item.building_zone || "",
-      rack_bin: item.rack_bin || "",
+      allowed_item_categories: (item.allowed_item_categories || []).map((category) => category === "feed" ? "food" : category),
       inventory_gl_account: item.inventory_gl_account || "",
       status: item.status || "active",
     });
@@ -100,7 +92,6 @@ export default function InventoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (locationsLoading || locationsError || (form.building_zone && !locationOptions?.data.building_zones.includes(form.building_zone)) || (form.rack_bin && !locationOptions?.data.rack_bins.includes(form.rack_bin))) { toast.error("Select valid locations for this branch"); return; }
     const payload: InventoryPayload = {
       ...form,
     };
@@ -157,7 +148,7 @@ export default function InventoriesPage() {
             </h1>
           </div>
           <p className="text-sm text-[#64748B] dark:text-gray-400 mt-1">
-            Manage storage warehouses, stock locations, rack/bins, and allowed item categories.
+            Manage warehouses, branch assignment, and allowed item categories.
           </p>
         </div>
 
@@ -171,13 +162,16 @@ export default function InventoriesPage() {
       </div>
 
       {/* Filter */}
-      <div className="w-full sm:w-80">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
           type="text"
           placeholder="Search inventories..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select aria-label="Filter branch" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}><option value="">All branches</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select>
+        <select aria-label="Filter inventory type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="">All types</option>{["feed", "medicine", "equipment", "general"].map((type) => <option key={type} value={type}>{type}</option>)}</select>
+        <select aria-label="Filter inventory status" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
       </div>
 
       {/* Table */}
@@ -311,7 +305,7 @@ export default function InventoriesPage() {
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                   value={form.branch_id}
-                  onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value), building_zone: "", rack_bin: "" })}
+                  onChange={(e) => setForm({ ...form, branch_id: Number(e.target.value) })}
                 >
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
@@ -333,21 +327,7 @@ export default function InventoriesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Building Zone
-                </label>
-                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" disabled={locationsLoading || locationsError} value={form.building_zone || ""} onChange={(event) => setForm({ ...form, building_zone: event.target.value, rack_bin: "" })}><option value="">Select location</option>{locationOptions?.data.building_zones.map((value) => <option key={value} value={value}>{value}</option>)}</select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rack / Bin
-                </label>
-                <select className="h-11 w-full rounded-lg border px-4 py-2.5 dark:bg-gray-800" disabled={locationsLoading || locationsError} value={form.rack_bin || ""} onChange={(event) => setForm({ ...form, rack_bin: event.target.value })}><option value="">Select location</option>{locationOptions?.data.rack_bins.map((value) => <option key={value} value={value}>{value}</option>)}</select>
-              </div>
-
+            <div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   GL Account
@@ -384,12 +364,11 @@ export default function InventoriesPage() {
               </select>
             </div>
 
-            {locationsError && <p className="text-sm text-red-600">Unable to load location options. Close and reopen to retry.</p>}
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button type="button" size="sm" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isCreating || isUpdating || locationsLoading || locationsError}>
+              <Button type="submit" size="sm" disabled={isCreating || isUpdating}>
                 {isCreating || isUpdating ? "Saving..." : editingItem ? "Update Inventory" : "Create Inventory"}
               </Button>
             </div>

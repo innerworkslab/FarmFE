@@ -11,6 +11,7 @@ import {
   MedicinePayload,
 } from "@/redux/features/setup/MedicineApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
+import { useGetAnimalClassificationsQuery } from "@/redux/features/setup/AnimalClassificationApiSlice";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Modal } from "@/components/ui/modal";
@@ -27,11 +28,14 @@ type MedicineForm = Omit<MedicinePayload, "uom_conversion"> & {
 
 export default function MedicinesPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, refetch } = useGetMedicinesQuery({ search: search || undefined });
+  const [filterAnimalType, setFilterAnimalType] = useState("");
+  const { data, isLoading, refetch } = useGetMedicinesQuery({ per_page: 100, search: search || undefined, animal_type_id: filterAnimalType ? Number(filterAnimalType) : undefined });
   const { data: uomsData } = useGetUomsQuery();
+  const { data: animalTypesData } = useGetAnimalClassificationsQuery({ kind: "animal-types", params: { status: "active", per_page: 100 } });
 
   const medicines = data?.data || [];
   const uoms = uomsData?.data || [];
+  const animalTypes = animalTypesData?.data || [];
 
   const [createMedicine, { isLoading: isCreating }] = useCreateMedicineMutation();
   const [updateMedicine, { isLoading: isUpdating }] = useUpdateMedicineMutation();
@@ -47,6 +51,7 @@ export default function MedicinesPage() {
     name: "",
     type: "vaccine",
     category: "injection",
+    animal_type_id: null,
     usage_uom_id: 1,
     stock_uom_id: 1,
     purchase_uom_id: 1,
@@ -65,6 +70,7 @@ export default function MedicinesPage() {
       name: "",
       type: "vaccine",
       category: "injection",
+      animal_type_id: null,
       usage_uom_id: defaultUomId,
       stock_uom_id: defaultUomId,
       purchase_uom_id: defaultUomId,
@@ -84,6 +90,7 @@ export default function MedicinesPage() {
       name: item.name,
       type: item.type || "vaccine",
       category: item.category || "injection",
+      animal_type_id: item.animal_type_id ?? item.animal_type?.id ?? null,
       usage_uom_id: item.usage_uom_id || 1,
       stock_uom_id: item.stock_uom_id || 1,
       purchase_uom_id: item.purchase_uom_id || 1,
@@ -168,13 +175,14 @@ export default function MedicinesPage() {
       </div>
 
       {/* Filter */}
-      <div className="w-full sm:w-80">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Input
           type="text"
           placeholder="Search medicines..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select aria-label="Filter by animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterAnimalType} onChange={(e) => setFilterAnimalType(e.target.value)}><option value="">All animal types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
       </div>
 
       {/* Table */}
@@ -197,6 +205,7 @@ export default function MedicinesPage() {
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Name</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Type</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Category</TableCell>
+                  <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Animal Type</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Cold Chain</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Status</TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start text-gray-500 font-medium text-xs">Actions</TableCell>
@@ -210,6 +219,7 @@ export default function MedicinesPage() {
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.type}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.category}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.animal_type?.name || "All Animals"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <span className={`px-2 py-0.5 rounded text-xs ${item.cold_chain_required ? "bg-cyan-50 text-cyan-700 font-medium border border-cyan-200" : "text-gray-400"}`}>
                         {item.cold_chain_required ? "Required" : "No"}
@@ -311,6 +321,18 @@ export default function MedicinesPage() {
                   <option value="spray">Spray</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Animal Type <span className="text-gray-400">(optional)</span></label>
+              <select
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                value={form.animal_type_id ?? ""}
+                onChange={(e) => setForm({ ...form, animal_type_id: e.target.value ? Number(e.target.value) : null })}
+              >
+                <option value="">All animal types</option>
+                {animalTypes.map((animalType) => <option key={animalType.id} value={animalType.id}>{animalType.name}</option>)}
+              </select>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
