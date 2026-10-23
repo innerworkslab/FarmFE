@@ -405,17 +405,17 @@ export default function FoodsPage() {
                   />
                 </label>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  <span className="mb-1 block">Base Stock Unit</span>
+                  <span className="mb-1 block">Consumption UOM</span>
                   <Select
-                  value={form.stock_uom_id}
-                  onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
+                    value={form.consumption_uom_id}
+                    onChange={(e) => setForm({ ...form, consumption_uom_id: Number(e.target.value) })}
                     options={uoms.map((u) => ({ value: String(u.id), label: `${u.symbol} (${u.name})` }))}
                   />
                 </label>
               </div>
               <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
                 <label htmlFor="food-unit-conversion" className="mb-2 block text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                  Purchase → base conversion <span className="text-red-500 dark:text-red-400">*</span>
+                  Purchase → Consumption UOM <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-100">
                   <span>1 {uoms.find((unit) => unit.id === form.purchase_uom_id)?.name || "purchase unit"}</span>
@@ -432,7 +432,7 @@ export default function FoodsPage() {
                       onChange={(event) => setForm({ ...form, uom_conversion: event.target.value })}
                     />
                   </div>
-                  <span>{uoms.find((unit) => unit.id === form.stock_uom_id)?.name || "base units"}</span>
+                  <span>{uoms.find((unit) => unit.id === form.consumption_uom_id)?.name || "consumption units"}</span>
                 </div>
               </div>
             </section>
@@ -449,10 +449,10 @@ export default function FoodsPage() {
                 />
               </label>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                <span className="mb-1 block">Consumption UOM</span>
+                <span className="mb-1 block">Base Stock Unit</span>
                 <Select
-                  value={form.consumption_uom_id}
-                  onChange={(e) => setForm({ ...form, consumption_uom_id: Number(e.target.value) })}
+                  value={form.stock_uom_id}
+                  onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
                   options={uoms.map((u) => ({ value: String(u.id), label: `${u.symbol} (${u.name})` }))}
                 />
               </label>

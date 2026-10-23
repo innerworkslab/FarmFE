@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   useGetAnimalsQuery,
   useCreateAnimalMutation,
@@ -17,45 +18,29 @@ import Input from "@/components/form/input/InputField";
 import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, PawPrint } from "lucide-react";
+import { AnimalClassificationKind, useCreateAnimalClassificationMutation, useGetAnimalClassificationsQuery } from "@/redux/features/setup/AnimalClassificationApiSlice";
 
-const animalCategoriesByType: Record<string, { value: string; label: string }[]> = {
-  cattle: [
-    { value: "beef", label: "Beef" },
-    { value: "dairy", label: "Dairy" },
-    { value: "dual_purpose", label: "Dual purpose" },
-    { value: "other", label: "Other" },
-  ],
-  poultry: [
-    { value: "broiler", label: "Broiler" },
-    { value: "layer", label: "Layer" },
-    { value: "breeder", label: "Breeder" },
-    { value: "other", label: "Other" },
-  ],
-  swine: [
-    { value: "meat", label: "Meat" },
-    { value: "breeding", label: "Breeding" },
-    { value: "other", label: "Other" },
-  ],
-  sheep: [
-    { value: "meat", label: "Meat" },
-    { value: "dairy", label: "Dairy" },
-    { value: "wool", label: "Wool" },
-    { value: "other", label: "Other" },
-  ],
-  goat: [
-    { value: "meat", label: "Meat" },
-    { value: "dairy", label: "Dairy" },
-    { value: "fiber", label: "Fiber" },
-    { value: "other", label: "Other" },
-  ],
-  other: [{ value: "other", label: "Other" }],
+type AnimalForm = Omit<AnimalPayload, "animal_type_id" | "animal_category_id" | "animal_breed_id"> & {
+  animal_type_id: string;
+  animal_category_id: string;
+  animal_breed_id: string;
 };
 
 export default function AnimalsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, refetch } = useGetAnimalsQuery({ search: search || undefined });
+  const [filterTypeId, setFilterTypeId] = useState("");
+  const [filterCategoryId, setFilterCategoryId] = useState("");
+  const [filterBreedId, setFilterBreedId] = useState("");
+  const [filterTracking, setFilterTracking] = useState<"" | "individual" | "batch">("");
+  const { data, isLoading, refetch } = useGetAnimalsQuery({ search: search || undefined, animal_type_id: filterTypeId ? Number(filterTypeId) : undefined, animal_category_id: filterCategoryId ? Number(filterCategoryId) : undefined, animal_breed_id: filterBreedId ? Number(filterBreedId) : undefined, tracking_type: filterTracking || undefined });
+  const { data: typesData } = useGetAnimalClassificationsQuery({ kind: "animal-types", params: { status: "active", per_page: 100 } });
+  const { data: categoriesData } = useGetAnimalClassificationsQuery({ kind: "animal-categories", params: { status: "active", per_page: 100 } });
+  const { data: breedsData } = useGetAnimalClassificationsQuery({ kind: "animal-breeds", params: { status: "active", per_page: 100 } });
 
   const animals = data?.data || [];
+  const animalTypes = typesData?.data || [];
+  const filterCategories = (categoriesData?.data || []).filter((item) => !filterTypeId || item.animal_type_id === Number(filterTypeId));
+  const filterBreeds = (breedsData?.data || []).filter((item) => !filterTypeId || item.animal_type_id === Number(filterTypeId));
 
   const [createAnimal, { isLoading: isCreating }] = useCreateAnimalMutation();
   const [updateAnimal, { isLoading: isUpdating }] = useUpdateAnimalMutation();
@@ -64,27 +49,32 @@ export default function AnimalsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Animal | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [quickCreateKind, setQuickCreateKind] = useState<AnimalClassificationKind | null>(null);
+  const [quickCreateName, setQuickCreateName] = useState("");
+  const [createClassification, { isLoading: isCreatingClassification }] = useCreateAnimalClassificationMutation();
 
-  const [form, setForm] = useState<AnimalPayload>({
+  const [form, setForm] = useState<AnimalForm>({
     code: "",
     name: "",
-    type: "cattle",
-    category: "beef",
-    breed: "Brahman",
+    animal_type_id: "",
+    animal_category_id: "",
+    animal_breed_id: "",
     gender: "mixed",
     tracking_type: "batch",
     ear_tag_rfid_number: "",
     batch_flock_number: "BATCH-01",
   });
+  const animalCategories = (categoriesData?.data || []).filter((item) => item.animal_type_id === Number(form.animal_type_id));
+  const animalBreeds = (breedsData?.data || []).filter((item) => item.animal_type_id === Number(form.animal_type_id));
 
   const handleOpenAdd = () => {
     setEditingItem(null);
     setForm({
       code: "",
       name: "",
-      type: "cattle",
-      category: "beef",
-      breed: "",
+      animal_type_id: String(animalTypes[0]?.id || ""),
+      animal_category_id: "",
+      animal_breed_id: "",
       gender: "mixed",
       tracking_type: "batch",
       ear_tag_rfid_number: "",
@@ -98,9 +88,9 @@ export default function AnimalsPage() {
     setForm({
       code: item.code,
       name: item.name,
-      type: item.type || "cattle",
-      category: item.category || "",
-      breed: item.breed || "",
+      animal_type_id: String(item.animal_type_id || item.animal_type?.id || ""),
+      animal_category_id: String(item.animal_category_id || item.animal_category?.id || ""),
+      animal_breed_id: String(item.animal_breed_id || item.animal_breed?.id || ""),
       gender: (item.gender as "male" | "female" | "mixed") || "mixed",
       tracking_type: (item.tracking_type as "individual" | "batch") || "batch",
       ear_tag_rfid_number: item.ear_tag_rfid_number || "",
@@ -113,9 +103,12 @@ export default function AnimalsPage() {
     e.preventDefault();
     const payload: AnimalPayload = {
       ...form,
+      animal_type_id: Number(form.animal_type_id),
+      animal_category_id: Number(form.animal_category_id),
+      animal_breed_id: Number(form.animal_breed_id),
       ...(form.tracking_type === "individual"
-        ? { ear_tag_rfid_number: form.ear_tag_rfid_number?.trim(), batch_flock_number: undefined }
-        : { ear_tag_rfid_number: undefined, batch_flock_number: form.batch_flock_number?.trim() }),
+        ? { ear_tag_rfid_number: form.ear_tag_rfid_number?.trim(), batch_flock_number: null }
+        : { ear_tag_rfid_number: null, batch_flock_number: form.batch_flock_number?.trim() }),
     };
     try {
       if (editingItem) {
@@ -128,8 +121,8 @@ export default function AnimalsPage() {
       setIsModalOpen(false);
       refetch();
     } catch (error: unknown) {
-      const err = error as { data?: { message?: string } };
-      toast.error(err?.data?.message || "Operation failed");
+      const err = error as { data?: { message?: string; errors?: Record<string, string[]> } };
+      toast.error(err?.data?.message || Object.values(err?.data?.errors || {}).flat()[0] || "Operation failed");
     }
   };
 
@@ -143,6 +136,27 @@ export default function AnimalsPage() {
     } catch (error: unknown) {
       const err = error as { data?: { message?: string } };
       toast.error(err?.data?.message || "Failed to delete animal");
+    }
+  };
+
+  const handleQuickCreateClassification = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!quickCreateKind) return;
+    const body = {
+      name: quickCreateName.trim(),
+      ...(quickCreateKind !== "animal-types" ? { animal_type_id: Number(form.animal_type_id) } : {}),
+    };
+    try {
+      const created = await createClassification({ kind: quickCreateKind, body }).unwrap();
+      if (quickCreateKind === "animal-types") setForm((current) => ({ ...current, animal_type_id: String(created.data.id), animal_category_id: "", animal_breed_id: "" }));
+      if (quickCreateKind === "animal-categories") setForm((current) => ({ ...current, animal_category_id: String(created.data.id), animal_breed_id: "" }));
+      if (quickCreateKind === "animal-breeds") setForm((current) => ({ ...current, animal_breed_id: String(created.data.id) }));
+      toast.success("Classification created and selected.");
+      setQuickCreateKind(null);
+      setQuickCreateName("");
+    } catch (error) {
+      const err = error as { data?: { message?: string; errors?: Record<string, string[]> } };
+      toast.error(err.data?.message || Object.values(err.data?.errors || {}).flat()[0] || "Unable to create classification.");
     }
   };
 
@@ -161,7 +175,7 @@ export default function AnimalsPage() {
             Manage livestock species, breeds, categories, gender, and individual/batch tracking.
           </p>
         </div>
-
+        <Link href="/setup/animal-classifications" className="text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-400">Manage types, categories &amp; breeds →</Link>
         <button
           onClick={handleOpenAdd}
           className="inline-flex items-center gap-2 bg-[#15803d] hover:bg-[#14532d] text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
@@ -172,13 +186,17 @@ export default function AnimalsPage() {
       </div>
 
       {/* Filter */}
-      <div className="w-full sm:w-80">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Input
           type="text"
           placeholder="Search animals..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select aria-label="Filter animal type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTypeId} onChange={(e) => { setFilterTypeId(e.target.value); setFilterCategoryId(""); setFilterBreedId(""); }}><option value="">All types</option>{animalTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select>
+        <select aria-label="Filter animal category" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)}><option value="">All categories</option>{filterCategories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+        <select aria-label="Filter animal breed" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterBreedId} onChange={(e) => setFilterBreedId(e.target.value)}><option value="">All breeds</option>{filterBreeds.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+        <select aria-label="Filter tracking type" className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={filterTracking} onChange={(e) => setFilterTracking(e.target.value as "" | "individual" | "batch")}><option value="">All tracking types</option><option value="batch">Batch</option><option value="individual">Individual</option></select>
       </div>
 
       {/* Table */}
@@ -213,9 +231,9 @@ export default function AnimalsPage() {
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{index + 1}</TableCell>
                     <TableCell className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white text-sm">{item.code}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-900 dark:text-white text-sm">{item.name}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.type}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.category}</TableCell>
-                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.breed || "-"}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.animal_type?.name || item.type || "-"}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.animal_category?.name || item.category || "-"}</TableCell>
+                    <TableCell className="px-5 py-3.5 text-gray-500 text-sm">{item.animal_breed?.name || item.breed || "-"}</TableCell>
                     <TableCell className="px-5 py-3.5 text-gray-500 text-sm capitalize">{item.gender}</TableCell>
                     <TableCell className="px-5 py-3.5 text-sm">
                       <span className="px-2 py-0.5 bg-green-50 text-green-800 text-xs rounded border border-green-200 capitalize">
@@ -237,7 +255,7 @@ export default function AnimalsPage() {
       </div>
 
       {/* Create / Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-[550px] m-4">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-4xl m-4">
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             {editingItem ? "Edit Animal" : "Add New Animal"}
@@ -272,60 +290,63 @@ export default function AnimalsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="flex items-center justify-between text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Type <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
-                  value={form.type}
-                  onChange={(e) => {
-                    const type = e.target.value;
-                    setForm({
-                      ...form,
-                      type,
-                      category: animalCategoriesByType[type]?.[0]?.value || "other",
-                    });
-                  }}
-                >
-                  <option value="cattle">Cattle</option>
-                  <option value="poultry">Poultry / Chicken</option>
-                  <option value="swine">Swine / Pig</option>
-                  <option value="sheep">Sheep</option>
-                  <option value="goat">Goat</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category <span className="text-red-500 dark:text-red-400">*</span>
+                  <button type="button" aria-label="Add animal type" title="Add animal type" onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-types"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
                 </label>
                 <select
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
                   required
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  value={form.animal_type_id}
+                  onChange={(e) => {
+                    setForm({
+                      ...form,
+                      animal_type_id: e.target.value,
+                      animal_category_id: "",
+                      animal_breed_id: "",
+                    });
+                  }}
                 >
-                  {!(animalCategoriesByType[form.type] || []).some((category) => category.value === form.category) &&
-                    form.category && <option value={form.category}>{form.category} (existing)</option>}
-                  {(animalCategoriesByType[form.type] || animalCategoriesByType.other).map((category) => (
-                    <option key={category.value} value={category.value}>{category.label}</option>
-                  ))}
+                  <option value="">Select animal type</option>
+                  {animalTypes.filter((item) => item.status === "active").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                 </select>
+                {animalTypes.length === 0 && <Link className="mt-1 inline-block text-xs text-green-700" href="/setup/animal-classifications">Add animal types</Link>}
+              </div>
+
+              <div>
+                <label className="flex items-center justify-between text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Category <span className="text-red-500 dark:text-red-400">*</span>
+                  <button type="button" aria-label="Add animal category" title="Add animal category" disabled={!form.animal_type_id} onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-categories"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-40 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
+                </label>
+                <select
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  required
+                  value={form.animal_category_id}
+                  onChange={(e) => setForm({ ...form, animal_category_id: e.target.value, animal_breed_id: "" })}
+                >
+                  <option value="">Select category</option>
+                  {(categoriesData?.data || []).filter((category) => category.animal_type_id === Number(form.animal_type_id) && category.status === "active").map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
+                {animalCategories.length === 0 && <Link className="mt-1 inline-block text-xs text-green-700" href="/setup/animal-classifications">Add categories for this type</Link>}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Breed
+                <label className="flex items-center justify-between text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Breed <span className="text-red-500 dark:text-red-400">*</span>
+                  <button type="button" aria-label="Add animal breed" title="Add animal breed" disabled={!form.animal_type_id} onClick={() => { setQuickCreateName(""); setQuickCreateKind("animal-breeds"); }} className="inline-flex size-7 items-center justify-center rounded-md border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-40 dark:border-green-900 dark:text-green-400"><Plus size={15}/></button>
                 </label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Brahman, Angus, Cobb 500"
-                  value={form.breed}
-                  onChange={(e) => setForm({ ...form, breed: e.target.value })}
-                />
+                <select
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none"
+                  required
+                  value={form.animal_breed_id}
+                  onChange={(e) => setForm({ ...form, animal_breed_id: e.target.value })}
+                >
+                  <option value="">Select breed</option>
+                  {(breedsData?.data || []).filter((breed) => breed.animal_type_id === Number(form.animal_type_id) && breed.status === "active").map((breed) => <option key={breed.id} value={breed.id}>{breed.name}</option>)}
+                </select>
+                {animalBreeds.length === 0 && <Link className="mt-1 inline-block text-xs text-green-700" href="/setup/animal-classifications">Add breeds for this type</Link>}
               </div>
 
               <div>
@@ -341,6 +362,17 @@ export default function AnimalsPage() {
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Color / Marking</label>
+                <Input type="text" value={form.color_marking || ""} onChange={(e) => setForm({ ...form, color_marking: e.target.value })} placeholder="e.g. Brown and white" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Photo path</label>
+                <Input type="text" value={form.photo_path || ""} onChange={(e) => setForm({ ...form, photo_path: e.target.value || null })} placeholder="Optional image path" />
               </div>
             </div>
 
@@ -379,6 +411,7 @@ export default function AnimalsPage() {
                   </label>
                   <Input
                     type="text"
+                    required
                     placeholder="e.g. BATCH-PM-01"
                     value={form.batch_flock_number || ""}
                     onChange={(e) => setForm({ ...form, batch_flock_number: e.target.value })}
@@ -397,6 +430,15 @@ export default function AnimalsPage() {
             </div>
           </form>
         </div>
+      </Modal>
+
+      <Modal isOpen={!!quickCreateKind} onClose={() => setQuickCreateKind(null)} className="max-w-md m-4">
+        <form onSubmit={handleQuickCreateClassification} className="space-y-4 p-6">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Add {quickCreateKind === "animal-types" ? "Animal Type" : quickCreateKind === "animal-categories" ? "Animal Category" : "Animal Breed"}</h2>
+          {quickCreateKind !== "animal-types" && <p className="text-sm text-gray-500">For {animalTypes.find((type) => String(type.id) === form.animal_type_id)?.name || "selected animal type"}</p>}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name<Input required autoFocus value={quickCreateName} onChange={(event) => setQuickCreateName(event.target.value)} placeholder="Enter name" /></label>
+          <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setQuickCreateKind(null)}>Cancel</Button><Button type="submit" disabled={isCreatingClassification}>{isCreatingClassification ? "Creating…" : "Create and Select"}</Button></div>
+        </form>
       </Modal>
 
       {/* Delete Confirmation Modal */}

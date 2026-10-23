@@ -56,6 +56,7 @@ export const farmApi = createApi({
     "foods",
     "medicines",
     "animals",
+    "animalClassifications",
     "equipment",
     "farmInformation",
     "farmLocations",

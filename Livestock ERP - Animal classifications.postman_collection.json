@@ -1,0 +1,2034 @@
+{
+  "info": {
+    "_postman_id": "46bf9c19-737f-4993-9f2e-5fe115e00b16",
+    "name": "Livestock ERP - Animal classifications",
+    "description": "Authenticated animal classification CRUD workflow. Animal entry uses only IDs and related objects; no type/category/breed text fields. Saved examples are actual responses from the normalized localhost:8089 API. Set access_token and run in order. The referenced test parent is left inactive by the deletion guard.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "18564033",
+    "_collection_link": "https://go.postman.co/collection/11804623-46bf9c19-737f-4993-9f2e-5fe115e00b16?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Create animal type",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"animal_type_id\", pm.response.json().data.id);"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        },
+        {
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set(\"run_id\", String(Date.now()));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "prerequest"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Postman Cattle {{run_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "201 - Create animal-types",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"API-CHECK-1792690421796 Cattle\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:43 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:43.000000Z\",\"updated_at\":\"2026-10-22T17:33:43.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Create animal category",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"animal_category_id\", pm.response.json().data.id);"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Postman Beef\",\r\n  \"animal_type_id\": \"{{animal_type_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "201 - Create animal-categories",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"animal_type_id\": 11,\r\n  \"name\": \"API-CHECK-1792690421796 Beef\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:45 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Beef\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:33:44.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Create animal breed",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"animal_breed_id\", pm.response.json().data.id);"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Postman Brahman\",\r\n  \"animal_type_id\": \"{{animal_type_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "201 - Create animal-breeds",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"animal_type_id\": 11,\r\n  \"name\": \"API-CHECK-1792690421796 Brahman\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:45 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":12,\"name\":\"API-CHECK-1792690421796 Brahman\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:45.000000Z\",\"updated_at\":\"2026-10-22T17:33:45.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "List animal-types",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types?status=active&per_page=100",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active"
+            },
+            {
+              "key": "per_page",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - List animal-types",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types?status=active&per_page=100",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:48 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":[{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:43.000000Z\",\"updated_at\":\"2026-10-22T17:33:43.000000Z\"},{\"id\":12,\"name\":\"API-CHECK-1792690421796 Goat\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:33:44.000000Z\"},{\"id\":1,\"name\":\"cattle\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T16:52:37.000000Z\",\"updated_at\":\"2026-10-22T16:52:37.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-types?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-types?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-types?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-types\",\"per_page\":100,\"to\":3,\"total\":3}}"
+        }
+      ]
+    },
+    {
+      "name": "Show animal-types",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types/{{animal_type_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types",
+            "{{animal_type_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Show animal-types",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types/11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types",
+                "11"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:49 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:43.000000Z\",\"updated_at\":\"2026-10-22T17:33:43.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Update animal-types",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Updated animal-types {{run_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types/{{animal_type_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types",
+            "{{animal_type_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Update animal-types",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"API-CHECK-1792690421796 Cattle Revised\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types/11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types",
+                "11"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:07 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle Revised\",\"status\":\"active\",\"version\":4,\"created_at\":\"2026-10-22T17:33:43.000000Z\",\"updated_at\":\"2026-10-22T17:34:07.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "List animal-categories",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories?status=active&per_page=100&animal_type_id={{animal_type_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active"
+            },
+            {
+              "key": "per_page",
+              "value": "100"
+            },
+            {
+              "key": "animal_type_id",
+              "value": "{{animal_type_id}}"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - List animal-categories",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories?status=active&per_page=100&animal_type_id=11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                },
+                {
+                  "key": "animal_type_id",
+                  "value": "11"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:50 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":[{\"id\":11,\"name\":\"API-CHECK-1792690421796 Beef\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:33:44.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-categories?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-categories?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-categories?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-categories\",\"per_page\":100,\"to\":1,\"total\":1}}"
+        }
+      ]
+    },
+    {
+      "name": "Show animal-categories",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories/{{animal_category_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories",
+            "{{animal_category_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Show animal-categories",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories/11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories",
+                "11"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:50 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Beef\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:33:44.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Update animal-categories",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Updated animal-categories {{run_id}}\",\r\n  \"animal_type_id\": \"{{animal_type_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories/{{animal_category_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories",
+            "{{animal_category_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Update animal-categories",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"animal_type_id\": 11,\r\n  \"name\": \"API-CHECK-1792690421796 Beef Revised\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories/11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories",
+                "11"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:09 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Beef Revised\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle Revised\",\"status\":\"active\"},\"status\":\"active\",\"version\":4,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:34:08.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "List animal-breeds",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds?status=active&per_page=100&animal_type_id={{animal_type_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active"
+            },
+            {
+              "key": "per_page",
+              "value": "100"
+            },
+            {
+              "key": "animal_type_id",
+              "value": "{{animal_type_id}}"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - List animal-breeds",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds?status=active&per_page=100&animal_type_id=11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100"
+                },
+                {
+                  "key": "animal_type_id",
+                  "value": "11"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:52 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":[{\"id\":12,\"name\":\"API-CHECK-1792690421796 Brahman\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:45.000000Z\",\"updated_at\":\"2026-10-22T17:33:45.000000Z\"}],\"links\":{\"first\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-breeds?page=1\",\"last\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-breeds?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-breeds?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"http:\\/\\/localhost:8089\\/api\\/v1\\/setup\\/animal-breeds\",\"per_page\":100,\"to\":1,\"total\":1}}"
+        }
+      ]
+    },
+    {
+      "name": "Show animal-breeds",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds/{{animal_breed_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds",
+            "{{animal_breed_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Show animal-breeds",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds/12",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds",
+                "12"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:52 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":12,\"name\":\"API-CHECK-1792690421796 Brahman\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"active\",\"version\":1,\"created_at\":\"2026-10-22T17:33:45.000000Z\",\"updated_at\":\"2026-10-22T17:33:45.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Update animal-breeds",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Updated animal-breeds {{run_id}}\",\r\n  \"animal_type_id\": \"{{animal_type_id}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds/{{animal_breed_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds",
+            "{{animal_breed_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Update animal-breeds",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              },
+              {
+                "value": "application/json",
+                "key": "Content-Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"animal_type_id\": 11,\r\n  \"name\": \"API-CHECK-1792690421796 Brahman Revised\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds/12",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds",
+                "12"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:10 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":12,\"name\":\"API-CHECK-1792690421796 Brahman Revised\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle Revised\",\"status\":\"active\"},\"status\":\"active\",\"version\":4,\"created_at\":\"2026-10-22T17:33:45.000000Z\",\"updated_at\":\"2026-10-22T17:34:10.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Deactivate animal-breeds",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds/{{animal_breed_id}}/toggle-status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds",
+            "{{animal_breed_id}}",
+            "toggle-status"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Deactivate animal-breeds",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds/12/toggle-status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds",
+                "12",
+                "toggle-status"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:01 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":12,\"name\":\"API-CHECK-1792690421796 Brahman\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"inactive\",\"version\":2,\"created_at\":\"2026-10-22T17:33:45.000000Z\",\"updated_at\":\"2026-10-22T17:34:01.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Deactivate animal-categories",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories/{{animal_category_id}}/toggle-status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories",
+            "{{animal_category_id}}",
+            "toggle-status"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Deactivate animal-categories",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories/11/toggle-status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories",
+                "11",
+                "toggle-status"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:59 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Beef\",\"animal_type_id\":11,\"animal_type\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"active\"},\"status\":\"inactive\",\"version\":2,\"created_at\":\"2026-10-22T17:33:44.000000Z\",\"updated_at\":\"2026-10-22T17:33:59.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Deactivate animal-types",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types/{{animal_type_id}}/toggle-status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types",
+            "{{animal_type_id}}",
+            "toggle-status"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Deactivate animal-types",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types/11/toggle-status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types",
+                "11",
+                "toggle-status"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:33:57 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"data\":{\"id\":11,\"name\":\"API-CHECK-1792690421796 Cattle\",\"status\":\"inactive\",\"version\":2,\"created_at\":\"2026-10-22T17:33:43.000000Z\",\"updated_at\":\"2026-10-22T17:33:57.000000Z\"}}"
+        }
+      ]
+    },
+    {
+      "name": "Delete animal-breeds",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-breeds/{{animal_breed_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-breeds",
+            "{{animal_breed_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Delete unreferenced animal-breeds",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-breeds/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-breeds",
+                "14"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:18 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"message\":\"Animal classification deleted successfully.\"}"
+        }
+      ]
+    },
+    {
+      "name": "Delete animal-categories",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-categories/{{animal_category_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-categories",
+            "{{animal_category_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 - Delete unreferenced animal-categories",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-categories/13",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-categories",
+                "13"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:16 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"message\":\"Animal classification deleted successfully.\"}"
+        }
+      ]
+    },
+    {
+      "name": "Delete animal-types",
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\"Expected response status\", () => pm.response.to.have.status(422));"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/setup/animal-types/{{animal_type_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "setup",
+            "animal-types",
+            "{{animal_type_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "422 - Reject deletion of referenced animal-types",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [
+              {
+                "value": "application/json",
+                "key": "Accept"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8089/api/v1/setup/animal-types/11",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8089",
+              "path": [
+                "api",
+                "v1",
+                "setup",
+                "animal-types",
+                "11"
+              ]
+            }
+          },
+          "status": "UnprocessableEntity",
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "value": "localhost:8089",
+              "key": "Host"
+            },
+            {
+              "value": "close",
+              "key": "Connection"
+            },
+            {
+              "value": "PHP/8.3.23",
+              "key": "X-Powered-By"
+            },
+            {
+              "value": "no-cache, private",
+              "key": "Cache-Control"
+            },
+            {
+              "value": "Thu, 22 Oct 2026 17:34:08 GMT",
+              "key": "Date"
+            },
+            {
+              "value": "Origin",
+              "key": "Vary"
+            },
+            {
+              "value": "application/json",
+              "key": "Content-Type"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"message\":\"This record is referenced. Deactivate it instead of deleting it.\",\"errors\":{\"classification\":[\"This record is referenced. Deactivate it instead of deleting it.\"]}}"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8089/api/v1"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ]
+}

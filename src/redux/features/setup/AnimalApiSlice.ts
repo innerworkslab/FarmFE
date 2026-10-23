@@ -6,13 +6,21 @@ export interface Animal {
   id: number;
   code: string;
   name: string;
-  type: "cattle" | "poultry" | "swine" | "other" | string;
-  category: string;
-  breed: string;
+  type?: string;
+  category?: string;
+  breed?: string;
+  animal_type_id?: number;
+  animal_category_id?: number;
+  animal_breed_id?: number;
+  animal_type?: { id: number; name: string };
+  animal_category?: { id: number; name: string };
+  animal_breed?: { id: number; name: string };
   gender: "male" | "female" | "mixed";
   tracking_type: "individual" | "batch";
   ear_tag_rfid_number?: string | null;
   batch_flock_number?: string | null;
+  color_marking?: string | null;
+  photo_path?: string | null;
   version?: number;
   created_at?: string;
   updated_at?: string;
@@ -39,26 +47,42 @@ export interface SingleAnimalResponse {
 export interface AnimalPayload {
   code: string;
   name: string;
-  type: string;
-  category: string;
-  breed: string;
+  animal_type_id: number;
+  animal_category_id: number;
+  animal_breed_id: number;
   gender: "male" | "female" | "mixed";
   tracking_type: "individual" | "batch";
-  ear_tag_rfid_number?: string;
-  batch_flock_number?: string;
+  ear_tag_rfid_number?: string | null;
+  batch_flock_number?: string | null;
+  color_marking?: string;
+  photo_path?: string | null;
+}
+
+export interface AnimalListParams {
+  per_page?: number;
+  page?: number;
+  search?: string;
+  animal_type_id?: number;
+  animal_category_id?: number;
+  animal_breed_id?: number;
+  tracking_type?: "individual" | "batch";
 }
 
 export const animalApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
     getAnimals: builder.query<
       AnimalListResponse,
-      { per_page?: number; page?: number; search?: string } | void
+      AnimalListParams | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
         if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
         if (params?.page) queryParams.append("page", params.page.toString());
         if (params?.search) queryParams.append("search", params.search);
+        if (params?.animal_type_id) queryParams.append("animal_type_id", String(params.animal_type_id));
+        if (params?.animal_category_id) queryParams.append("animal_category_id", String(params.animal_category_id));
+        if (params?.animal_breed_id) queryParams.append("animal_breed_id", String(params.animal_breed_id));
+        if (params?.tracking_type) queryParams.append("tracking_type", params.tracking_type);
         const str = queryParams.toString();
         return `setup/animals${str ? `?${str}` : ""}`;
       },

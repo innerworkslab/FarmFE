@@ -266,10 +266,10 @@ export default function LmsDashboard() {
                           {a.name}
                         </td>
                         <td className="py-3.5 text-gray-500 capitalize">
-                          {a.type}
+                          {a.animal_type?.name || a.type || "-"}
                         </td>
                         <td className="py-3.5 text-gray-500">
-                          {a.breed}
+                          {a.animal_breed?.name || a.breed || "-"}
                         </td>
                         <td className="py-3.5 text-right">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400 capitalize border border-green-100">
