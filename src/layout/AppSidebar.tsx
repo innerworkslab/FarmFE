@@ -166,7 +166,8 @@ const AppSidebar: React.FC = () => {
           { name: "Farms", path: "/farms", icon: <Home size={14} /> },
           { name: "Management", path: "/farms/management", icon: <Database size={14} /> },
           { name: "Operations", path: "/farms/operations", icon: <ClipboardCheck size={14} /> },
-          { name: "Receiving", path: "/farms/receiving", icon: <ReceiptText size={14} /> },
+          { name: "Farm Purchase Invoices", path: "/farms/receiving/invoices", icon: <ReceiptText size={14} /> },
+          { name: "Farm Receipts", path: "/farms/receiving/receipts", icon: <ClipboardCheck size={14} /> },
         ],
       },
       {

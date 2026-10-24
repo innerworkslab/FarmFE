@@ -100,7 +100,6 @@ type ReceiptForm = {
   target_inventory_id: string;
   target_location: string;
   supplier_batch_number: string;
-  receipt_lot_number: string;
   manufacturing_date: string;
   expiry_date: string;
   cold_chain_required: boolean;
@@ -183,7 +182,6 @@ const receiptSample: PurchaseReceiptPayload = {
       target_inventory_id: 1,
       target_location: "R1",
       supplier_batch_number: `SUP-POSTMAN-FEED-${Date.now()}`,
-      receipt_lot_number: `LOT-POSTMAN-FEED-${Date.now()}`,
       manufacturing_date: "2026-08-01",
       expiry_date: "2027-08-01",
     },
@@ -204,7 +202,6 @@ const medicineReceiptSample: PurchaseReceiptPayload = {
       target_inventory_id: 1,
       target_location: "MED-R1",
       supplier_batch_number: `SUP-POSTMAN-MED-${Date.now()}`,
-      receipt_lot_number: `LOT-POSTMAN-MED-${Date.now()}`,
       manufacturing_date: "2026-08-01",
       expiry_date: "2027-08-01",
       cold_chain_required: true,
@@ -263,7 +260,7 @@ const toInvoicePayload = (
   includeInvoiceNumber: boolean
 ): PurchaseInvoicePayload => ({
   ...(includeInvoiceNumber && form.invoice_number ? { invoice_number: form.invoice_number } : {}),
-  currency_code: form.currency_code,
+  currency_code: form.currency_code || "MMK",
   invoice_date: form.invoice_date,
   supplier_id: Number(form.supplier_id),
   branch_id: Number(form.branch_id),
@@ -306,7 +303,6 @@ const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm =>
     target_inventory_id: String(line.target_inventory_id || ""),
     target_location: line.target_location || "",
     supplier_batch_number: line.supplier_batch_number || "",
-    receipt_lot_number: line.receipt_lot_number || "",
     manufacturing_date: line.manufacturing_date || "",
     expiry_date: line.expiry_date || "",
     cold_chain_required: Boolean(line.cold_chain_required),
@@ -334,7 +330,6 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
       target_inventory_id: Number(line.target_inventory_id),
       target_location: line.target_location,
       ...(line.supplier_batch_number ? { supplier_batch_number: line.supplier_batch_number } : {}),
-      ...(line.receipt_lot_number ? { receipt_lot_number: line.receipt_lot_number } : {}),
       ...(line.manufacturing_date ? { manufacturing_date: line.manufacturing_date } : {}),
       ...(line.expiry_date ? { expiry_date: line.expiry_date } : {}),
       ...(line.cold_chain_required ? { cold_chain_required: true } : {}),
@@ -567,7 +562,7 @@ export default function PurchasingPage() {
     if (action === "updateInvoice" && !invoice && sample)
       setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
     if (action === "createReceipt" && sample)
-      setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), is_committed: false, receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", idempotency_key: crypto.randomUUID() });
+      setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), is_committed: false, receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", idempotency_key: crypto.randomUUID() });
     if (action === "cancelInvoice") setCancelReason("Supplier cancelled before any receipt.");
   };
 
@@ -617,7 +612,6 @@ export default function PurchasingPage() {
         if (!invoiceForm.supplier_id) headerErrors.supplier_id = "Select a supplier.";
         if (!invoiceForm.branch_id) headerErrors.branch_id = "Select a branch.";
         if (!invoiceForm.cashbook_id) headerErrors.cashbook_id = "Select a cashbook.";
-        if (!payload.currency_code) headerErrors.currency_code = "Enter a currency.";
         if (invoiceForm.paid_amount && (!Number.isFinite(Number(invoiceForm.paid_amount)) || Number(invoiceForm.paid_amount) < 0)) headerErrors.paid_amount = "Enter a valid paid amount.";
         if (Object.keys(headerErrors).length) {
           setInvoiceFieldErrors(headerErrors);
@@ -678,7 +672,6 @@ export default function PurchasingPage() {
         for (const [lineIndex, line] of payload.lines.entries()) {
           const source = invoice.lines?.find((item) => item.id === line.purchase_invoice_line_id);
           if (!source) { sourceErrors[`lines.${lineIndex}.purchase_invoice_line_id`] = "Select an item from this invoice."; continue; }
-          if (["food", "medicine"].includes(source.category || "") && !line.receipt_lot_number?.trim()) sourceErrors[`lines.${lineIndex}.receipt_lot_number`] = "Receipt lot number is required for food and medicine receipts.";
           if (source.category === "medicine" && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) sourceErrors[`lines.${lineIndex}.cold_chain_status`] = "Select a cold-chain status for medicine receipts.";
           const inventoryItem = inventoryItems.find((item) => item.id === source.item_id && item.category === source.category);
           if (inventoryItem?.expiry_tracking && !line.expiry_date) sourceErrors[`lines.${lineIndex}.expiry_date`] = "Expiry date is required for this item.";
@@ -1467,7 +1460,6 @@ function PurchasingActionModal({
                   onChange={(event) => setInvoiceField("paid_amount", event.target.value)}
                 />
               </FormField>
-              <FormField label="Currency" required error={invoiceFieldErrors.currency_code}><Input value={invoiceForm.currency_code} onChange={(event) => setInvoiceField("currency_code", event.target.value.toUpperCase())} /></FormField>
               <FormField label="Notes">
                 <Input
                   value={invoiceForm.notes}
@@ -1754,12 +1746,6 @@ function PurchasingActionModal({
                   onChange={(_, dateStr) => setReceiptField("receipt_date", dateStr)}
                 />
               </FormField>
-              <FormField label="Idempotency Key" required error={receiptFieldErrors.idempotency_key}>
-                <Input
-                  value={receiptForm.idempotency_key}
-                  onChange={(event) => setReceiptField("idempotency_key", event.target.value)}
-                />
-              </FormField>
               <FormField label="Notes">
                 <Input
                   value={receiptForm.notes}
@@ -1846,12 +1832,6 @@ function PurchasingActionModal({
                     }
                   />
                 </FormField>
-                <FormField label="Receipt Lot Number" required={!selectedLine || selectedLine.category === "food" || selectedLine.category === "medicine"} error={receiptLineError("receipt_lot_number")}>
-                  <Input
-                    value={receiptForm.receipt_lot_number}
-                    onChange={(event) => setReceiptField("receipt_lot_number", event.target.value)}
-                  />
-                </FormField>
                 <FormField label="Manufacturing Date">
                   <DatePicker
                     id={`purchase-receipt-manufacturing-date-${lineIndex}`}
@@ -1930,7 +1910,6 @@ function PurchasingActionModal({
               if (!activeReceiptLine.target_inventory_id) errors.target_inventory_id = "Select a target warehouse.";
               if (!activeReceiptLine.target_location.trim()) errors.target_location = "Enter a target location.";
               if (receiptLinesInForm.some((line, index) => index !== activeReceiptLineIndex && line.purchase_invoice_line_id === activeReceiptLine.purchase_invoice_line_id && activeReceiptLine.purchase_invoice_line_id)) errors.purchase_invoice_line_id = "This invoice item is already on the receipt.";
-              if (activeSelectedReceiptLine && ["food", "medicine"].includes(activeSelectedReceiptLine.category || "") && !activeReceiptLine.receipt_lot_number.trim()) errors.receipt_lot_number = "Receipt lot number is required for food and medicine.";
               if (activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
               if ((activeReceiptLine.cold_chain_required || activeSelectedReceiptLine?.category === "medicine") && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
               setLocalReceiptFieldErrors(errors);
@@ -1955,7 +1934,6 @@ function PurchasingActionModal({
                   target_inventory_id: "",
                   target_location: "",
                   supplier_batch_number: "",
-                  receipt_lot_number: "",
                   manufacturing_date: "",
                   expiry_date: "",
                   cold_chain_required: false,
@@ -2076,7 +2054,6 @@ function ResponseModal({ data, onClose, suppliers, branches, warehouses, invoice
     "accepted_quantity",
     "target_inventory_id",
     "target_location",
-    "receipt_lot_number",
     "cold_chain_status",
   ];
   const relatedValue = (key: string, value: unknown, line?: Record<string, unknown>) => {

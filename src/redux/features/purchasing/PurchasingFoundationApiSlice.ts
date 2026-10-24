@@ -90,7 +90,6 @@ export interface PurchaseReceiptLinePayload {
   target_location?: string;
   metadata?: Record<string, unknown>;
   supplier_batch_number?: string | null;
-  receipt_lot_number?: string | null;
   manufacturing_date?: string | null;
   expiry_date?: string | null;
   cold_chain_required?: boolean;
