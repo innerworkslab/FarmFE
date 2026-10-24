@@ -64,7 +64,7 @@ export interface FarmPage extends FarmNavigationItem {
 export interface FarmListQuery {
   branch_id?: number | string;
   search?: string;
-  animal_type?: string;
+  animal_type_id?: number | string;
   farm_type?: string;
   status?: string;
   per_page?: number;
@@ -74,8 +74,8 @@ export interface FarmNavigationAnimalQuery {
   farmId: number | string;
   tracking_type?: string;
   search?: string;
-  animal_type?: string;
-  breed?: string;
+  animal_type_id?: number | string;
+  animal_breed_id?: number | string;
   location?: string;
   per_page?: number;
   page?: number;

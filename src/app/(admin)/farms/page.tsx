@@ -9,11 +9,13 @@ import Loading from "@/components/common/Loading";
 import TableActionButton from "@/components/ui/table/TableActionButton";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
+import { useGetAnimalClassificationsQuery } from "@/redux/features/setup/AnimalClassificationApiSlice";
 import {
   useGetNavigationFarmAnimalsQuery,
   useGetNavigationFarmQuery,
   useGetNavigationFarmsQuery,
 } from "@/redux/features/farms/FarmNavigationApiSlice";
+import { useGetFarmAnimalViewSummaryQuery } from "@/redux/features/farms/FarmAnimalViewApiSlice";
 
 const trackingOptions = [
   { value: "batch", label: "Batch" },
@@ -51,21 +53,21 @@ export default function FarmsPage() {
   const [filters, setFilters] = useState({
     branch_id: "",
     search: "",
-    animal_type: "",
-    farm_type: "",
+    animal_type_id: "",
   });
   const [applied, setApplied] = useState(filters);
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [animalFilters, setAnimalFilters] = useState({
     tracking_type: "",
     search: "",
-    animal_type: "",
-    breed: "",
+    animal_type_id: "",
+    animal_breed_id: "",
     location: "",
   });
   const [appliedAnimalFilters, setAppliedAnimalFilters] = useState(animalFilters);
 
   const { data: branches } = useGetBranchesQuery({ per_page: 100 });
+  const { data: animalTypesResponse } = useGetAnimalClassificationsQuery({ kind: "animal-types", params: { status: "active", per_page: 100 } });
   const {
     data: farms,
     isLoading,
@@ -86,14 +88,22 @@ export default function FarmsPage() {
     { farmId: selectedFarmId || 0, ...appliedAnimalFilters, per_page: 15 },
     { skip: !selectedFarmId }
   );
+  const { data: animalFilterOptionsResponse } = useGetFarmAnimalViewSummaryQuery(
+    { farmId: selectedFarmId || 0 },
+    { skip: !selectedFarmId }
+  );
+  const animalFilterOptions = animalFilterOptionsResponse?.data.filter_options;
+  const animalTypes = (animalFilterOptions?.animal_types || []) as unknown as { id: number; name: string }[];
+  const animalBreeds = (animalFilterOptions?.breeds || []) as unknown as { id: number; animal_type_id: number; name: string }[];
+  const animalLocations = (animalFilterOptions?.locations || []) as string[];
   const farm = farmResponse?.data;
   const clearFarmFilters = () => {
-    const empty = { branch_id: "", search: "", animal_type: "", farm_type: "" };
+    const empty = { branch_id: "", search: "", animal_type_id: "" };
     setFilters(empty);
     setApplied(empty);
   };
   const clearAnimalFilters = () => {
-    const empty = { tracking_type: "", search: "", animal_type: "", breed: "", location: "" };
+    const empty = { tracking_type: "", search: "", animal_type_id: "", animal_breed_id: "", location: "" };
     setAnimalFilters(empty);
     setAppliedAnimalFilters(empty);
   };
@@ -141,7 +151,7 @@ export default function FarmsPage() {
                 <Metric label="Sick Animals" count={farm.metrics?.sick_animal_count} />
                 <Metric label="Deaths" count={farm.metrics?.death_count} />
               </div>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-2">
                 <InfoPanel
                   title="Farm Information"
                   rows={[
@@ -151,17 +161,6 @@ export default function FarmsPage() {
                     ["Manager Email", farm.farm_manager?.email],
                     ["House / Barn", farm.house_barn?.name],
                     ["Pen / Cage / Pond", farm.pen_cage_pond?.name],
-                  ]}
-                />
-                <InfoPanel
-                  title="Current Animal Setup"
-                  rows={[
-                    ["Name", farm.current_animal?.name],
-                    ["Code", farm.current_animal?.code],
-                    ["Tracking", labelize(farm.current_animal?.tracking_type)],
-                    ["Type", farm.current_animal?.type],
-                    ["Category", farm.current_animal?.category],
-                    ["Breed", farm.current_animal?.breed],
                   ]}
                 />
                 <InfoPanel
@@ -203,26 +202,27 @@ export default function FarmsPage() {
               />
             </Field>
             <Field label="Animal Type">
-              <Input
-                value={animalFilters.animal_type}
-                onChange={(e) =>
-                  setAnimalFilters({ ...animalFilters, animal_type: e.target.value })
-                }
-                placeholder="e.g. cattle"
+              <Select
+                value={animalFilters.animal_type_id}
+                onChange={(e) => setAnimalFilters({ ...animalFilters, animal_type_id: e.target.value, animal_breed_id: "" })}
+                options={animalTypes.map((option) => ({ value: String(option.id), label: option.name }))}
+                placeholder="All animal types"
               />
             </Field>
             <Field label="Breed">
-              <Input
-                value={animalFilters.breed}
-                onChange={(e) => setAnimalFilters({ ...animalFilters, breed: e.target.value })}
-                placeholder="Breed"
+              <Select
+                value={animalFilters.animal_breed_id}
+                onChange={(e) => setAnimalFilters({ ...animalFilters, animal_breed_id: e.target.value })}
+                options={animalBreeds.filter((option) => !animalFilters.animal_type_id || String(option.animal_type_id) === animalFilters.animal_type_id).map((option) => ({ value: String(option.id), label: option.name }))}
+                placeholder="All breeds"
               />
             </Field>
             <Field label="Location">
-              <Input
+              <Select
                 value={animalFilters.location}
                 onChange={(e) => setAnimalFilters({ ...animalFilters, location: e.target.value })}
-                placeholder="Location"
+                options={animalLocations.map((location) => ({ value: location, label: location }))}
+                placeholder="All locations"
               />
             </Field>
           </div>
@@ -272,7 +272,7 @@ export default function FarmsPage() {
         </p>
       </div>
       <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Branch">
             <Select
               value={filters.branch_id}
@@ -292,17 +292,14 @@ export default function FarmsPage() {
             />
           </Field>
           <Field label="Animal Type">
-            <Input
-              value={filters.animal_type}
-              onChange={(e) => setFilters({ ...filters, animal_type: e.target.value })}
-              placeholder="e.g. cattle"
-            />
-          </Field>
-          <Field label="Farm Type">
-            <Input
-              value={filters.farm_type}
-              onChange={(e) => setFilters({ ...filters, farm_type: e.target.value })}
-              placeholder="Farm type"
+            <Select
+              value={filters.animal_type_id}
+              onChange={(e) => setFilters({ ...filters, animal_type_id: e.target.value })}
+              options={(animalTypesResponse?.data || []).map((animalType) => ({
+                value: String(animalType.id),
+                label: animalType.name,
+              }))}
+              placeholder="All animal types"
             />
           </Field>
         </div>
