@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   PurchaseInvoice,
   PurchaseInvoicePayload,
+  PurchaseReceipt,
   PurchaseReceiptPayload,
   useCancelPurchaseInvoiceMutation,
   useConfirmPurchaseInvoiceMutation,
@@ -18,6 +19,7 @@ import {
   useLazyGetPurchaseInvoiceQuery,
   useLazyGetPurchaseReceiptQuery,
   useUpdatePurchaseInvoiceMutation,
+  useUpdatePurchaseReceiptMutation,
 } from "@/redux/features/purchasing/PurchasingFoundationApiSlice";
 import {
   InventoryItem,
@@ -58,7 +60,7 @@ import {
 } from "lucide-react";
 
 type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
-type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt";
+type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt" | "updateReceipt";
 
 type InvoiceForm = {
   is_committed?: boolean;
@@ -380,6 +382,7 @@ export default function PurchasingPage() {
   const [selectedJson, setSelectedJson] = useState<unknown | null>(null);
   const [jsonAction, setJsonAction] = useState<JsonAction | null>(null);
   const [targetInvoice, setTargetInvoice] = useState<PurchaseInvoice | null>(null);
+  const [targetReceipt, setTargetReceipt] = useState<PurchaseReceipt | null>(null);
   const [invoiceForm, setInvoiceForm] = useState<InvoiceForm>(() =>
     invoiceFormFromPayload(foodInvoiceSample)
   );
@@ -430,6 +433,7 @@ export default function PurchasingPage() {
   const [updateInvoice, updateInvoiceState] = useUpdatePurchaseInvoiceMutation();
   const [cancelInvoice, cancelInvoiceState] = useCancelPurchaseInvoiceMutation();
   const [createReceipt, createReceiptState] = useCreatePurchaseReceiptMutation();
+  const [updateReceipt, updateReceiptState] = useUpdatePurchaseReceiptMutation();
   const [confirmReceipt, confirmReceiptState] = useConfirmPurchaseReceiptMutation();
   const [confirmInvoice, confirmInvoiceState] = useConfirmPurchaseInvoiceMutation();
 
@@ -515,6 +519,7 @@ export default function PurchasingPage() {
     updateInvoiceState.isLoading ||
     cancelInvoiceState.isLoading ||
     createReceiptState.isLoading ||
+    updateReceiptState.isLoading ||
     confirmReceiptState.isLoading;
 
   const pageMeta = useMemo(() => {
@@ -579,6 +584,7 @@ export default function PurchasingPage() {
     }
     setJsonAction(action);
     setTargetInvoice(invoice || null);
+    setTargetReceipt(null);
     if (action === "createInvoice" && sample)
       setInvoiceForm({ ...invoiceFormFromPayload(sample as PurchaseInvoicePayload), is_committed: false, invoice_number: "", supplier_id: "", branch_id: "", cashbook_id: "", paid_amount: "", item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", notes: "", invoice_date: new Date().toLocaleDateString("en-CA") });
     if (action === "updateInvoice" && invoice) {
@@ -590,6 +596,52 @@ export default function PurchasingPage() {
     if (action === "createReceipt" && sample)
       setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), is_committed: false, receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", idempotency_key: crypto.randomUUID() });
     if (action === "cancelInvoice") setCancelReason("Supplier cancelled before any receipt.");
+  };
+
+  const editReceipt = async (receipt: PurchaseReceipt) => {
+    try {
+      const result = await showReceipt(receipt.id).unwrap();
+      const record = result.data;
+      const receiptHeader = {
+        receipt_number: record.receipt_number || "",
+        purchase_invoice_id: String(record.purchase_invoice_id),
+        receipt_date: record.receipt_date?.slice(0, 10) || "",
+        idempotency_key: record.idempotency_key || crypto.randomUUID(),
+        notes: record.notes || "",
+      };
+      const lines = (record.lines || []).map((line) => ({
+        ...receiptHeader,
+        is_committed: true,
+        purchase_invoice_line_id: String(line.purchase_invoice_line_id),
+        accepted_quantity: String(line.accepted_quantity),
+        accepted_foc_quantity: line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
+        rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "",
+        target_inventory_id: String(line.target_inventory_id || ""),
+        target_location: line.target_location || "",
+        supplier_batch_number: line.supplier_batch_number || "",
+        manufacturing_date: line.manufacturing_date || "",
+        expiry_date: line.expiry_date || "",
+        cold_chain_required: Boolean(line.cold_chain_required),
+        cold_chain_status: line.cold_chain_status || "",
+        observed_temperature: line.observed_temperature !== undefined ? String(line.observed_temperature) : "",
+        temperature_uom: line.temperature_uom || "",
+        exception_reason: line.exception_reason || "",
+      }));
+      const [firstLine, ...additionalLines] = lines;
+      const emptyLine = receiptFormFromPayload(receiptSample);
+      setReceiptForm({
+        ...emptyLine,
+        ...firstLine,
+        ...receiptHeader,
+        additionalLines,
+      });
+      setTargetReceipt(record);
+      setTargetInvoice(null);
+      setReceiptFieldErrors({});
+      setJsonAction("updateReceipt");
+    } catch {
+      toast.error("Unable to load receipt details");
+    }
   };
 
   React.useEffect(() => {
@@ -654,7 +706,7 @@ export default function PurchasingPage() {
       if (jsonAction === "cancelInvoice" && targetInvoice) {
         await cancelInvoice({ id: targetInvoice.id, reason: cancelReason }).unwrap();
       }
-      if (jsonAction === "createReceipt") {
+      if (jsonAction === "createReceipt" || jsonAction === "updateReceipt") {
         setReceiptFieldErrors({});
         const payload = toReceiptPayload(receiptForm);
         const headerErrors: Record<string, string> = {};
@@ -708,16 +760,17 @@ export default function PurchasingPage() {
           toast.error("Please fix the highlighted receipt item fields.");
           return;
         }
-        await createReceipt(payload).unwrap();
+        if (jsonAction === "updateReceipt" && targetReceipt) await updateReceipt({ id: targetReceipt.id, body: payload }).unwrap();
+        else await createReceipt(payload).unwrap();
       }
       setJsonAction(null);
-      toast.success("Purchasing API request saved successfully");
+      toast.success(jsonAction === "updateReceipt" ? "Purchase receipt updated successfully" : "Purchasing API request saved successfully");
       if (createInvoiceType) router.replace("/purchasing?tab=invoices");
       if (createReceiptType) router.replace("/purchasing?tab=receipts");
     } catch (error: unknown) {
       const err = error as { data?: { message?: string; errors?: Record<string, string | string[]> }; message?: string };
       if (err.data?.errors) {
-        const isReceiptError = jsonAction === "createReceipt";
+        const isReceiptError = jsonAction === "createReceipt" || jsonAction === "updateReceipt";
         const lineIndexes = isReceiptError
           ? [receiptForm, ...(receiptForm.additionalLines || [])].map((line, index) => line.purchase_invoice_line_id ? index : -1).filter((index) => index >= 0)
           : [invoiceForm, ...(invoiceForm.additionalLines || [])].map((line, index) => line.item_id ? index : -1).filter((index) => index >= 0);
@@ -1006,6 +1059,14 @@ export default function PurchasingPage() {
                         onClick={() => showSavedResponse("receipt", item.id, item)}
                         icon={<Eye size={14} />}
                       />
+                      {item.status === "draft" && (
+                        <TableActionButton
+                          label="Edit"
+                          tone="neutral"
+                          onClick={() => void editReceipt(item)}
+                          icon={<Pencil size={14} />}
+                        />
+                      )}
                       {canConfirmReceipt(item.status) && (
                         <TableActionButton
                           label="Confirm"
@@ -1188,7 +1249,7 @@ export default function PurchasingPage() {
 
       <PurchasingActionModal
         action={jsonAction}
-        isOpen={!!jsonAction && jsonAction !== "createInvoice" && jsonAction !== "createReceipt"}
+        isOpen={Boolean(jsonAction && !["createInvoice", "createReceipt"].includes(jsonAction))}
         invoiceForm={invoiceForm}
         receiptForm={receiptForm}
         cancelReason={cancelReason}
@@ -1362,8 +1423,10 @@ function PurchasingActionModal({
       ? "Create Purchase Invoice"
       : action === "updateInvoice"
         ? "Update Purchase Invoice"
-        : action === "cancelInvoice"
+      : action === "cancelInvoice"
           ? "Cancel Purchase Invoice"
+        : action === "updateReceipt"
+          ? "Update Purchase Receipt"
           : "Create Purchase Receipt";
 
   const ensureOption = (opts: SelectOption[], val: string) => {
@@ -1372,9 +1435,12 @@ function PurchasingActionModal({
   };
 
   const [invoiceSearch, setInvoiceSearch] = useState("");
-  const availableInvoices = useGetPurchaseInvoicesQuery({ search: invoiceSearch || undefined, per_page: 100 }, { skip: !isOpen || action !== "createReceipt" });
-  const invoiceOptions = (availableInvoices.currentData?.data || []).filter((invoice) => invoice.status !== "cancelled" && invoice.delivery_status !== "fully_received").map((invoice) => ({ value: String(invoice.id), label: invoice.invoice_number }));
-  const { currentData: receiptInvoice, isFetching: invoiceLoading, isError: invoiceError } = useGetPurchaseInvoiceQuery(receiptForm.purchase_invoice_id, { skip: !isOpen || action !== "createReceipt" || !receiptForm.purchase_invoice_id });
+  const availableInvoices = useGetPurchaseInvoicesQuery({ search: invoiceSearch || undefined, per_page: 100 }, { skip: !isOpen || (action !== "createReceipt" && action !== "updateReceipt") });
+  const { currentData: receiptInvoice, isFetching: invoiceLoading, isError: invoiceError } = useGetPurchaseInvoiceQuery(receiptForm.purchase_invoice_id, { skip: !isOpen || (action !== "createReceipt" && action !== "updateReceipt") || !receiptForm.purchase_invoice_id });
+  const invoiceOptions = [
+    ...(receiptInvoice?.data ? [{ value: String(receiptInvoice.data.id), label: receiptInvoice.data.invoice_number }] : []),
+    ...(availableInvoices.currentData?.data || []).filter((invoice) => invoice.status !== "cancelled" && invoice.delivery_status !== "fully_received").map((invoice) => ({ value: String(invoice.id), label: invoice.invoice_number })),
+  ].filter((option, index, all) => all.findIndex((candidate) => candidate.value === option.value) === index);
   const receiptLines = receiptInvoice?.data.lines || [];
   const remaining = (line: (typeof receiptLines)[number]) => Number(line.remaining_quantity ?? Math.max(0, Number(line.quantity) - Number(line.received_quantity || 0)));
   const remainingFoc = (line: (typeof receiptLines)[number]) => Number(line.remaining_foc_quantity ?? Math.max(0, Number(line.foc_quantity || 0) - Number(line.received_foc_quantity || 0)));
@@ -1761,7 +1827,7 @@ function PurchasingActionModal({
           </div>
         )}
 
-        {action === "createReceipt" && (
+        {(action === "createReceipt" || action === "updateReceipt") && (
           <div className={`${pageMode ? "" : "max-h-[60vh] overflow-y-auto"} space-y-5 pr-2`}>
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <FormField label="Receipt Number">
@@ -1775,8 +1841,9 @@ function PurchasingActionModal({
                 <Select
                   value={receiptForm.purchase_invoice_id}
                   onChange={(e) => setReceiptField("purchase_invoice_id", e.target.value)}
-                  options={invoiceOptions}
+                  options={ensureOption(invoiceOptions, receiptForm.purchase_invoice_id)}
                   placeholder="Select invoice"
+                  disabled={action === "updateReceipt"}
                 />
               </FormField>
               <FormField label="Receipt Date" required error={receiptFieldErrors.receipt_date}>
@@ -2025,7 +2092,7 @@ function PurchasingActionModal({
           <Button
             type="button"
             size="sm"
-            disabled={isSaving || (action === "createReceipt" && (invoiceLoading || invoiceError || !receiptInvoice)) || (action === "cancelInvoice" && !cancelReason.trim())}
+            disabled={isSaving || ((action === "createReceipt" || action === "updateReceipt") && (invoiceLoading || invoiceError || !receiptInvoice)) || (action === "cancelInvoice" && !cancelReason.trim())}
             onClick={onSubmit}
           >
             {isSaving ? "Saving..." : "Save"}
