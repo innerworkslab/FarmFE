@@ -40,6 +40,7 @@ import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
 import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
+import { useGetCashbooksQuery } from "@/redux/features/financial/CashbookApiSlice";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -59,6 +60,7 @@ type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
 type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt";
 
 type InvoiceForm = {
+  is_committed?: boolean;
   description: string;
   additionalLines?: InvoiceForm[];
   currency_code: string;
@@ -66,6 +68,8 @@ type InvoiceForm = {
   invoice_date: string;
   supplier_id: string;
   branch_id: string;
+  cashbook_id: string;
+  paid_amount: string;
   notes: string;
   category: string;
   item_id: string;
@@ -82,6 +86,7 @@ type InvoiceForm = {
 };
 
 type ReceiptForm = {
+  is_committed?: boolean;
   additionalLines?: ReceiptForm[];
   receipt_number: string;
   purchase_invoice_id: string;
@@ -92,6 +97,8 @@ type ReceiptForm = {
   accepted_quantity: string;
   accepted_foc_quantity: string;
   rejected_quantity: string;
+  target_inventory_id: string;
+  target_location: string;
   supplier_batch_number: string;
   receipt_lot_number: string;
   manufacturing_date: string;
@@ -108,6 +115,8 @@ const foodInvoiceSample: PurchaseInvoicePayload = {
   invoice_date: new Date().toISOString().slice(0, 10),
   supplier_id: 1,
   branch_id: 1,
+  cashbook_id: 1,
+  paid_amount: 0,
   notes: "Postman food purchase; saving this invoice should not move stock.",
   lines: [
     {
@@ -132,6 +141,7 @@ const medicineInvoiceSample: PurchaseInvoicePayload = {
   invoice_date: new Date().toISOString().slice(0, 10),
   supplier_id: 1,
   branch_id: 1,
+  cashbook_id: 1,
   notes: "Postman medicine purchase; receipt can quarantine breached cold-chain stock.",
   lines: [
     {
@@ -153,6 +163,7 @@ const foodInvoiceUpdateSample: PurchaseInvoicePayload = {
   invoice_date: new Date().toISOString().slice(0, 10),
   supplier_id: 1,
   branch_id: 1,
+  cashbook_id: 1,
   notes: "Updated while invoice is still unreceived.",
   lines: foodInvoiceSample.lines,
 };
@@ -169,6 +180,8 @@ const receiptSample: PurchaseReceiptPayload = {
       accepted_quantity: 20,
       accepted_foc_quantity: 2,
       rejected_quantity: 0,
+      target_inventory_id: 1,
+      target_location: "R1",
       supplier_batch_number: `SUP-POSTMAN-FEED-${Date.now()}`,
       receipt_lot_number: `LOT-POSTMAN-FEED-${Date.now()}`,
       manufacturing_date: "2026-08-01",
@@ -188,6 +201,8 @@ const medicineReceiptSample: PurchaseReceiptPayload = {
       purchase_invoice_line_id: 1,
       accepted_quantity: 12,
       accepted_foc_quantity: 1,
+      target_inventory_id: 1,
+      target_location: "MED-R1",
       supplier_batch_number: `SUP-POSTMAN-MED-${Date.now()}`,
       receipt_lot_number: `LOT-POSTMAN-MED-${Date.now()}`,
       manufacturing_date: "2026-08-01",
@@ -204,12 +219,15 @@ const medicineReceiptSample: PurchaseReceiptPayload = {
 const invoiceFormFromPayload = (payload: PurchaseInvoicePayload): InvoiceForm => {
   const line = payload.lines[0];
   return {
+    is_committed: true,
     additionalLines: payload.lines.slice(1).map((line) => invoiceFormFromPayload({ ...payload, lines: [line] })),
     currency_code: payload.currency_code ?? "MMK",
     invoice_number: payload.invoice_number || "",
     invoice_date: payload.invoice_date,
     supplier_id: String(payload.supplier_id),
     branch_id: String(payload.branch_id),
+    cashbook_id: payload.cashbook_id ? String(payload.cashbook_id) : "",
+    paid_amount: payload.paid_amount !== undefined ? String(payload.paid_amount) : "",
     notes: payload.notes || "",
     category: line.category,
     description: line.description || "",
@@ -234,6 +252,8 @@ const invoiceFormFromRecord = (invoice: PurchaseInvoice): InvoiceForm =>
     invoice_date: invoice.invoice_date,
     supplier_id: invoice.supplier_id,
     branch_id: invoice.branch_id,
+    cashbook_id: invoice.cashbook_id ?? 0,
+    paid_amount: invoice.paid_amount !== undefined ? Number(invoice.paid_amount) : undefined,
     notes: invoice.notes,
     lines: invoice.lines?.length ? invoice.lines : foodInvoiceSample.lines,
   });
@@ -247,9 +267,11 @@ const toInvoicePayload = (
   invoice_date: form.invoice_date,
   supplier_id: Number(form.supplier_id),
   branch_id: Number(form.branch_id),
+  cashbook_id: Number(form.cashbook_id),
+  ...(form.paid_amount ? { paid_amount: Number(form.paid_amount) } : {}),
   ...(form.notes ? { notes: form.notes } : {}),
   lines: [form, ...(form.additionalLines || [])]
-    .filter((line) => line.item_id)
+    .filter((line) => line.is_committed && line.item_id)
     .map((line) => ({
       category: line.category,
       ...(line.description ? { description: line.description } : {}),
@@ -270,6 +292,7 @@ const toInvoicePayload = (
 const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm => {
   const line = payload.lines[0];
   return {
+    is_committed: true,
     receipt_number: payload.receipt_number || "",
     purchase_invoice_id: String(payload.purchase_invoice_id),
     receipt_date: payload.receipt_date,
@@ -280,6 +303,8 @@ const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm =>
     accepted_foc_quantity:
       line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
     rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "",
+    target_inventory_id: String(line.target_inventory_id || ""),
+    target_location: line.target_location || "",
     supplier_batch_number: line.supplier_batch_number || "",
     receipt_lot_number: line.receipt_lot_number || "",
     manufacturing_date: line.manufacturing_date || "",
@@ -299,13 +324,15 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
   receipt_date: form.receipt_date,
   idempotency_key: form.idempotency_key,
   ...(form.notes ? { notes: form.notes } : {}),
-  lines: [form, ...(form.additionalLines || [])].filter((line) => line.purchase_invoice_line_id).map((line) => ({
+  lines: [form, ...(form.additionalLines || [])].filter((line) => line.is_committed && line.purchase_invoice_line_id).map((line) => ({
       purchase_invoice_line_id: Number(line.purchase_invoice_line_id),
       accepted_quantity: Number(line.accepted_quantity),
       ...(line.accepted_foc_quantity
         ? { accepted_foc_quantity: Number(line.accepted_foc_quantity) }
         : {}),
       ...(line.rejected_quantity ? { rejected_quantity: Number(line.rejected_quantity) } : {}),
+      target_inventory_id: Number(line.target_inventory_id),
+      target_location: line.target_location,
       ...(line.supplier_batch_number ? { supplier_batch_number: line.supplier_batch_number } : {}),
       ...(line.receipt_lot_number ? { receipt_lot_number: line.receipt_lot_number } : {}),
       ...(line.manufacturing_date ? { manufacturing_date: line.manufacturing_date } : {}),
@@ -532,7 +559,7 @@ export default function PurchasingPage() {
     setJsonAction(action);
     setTargetInvoice(invoice || null);
     if (action === "createInvoice" && sample)
-      setInvoiceForm({ ...invoiceFormFromPayload(sample as PurchaseInvoicePayload), invoice_number: "", supplier_id: "", branch_id: "", item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", notes: "", invoice_date: new Date().toLocaleDateString("en-CA") });
+      setInvoiceForm({ ...invoiceFormFromPayload(sample as PurchaseInvoicePayload), is_committed: false, invoice_number: "", supplier_id: "", branch_id: "", cashbook_id: "", paid_amount: "", item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "", notes: "", invoice_date: new Date().toLocaleDateString("en-CA") });
     if (action === "updateInvoice" && invoice) {
       try { const result = await showInvoice(invoice.id).unwrap(); setInvoiceForm(invoiceFormFromRecord(result.data)); }
       catch { toast.error("Unable to load invoice details"); setJsonAction(null); return; }
@@ -540,7 +567,7 @@ export default function PurchasingPage() {
     if (action === "updateInvoice" && !invoice && sample)
       setInvoiceForm(invoiceFormFromPayload(sample as PurchaseInvoicePayload));
     if (action === "createReceipt" && sample)
-      setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", idempotency_key: crypto.randomUUID() });
+      setReceiptForm({ ...receiptFormFromPayload(sample as PurchaseReceiptPayload), is_committed: false, receipt_number: "", receipt_date: new Date().toLocaleDateString("en-CA"), supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", notes: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "", purchase_invoice_id: "", purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", idempotency_key: crypto.randomUUID() });
     if (action === "cancelInvoice") setCancelReason("Supplier cancelled before any receipt.");
   };
 
@@ -571,7 +598,7 @@ export default function PurchasingPage() {
         const lineErrors: Record<string, string> = {};
         const selectedLines = [invoiceForm, ...(invoiceForm.additionalLines || [])]
           .map((line, index) => ({ line, index }))
-          .filter(({ line }) => line.item_id);
+          .filter(({ line }) => line.is_committed && line.item_id);
         selectedLines.forEach(({ line, index }) => {
           if (!line.purchase_uom_id) lineErrors[`lines.${index}.purchase_uom_id`] = "Select a purchase UOM.";
           if (!line.stock_uom_id) lineErrors[`lines.${index}.stock_uom_id`] = "Select a stock UOM.";
@@ -589,7 +616,9 @@ export default function PurchasingPage() {
         if (!invoiceForm.invoice_date) headerErrors.invoice_date = "Select an invoice date.";
         if (!invoiceForm.supplier_id) headerErrors.supplier_id = "Select a supplier.";
         if (!invoiceForm.branch_id) headerErrors.branch_id = "Select a branch.";
+        if (!invoiceForm.cashbook_id) headerErrors.cashbook_id = "Select a cashbook.";
         if (!payload.currency_code) headerErrors.currency_code = "Enter a currency.";
+        if (invoiceForm.paid_amount && (!Number.isFinite(Number(invoiceForm.paid_amount)) || Number(invoiceForm.paid_amount) < 0)) headerErrors.paid_amount = "Enter a valid paid amount.";
         if (Object.keys(headerErrors).length) {
           setInvoiceFieldErrors(headerErrors);
           toast.error("Please complete the highlighted invoice details.");
@@ -621,6 +650,7 @@ export default function PurchasingPage() {
         }
         const receiptLineErrors: Record<string, string> = {};
         [receiptForm, ...(receiptForm.additionalLines || [])].forEach((line, index) => {
+          if (!line.is_committed) return;
           if (!line.purchase_invoice_line_id) return;
           const accepted = Number(line.accepted_quantity);
           const foc = Number(line.accepted_foc_quantity || 0);
@@ -628,6 +658,8 @@ export default function PurchasingPage() {
           if (!Number.isFinite(accepted) || accepted < 0 || accepted + foc + rejected <= 0) receiptLineErrors[`lines.${index}.accepted_quantity`] = "Enter a valid received quantity.";
           if (!Number.isFinite(foc) || foc < 0) receiptLineErrors[`lines.${index}.accepted_foc_quantity`] = "Enter a valid FOC quantity.";
           if (!Number.isFinite(rejected) || rejected < 0) receiptLineErrors[`lines.${index}.rejected_quantity`] = "Enter a valid rejected quantity.";
+          if (!line.target_inventory_id) receiptLineErrors[`lines.${index}.target_inventory_id`] = "Select a target warehouse.";
+          if (!line.target_location) receiptLineErrors[`lines.${index}.target_location`] = "Enter a target location.";
         });
         if (!payload.lines.length) receiptLineErrors["lines.0.purchase_invoice_line_id"] = "Select an invoice item before adding it.";
         if (Object.keys(receiptLineErrors).length) {
@@ -738,6 +770,7 @@ export default function PurchasingPage() {
           cancelReason={cancelReason}
           branchOptions={branches.map(namedOption)}
           supplierOptions={suppliers.map(namedOption)}
+          inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
           foodOptions={inventoryItems.filter((item) => item.category === "food").map(namedOption)}
           medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
           uomOptions={uoms.map((u) => ({ value: String(u.id), label: `${u.code} - ${u.name} (${u.symbol})` }))}
@@ -1133,6 +1166,7 @@ export default function PurchasingPage() {
         cancelReason={cancelReason}
         branchOptions={branches.map(namedOption)}
         supplierOptions={suppliers.map(namedOption)}
+        inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
         foodOptions={inventoryItems.filter((item) => item.category === "food").map(namedOption)}
         medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
         uomOptions={uoms.map((u) => ({
@@ -1152,7 +1186,7 @@ export default function PurchasingPage() {
         onSubmit={runFormAction}
       />
 
-      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} invoices={invoices} items={inventoryItems} />
+      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} warehouses={setupInventories} invoices={invoices} items={inventoryItems} />
     </div>
   );
 }
@@ -1182,7 +1216,7 @@ function DataPanel({
   );
 }
 
-type SelectOption = { value: string; label: string };
+type SelectOption = { value: string; label: string; branch_id?: number };
 
 function PurchasingActionModal({
   action,
@@ -1193,6 +1227,7 @@ function PurchasingActionModal({
   cancelReason,
   branchOptions,
   supplierOptions,
+  inventoryOptions,
   foodOptions,
   medicineOptions,
   uomOptions,
@@ -1216,6 +1251,7 @@ function PurchasingActionModal({
   cancelReason: string;
   branchOptions: SelectOption[];
   supplierOptions: SelectOption[];
+  inventoryOptions: SelectOption[];
   foodOptions: SelectOption[];
   medicineOptions: SelectOption[];
   uomOptions: SelectOption[];
@@ -1232,16 +1268,26 @@ function PurchasingActionModal({
   onSubmit: () => void;
 }) {
   const [activeInvoiceLineIndex, setActiveInvoiceLineIndex] = useState(0);
-  const [invoiceLinePending, setInvoiceLinePending] = useState(true);
   const [activeReceiptLineIndex, setActiveReceiptLineIndex] = useState(0);
   const [receiptLinePending, setReceiptLinePending] = useState(true);
   const [localInvoiceFieldErrors, setLocalInvoiceFieldErrors] = useState<Record<string, string>>({});
   const [localReceiptFieldErrors, setLocalReceiptFieldErrors] = useState<Record<string, string>>({});
+  const cashbooksQuery = useGetCashbooksQuery(
+    {
+      branch_id: Number(invoiceForm.branch_id) || undefined,
+      status: "active",
+      per_page: 100,
+    },
+    { skip: !isOpen || !invoiceForm.branch_id || (action !== "createInvoice" && action !== "updateInvoice") }
+  );
+  const cashbookOptions = (cashbooksQuery.currentData?.data || []).map((cashbook) => ({
+    value: String(cashbook.id),
+    label: `${cashbook.name} (${cashbook.type}, ${cashbook.currency_code})`,
+  }));
   useEffect(() => {
     const lineError = Object.keys(invoiceFieldErrors).map((key) => key.match(/^lines\.(\d+)\./)).find(Boolean);
     if (lineError) {
       setActiveInvoiceLineIndex(Number(lineError[1]));
-      setInvoiceLinePending(false);
     }
   }, [invoiceFieldErrors]);
   useEffect(() => {
@@ -1261,7 +1307,7 @@ function PurchasingActionModal({
       setActiveReceiptLineIndex(0);
       setReceiptLinePending(true);
     }
-    onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", additionalLines: [] } : {}) }));
+    onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { is_committed: false, purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", additionalLines: [] } : {}) }));
   };
   const selectClass =
     "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
@@ -1289,10 +1335,23 @@ function PurchasingActionModal({
   const eligibleLines = receiptLines.filter((line) => remaining(line) > 0 || remainingFoc(line) > 0);
   const invoiceLineSummaries = [invoiceForm, ...(invoiceForm.additionalLines || [])]
     .map((line, index) => {
-      if (invoiceLinePending && index === activeInvoiceLineIndex) return null;
+      if (!line.is_committed) return null;
       const options = line.category === "medicine" ? medicineOptions : foodOptions;
       const item = options.find((option) => option.value === line.item_id);
       const uom = uomOptions.find((option) => option.value === line.purchase_uom_id);
+      const quantity = Number(line.quantity) || 0;
+      const unitPrice = Number(line.unit_price) || 0;
+      const gross = Math.max(0, quantity * unitPrice);
+      const discountValue = Math.max(0, Number(line.discount_value) || 0);
+      const discount = Math.min(
+        gross,
+        line.discount_type === "percentage"
+          ? (gross * Math.min(discountValue, 100)) / 100
+          : line.discount_type === "amount"
+            ? discountValue
+            : 0
+      );
+      const tax = ((gross - discount) * Math.max(0, Number(line.tax_rate) || 0)) / 100;
       return item
         ? {
             index,
@@ -1301,18 +1360,33 @@ function PurchasingActionModal({
             quantity: line.quantity,
             uom: uom?.label || "—",
             unitPrice: line.unit_price,
+            gross,
+            discount,
+            tax,
+            total: gross - discount + tax,
           }
         : null;
     })
     .filter((line): line is NonNullable<typeof line> => line !== null);
   const invoiceLines = [invoiceForm, ...(invoiceForm.additionalLines || [])];
+  const invoiceTotals = invoiceLineSummaries.reduce(
+    (totals, line) => ({
+      subtotal: totals.subtotal + line.gross,
+      discount: totals.discount + line.discount,
+      tax: totals.tax + line.tax,
+      total: totals.total + line.total,
+    }),
+    { subtotal: 0, discount: 0, tax: 0, total: 0 }
+  );
+  const formatInvoiceMoney = (amount: number) =>
+    `${invoiceForm.currency_code || "MMK"} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const activeInvoiceLine = invoiceLines[Math.min(activeInvoiceLineIndex, invoiceLines.length - 1)] || invoiceForm;
   const receiptLinesInForm = [receiptForm, ...(receiptForm.additionalLines || [])];
   const activeReceiptLine = receiptLinesInForm[Math.min(activeReceiptLineIndex, receiptLinesInForm.length - 1)] || receiptForm;
   const activeSelectedReceiptLine = receiptLines.find((line) => String(line.id) === activeReceiptLine.purchase_invoice_line_id);
   const activeSelectedReceiptItem = invoiceItems.find((item) => item.id === activeSelectedReceiptLine?.item_id && item.category === activeSelectedReceiptLine?.category);
   const receiptLineSummaries = receiptLinesInForm.map((line, index) => {
-    if (receiptLinePending && index === activeReceiptLineIndex) return null;
+    if (!line.is_committed || (receiptLinePending && index === activeReceiptLineIndex)) return null;
     const source = receiptLines.find((receiptLine) => String(receiptLine.id) === line.purchase_invoice_line_id);
     if (!source) return null;
     const item = invoiceItems.find((inventoryItem) => inventoryItem.id === source.item_id && inventoryItem.category === source.category);
@@ -1367,9 +1441,30 @@ function PurchasingActionModal({
               <FormField label="Branch" required error={invoiceFieldErrors.branch_id}>
                 <Select
                   value={invoiceForm.branch_id}
-                  onChange={(e) => setInvoiceField("branch_id", e.target.value)}
+                  onChange={(e) => {
+                    setInvoiceField("branch_id", e.target.value);
+                    setInvoiceField("cashbook_id", "");
+                  }}
                   options={ensureOption(branchOptions, invoiceForm.branch_id)}
                   placeholder="Select branch"
+                />
+              </FormField>
+              <FormField label="Cashbook" required error={invoiceFieldErrors.cashbook_id}>
+                <Select
+                  value={invoiceForm.cashbook_id}
+                  onChange={(event) => setInvoiceField("cashbook_id", event.target.value)}
+                  options={ensureOption(cashbookOptions, invoiceForm.cashbook_id)}
+                  placeholder={invoiceForm.branch_id ? "Select cashbook" : "Select branch first"}
+                  disabled={!invoiceForm.branch_id || cashbooksQuery.isFetching}
+                />
+              </FormField>
+              <FormField label="Paid Amount" error={invoiceFieldErrors.paid_amount}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={invoiceForm.paid_amount}
+                  onChange={(event) => setInvoiceField("paid_amount", event.target.value)}
                 />
               </FormField>
               <FormField label="Currency" required error={invoiceFieldErrors.currency_code}><Input value={invoiceForm.currency_code} onChange={(event) => setInvoiceField("currency_code", event.target.value.toUpperCase())} /></FormField>
@@ -1379,6 +1474,24 @@ function PurchasingActionModal({
                   onChange={(event) => setInvoiceField("notes", event.target.value)}
                 />
               </FormField>
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-900 dark:bg-green-950/20">
+                <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
+                  <span>Items subtotal</span>
+                  <span className="tabular-nums">{formatInvoiceMoney(invoiceTotals.subtotal)}</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-gray-600 dark:text-gray-300">
+                  <span>Discounts</span>
+                  <span className="tabular-nums">−{formatInvoiceMoney(invoiceTotals.discount)}</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-gray-600 dark:text-gray-300">
+                  <span>Tax</span>
+                  <span className="tabular-nums">{formatInvoiceMoney(invoiceTotals.tax)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between border-t border-green-200 pt-2 font-semibold text-gray-900 dark:border-green-900 dark:text-white">
+                  <span>Total price ({invoiceLineSummaries.length} items)</span>
+                  <span className="tabular-nums">{formatInvoiceMoney(invoiceTotals.total)}</span>
+                </div>
+              </div>
             </section>
 
             {[[activeInvoiceLine, activeInvoiceLineIndex] as const].map(([invoiceForm, lineIndex]) => {
@@ -1532,11 +1645,28 @@ function PurchasingActionModal({
               if (Object.keys(errors).length) {
                 return;
               }
-              setInvoiceLinePending(true);
               setActiveInvoiceLineIndex(invoiceLines.length);
               onInvoiceChange((current) => {
-              const blankLine = { ...invoiceFormFromPayload(foodInvoiceSample), additionalLines: [], item_id: "", quantity: "", unit_price: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "", discount_type: "", discount_value: "", foc_type: "", foc_value: "" };
-              return { ...current, additionalLines: [...(current.additionalLines || []), blankLine] };
+                const lines = [current, ...(current.additionalLines || [])].map((line, index) =>
+                  index === activeInvoiceLineIndex ? { ...line, is_committed: true } : line
+                );
+                const blankLine = {
+                  ...invoiceFormFromPayload(foodInvoiceSample),
+                  is_committed: false,
+                  additionalLines: [],
+                  item_id: "",
+                  quantity: "",
+                  unit_price: "",
+                  purchase_uom_id: "",
+                  stock_uom_id: "",
+                  conversion_factor: "",
+                  discount_type: "",
+                  discount_value: "",
+                  foc_type: "",
+                  foc_value: "",
+                };
+                const nextLines = [...lines, blankLine];
+                return { ...nextLines[0], additionalLines: nextLines.slice(1) };
               });
             }}>Add item</Button>
             <section className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
@@ -1578,7 +1708,7 @@ function PurchasingActionModal({
                           </TableCell>
                           <TableCell className="whitespace-nowrap px-3 py-2 text-right">
                             <div className="flex justify-end gap-2">
-                              <button type="button" aria-label={`Edit item ${line.index + 1}`} title="Edit item" onClick={() => { setActiveInvoiceLineIndex(line.index); setInvoiceLinePending(false); }} className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"><Pencil size={15} /></button>
+                              <button type="button" aria-label={`Edit item ${line.index + 1}`} title="Edit item" onClick={() => setActiveInvoiceLineIndex(line.index)} className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"><Pencil size={15} /></button>
                               <button type="button" aria-label={`Delete item ${line.index + 1}`} title="Delete item" disabled={invoiceLines.length <= 1} onClick={() => {
                                 const remainingLines = invoiceLines.filter((_, index) => index !== line.index);
                                 onInvoiceChange((current) => ({ ...remainingLines[0], invoice_number: current.invoice_number, invoice_date: current.invoice_date, supplier_id: current.supplier_id, branch_id: current.branch_id, currency_code: current.currency_code, notes: current.notes, additionalLines: remainingLines.slice(1) }));
@@ -1646,12 +1776,12 @@ function PurchasingActionModal({
               const coldChainStatusRequired = selectedLine?.category === "medicine";
               const receiptLineError = (field: string) => localReceiptFieldErrors[field] || receiptFieldErrors[`lines.${lineIndex}.${field}`];
               const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => {
-                const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity"] : [])];
+                const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity", "target_inventory_id", "target_location"] : [])];
                 clearedKeys.forEach((field) => onClearReceiptFieldError(`lines.${lineIndex}.${field}`));
                 setLocalReceiptFieldErrors((errors) => { const next = { ...errors }; clearedKeys.forEach((field) => delete next[field]); return next; });
                 onReceiptChange((current) => {
                 const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
-                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "" } : {}), ...(key === "cold_chain_required" && value === false ? { ...(!coldChainStatusRequired ? { cold_chain_status: "" } : {}), observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
+                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: "", target_location: "" } : {}), ...(key === "cold_chain_required" && value === false ? { ...(!coldChainStatusRequired ? { cold_chain_status: "" } : {}), observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
                 return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
                 });
               };
@@ -1692,6 +1822,20 @@ function PurchasingActionModal({
                     step="any"
                     value={receiptForm.rejected_quantity}
                     onChange={(event) => setReceiptField("rejected_quantity", event.target.value)}
+                  />
+                </FormField>
+                <FormField label="Target Warehouse" required error={receiptLineError("target_inventory_id")}>
+                  <Select
+                    value={receiptForm.target_inventory_id}
+                    onChange={(event) => setReceiptField("target_inventory_id", event.target.value)}
+                    options={inventoryOptions.filter((option) => option.branch_id === receiptInvoice?.data.branch_id)}
+                    placeholder="Select warehouse"
+                  />
+                </FormField>
+                <FormField label="Target Location" required error={receiptLineError("target_location")}>
+                  <Input
+                    value={receiptForm.target_location}
+                    onChange={(event) => setReceiptField("target_location", event.target.value)}
                   />
                 </FormField>
                 <FormField label="Supplier Batch Number">
@@ -1783,6 +1927,8 @@ function PurchasingActionModal({
               if (!Number.isFinite(accepted) || accepted < 0 || !Number.isFinite(acceptedFoc) || acceptedFoc < 0 || !Number.isFinite(rejected) || rejected < 0 || accepted + acceptedFoc + rejected <= 0) errors.accepted_quantity = "Enter a valid received, FOC, or rejected quantity.";
               if (!Number.isFinite(acceptedFoc) || acceptedFoc < 0) errors.accepted_foc_quantity = "Enter a valid FOC quantity.";
               if (!Number.isFinite(rejected) || rejected < 0) errors.rejected_quantity = "Enter a valid rejected quantity.";
+              if (!activeReceiptLine.target_inventory_id) errors.target_inventory_id = "Select a target warehouse.";
+              if (!activeReceiptLine.target_location.trim()) errors.target_location = "Enter a target location.";
               if (receiptLinesInForm.some((line, index) => index !== activeReceiptLineIndex && line.purchase_invoice_line_id === activeReceiptLine.purchase_invoice_line_id && activeReceiptLine.purchase_invoice_line_id)) errors.purchase_invoice_line_id = "This invoice item is already on the receipt.";
               if (activeSelectedReceiptLine && ["food", "medicine"].includes(activeSelectedReceiptLine.category || "") && !activeReceiptLine.receipt_lot_number.trim()) errors.receipt_lot_number = "Receipt lot number is required for food and medicine.";
               if (activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
@@ -1794,7 +1940,33 @@ function PurchasingActionModal({
               }
               setReceiptLinePending(true);
               setActiveReceiptLineIndex(receiptLinesInForm.length);
-              onReceiptChange((current) => ({ ...current, additionalLines: [...(current.additionalLines || []), { ...current, additionalLines: [], purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", supplier_batch_number: "", receipt_lot_number: "", manufacturing_date: "", expiry_date: "", cold_chain_required: false, cold_chain_status: "", observed_temperature: "", temperature_uom: "", exception_reason: "" }] }));
+              onReceiptChange((current) => {
+                const lines = [current, ...(current.additionalLines || [])].map((line, index) =>
+                  index === activeReceiptLineIndex ? { ...line, is_committed: true } : line
+                );
+                const blankLine = {
+                  ...lines[activeReceiptLineIndex],
+                  is_committed: false,
+                  additionalLines: [],
+                  purchase_invoice_line_id: "",
+                  accepted_quantity: "",
+                  accepted_foc_quantity: "",
+                  rejected_quantity: "",
+                  target_inventory_id: "",
+                  target_location: "",
+                  supplier_batch_number: "",
+                  receipt_lot_number: "",
+                  manufacturing_date: "",
+                  expiry_date: "",
+                  cold_chain_required: false,
+                  cold_chain_status: "",
+                  observed_temperature: "",
+                  temperature_uom: "",
+                  exception_reason: "",
+                };
+                const nextLines = [...lines, blankLine];
+                return { ...nextLines[0], additionalLines: nextLines.slice(1) };
+              });
             }}>Add item</Button>
             <section className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <div className="flex items-center justify-between">
@@ -1881,11 +2053,12 @@ const responseRecord = (data: unknown): Record<string, unknown> | null => {
   return value as Record<string, unknown>;
 };
 
-function ResponseModal({ data, onClose, suppliers, branches, invoices, items }: {
+function ResponseModal({ data, onClose, suppliers, branches, warehouses, invoices, items }: {
   data: unknown | null;
   onClose: () => void;
   suppliers: Array<{ id: number; code?: string; name: string }>;
   branches: Array<{ id: number; code?: string; name: string }>;
+  warehouses: Array<{ id: number; code?: string; name: string }>;
   invoices: Array<{ id: number; invoice_number: string }>;
   items: InventoryItem[];
 }) {
@@ -1901,6 +2074,8 @@ function ResponseModal({ data, onClose, suppliers, branches, invoices, items }: 
     "item_id",
     "quantity",
     "accepted_quantity",
+    "target_inventory_id",
+    "target_location",
     "receipt_lot_number",
     "cold_chain_status",
   ];
@@ -1914,6 +2089,7 @@ function ResponseModal({ data, onClose, suppliers, branches, invoices, items }: 
       const invoice = invoices.find((item) => item.id === id);
       if (invoice) return `${invoice.invoice_number} (#${id})`;
     }
+    if (key === "target_inventory_id") related = warehouses.find((item) => item.id === id);
     if (key === "item_id") {
       const category = String(line?.category || "");
       related = items.find((item) => item.id === id && (!category || item.category === category));

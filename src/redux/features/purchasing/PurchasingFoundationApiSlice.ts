@@ -53,6 +53,8 @@ export interface PurchaseInvoicePayload {
   invoice_date: string;
   supplier_id: number;
   branch_id: number;
+  cashbook_id?: number;
+  paid_amount?: number;
   notes?: string | null;
   lines: PurchaseInvoiceLinePayload[];
 }
@@ -68,6 +70,8 @@ export interface PurchaseInvoice {
   invoice_date: string;
   supplier_id: number;
   branch_id: number;
+  cashbook_id?: number | null;
+  paid_amount?: number | string;
   status?: string;
   notes?: string | null;
   lines?: PurchaseInvoiceLine[];
