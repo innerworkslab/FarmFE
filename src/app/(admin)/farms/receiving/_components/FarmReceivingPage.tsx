@@ -196,7 +196,7 @@ export default function FarmReceivingPage({ tab, invoiceForm = false, receiptFor
   const saveInvoice = () => {
     if (!farm || !supplierId || !invoiceLines.length) return toast.error("Select a farm, supplier and add at least one invoice item.");
     void run(async () => {
-      const payload = { invoice_number: invoiceNumber.trim() || undefined, invoice_date: invoiceDate, supplier_id: Number(supplierId), branch_id: farm.branch_id, lines: invoiceLines.map(({ item_name: _itemName, item_code: _itemCode, target_inventory_id: _targetInventoryId, ...line }) => line) };
+      const payload = { invoice_number: invoiceNumber.trim() || undefined, invoice_date: invoiceDate, supplier_id: Number(supplierId), branch_id: farm.branch_id, lines: invoiceLines.map((line) => ({ category: line.category, item_id: line.item_id, purchase_uom_id: line.purchase_uom_id, stock_uom_id: line.stock_uom_id, conversion_factor: line.conversion_factor, quantity: line.quantity, unit_price: line.unit_price, foc_type: line.foc_type, foc_value: line.foc_value, target_farm_information_id: line.target_farm_information_id })) };
       if (editInvoiceId) await updateInvoice({ id: editInvoiceId, body: payload }).unwrap();
       else await createInvoice(payload).unwrap();
       router.push("/farms/receiving/invoices");
@@ -224,7 +224,7 @@ export default function FarmReceivingPage({ tab, invoiceForm = false, receiptFor
   };
   const saveReceipt = () => {
     if (!selectedInvoice || !receiptDate || !receiptLines.length) return toast.error("Select an invoice, add at least one item, and choose a receipt date.");
-    void run(async () => { await createReceipt({ purchase_invoice_id: selectedInvoice.id, receipt_date: receiptDate, idempotency_key: crypto.randomUUID(), lines: receiptLines.map(({ item_name: _name, item_code: _code, category: _category, ...line }) => line) }).unwrap(); router.push("/farms/receiving/receipts"); }, "Receipt created. Confirm it to post stock.");
+    void run(async () => { await createReceipt({ purchase_invoice_id: selectedInvoice.id, receipt_date: receiptDate, idempotency_key: crypto.randomUUID(), lines: receiptLines.map((line) => ({ purchase_invoice_line_id: line.purchase_invoice_line_id, accepted_quantity: line.accepted_quantity, accepted_foc_quantity: line.accepted_foc_quantity, target_inventory_id: line.target_inventory_id, ...(line.target_farm_information_id ? { target_farm_information_id: line.target_farm_information_id } : {}), metadata: line.metadata })) }).unwrap(); router.push("/farms/receiving/receipts"); }, "Receipt created. Confirm it to post stock.");
   };
   const viewInvoice = (invoice: PurchaseInvoice) => { void run(async () => { const result = await getInvoice(invoice.id).unwrap(); setDetails({ title: "Saved API Response · Invoice", data: result }); }, "Invoice details loaded"); };
   const viewReceipt = (receiptId: number) => { void run(async () => { const result = await getReceipt(receiptId).unwrap(); setDetails({ title: "Saved API Response · Receipt", data: result }); }, "Receipt details loaded"); };

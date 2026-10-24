@@ -615,7 +615,6 @@ export default function PurchasingPage() {
     try {
       if (jsonAction === "createInvoice" || jsonAction === "updateInvoice") {
         setInvoiceFieldErrors({});
-        const payload = toInvoicePayload(invoiceForm, true);
         const lineErrors: Record<string, string> = {};
         const selectedLines = [invoiceForm, ...(invoiceForm.additionalLines || [])]
           .map((line, index) => ({ line, index }))
