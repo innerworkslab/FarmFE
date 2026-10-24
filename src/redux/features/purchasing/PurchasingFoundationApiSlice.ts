@@ -41,9 +41,7 @@ export interface PurchaseInvoiceLinePayload {
   foc_type?: "quantity" | "amount" | string;
   foc_value?: number;
   tax_rate?: number;
-  target_inventory_id?: number;
   target_farm_information_id?: number;
-  target_location?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -81,9 +79,7 @@ export interface PurchaseReceiptLinePayload {
   accepted_quantity: number;
   accepted_foc_quantity?: number;
   rejected_quantity?: number;
-  target_inventory_id?: number;
   target_farm_information_id?: number;
-  target_location?: string;
   metadata?: Record<string, unknown>;
   supplier_batch_number?: string | null;
   receipt_lot_number?: string | null;

@@ -10,6 +10,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
+import { useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
 import {
   FarmInformationRecord,
   HouseBarn,
@@ -46,6 +47,7 @@ const emptyForm = {
   branch_id: 0,
   house_barn_id: null as number | null,
   pen_cage_pond_id: null as number | null,
+  responsible_employee_id: null as number | null,
 };
 const errorText = (error: unknown) => {
   const data = (error as { data?: { message?: string; errors?: Record<string, string[]> } })?.data;
@@ -134,6 +136,11 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
   );
   const barns = barnOptions.currentData?.data || [];
   const pens = penOptions.currentData?.data || [];
+  const staffQuery = useGetStaffQuery(
+    { branch_id: form.branch_id || undefined, status: "active", employment_status: "employed", per_page: 100 },
+    { skip: !open || kind !== "farms" || !form.branch_id }
+  );
+  const staff = staffQuery.currentData?.data || [];
   const optionsBusy =
     (kind !== "barns" && barnOptions.isFetching) || (kind === "farms" && penOptions.isFetching);
   const optionsError =
@@ -173,6 +180,7 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
             branch_id: row.branch_id,
             house_barn_id: "house_barn_id" in row ? row.house_barn_id : null,
             pen_cage_pond_id: "pen_cage_pond_id" in row ? row.pen_cage_pond_id : null,
+            responsible_employee_id: "responsible_employee_id" in row ? row.responsible_employee_id : null,
           }
         : { ...emptyForm, branch_id: Number(branch) || 0 }
     );
@@ -213,6 +221,7 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
           ...base,
           house_barn_id: form.house_barn_id,
           pen_cage_pond_id: form.pen_cage_pond_id,
+          responsible_employee_id: form.responsible_employee_id,
         };
         if (editing) await updateFarm({ id: editing.id, body }).unwrap();
         else await createFarm(body).unwrap();
@@ -407,7 +416,9 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   "Name",
                   "Branch",
                   ...(kind !== "barns" ? ["House / Barn"] : []),
-                  ...(kind === "farms" ? ["Pen / Cage / Pond"] : ["Status"]),
+                  ...(kind === "farms"
+                    ? ["Pen / Cage / Pond", "Responsible Employee"]
+                    : ["Status"]),
                   "Actions",
                 ].map((label) => (
                   <th key={label} className="px-5 py-3 font-medium">
@@ -431,6 +442,11 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                         ? row.status
                         : "—"}
                   </td>
+                  {kind === "farms" && (
+                    <td className="px-5 py-4">
+                      {(row as FarmInformationRecord).responsible_employee?.name || "—"}
+                    </td>
+                  )}
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap items-center gap-1.5 min-w-[300px]">
                       <TableActionButton
@@ -548,10 +564,38 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   branch_id: Number(e.target.value),
                   house_barn_id: null,
                   pen_cage_pond_id: null,
+                  responsible_employee_id: null,
                 })
               }
             />
           </Field>
+          {kind === "farms" && (
+            <Field label="Responsible Employee">
+              <Select
+                disabled={!form.branch_id || staffQuery.isFetching}
+                value={form.responsible_employee_id || ""}
+                options={[
+                  { value: "", label: "Select employee (optional)" },
+                  ...staff.map((person) => ({ value: String(person.id), label: person.name })),
+                  ...(form.responsible_employee_id &&
+                  !staff.some((person) => person.id === form.responsible_employee_id) &&
+                  editing &&
+                  "responsible_employee" in editing &&
+                  editing.responsible_employee
+                    ? [
+                        {
+                          value: String(form.responsible_employee_id),
+                          label: editing.responsible_employee.name,
+                        },
+                      ]
+                    : []),
+                ]}
+                onChange={(e) =>
+                  setForm({ ...form, responsible_employee_id: Number(e.target.value) || null })
+                }
+              />
+            </Field>
+          )}
           {kind !== "barns" && (
             <Field label="House / Barn">
               <div className="flex items-start gap-2">

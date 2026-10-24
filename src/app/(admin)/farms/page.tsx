@@ -21,8 +21,16 @@ const trackingOptions = [
 ];
 const value = (item: unknown) =>
   item === null || item === undefined || item === "" ? "-" : String(item);
-const labelize = (item?: string | null) =>
-  item ? item.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) : "-";
+const labelize = (item: unknown) => {
+  if (item === null || item === undefined || item === "") return "-";
+  const raw =
+    typeof item === "string"
+      ? item
+      : typeof item === "object" && "name" in item && typeof item.name === "string"
+        ? item.name
+        : String(item);
+  return raw.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+};
 const badgeClass = (status?: string | null) =>
   status === "active" || status === "healthy"
     ? "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300"

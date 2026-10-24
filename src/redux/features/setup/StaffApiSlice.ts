@@ -44,6 +44,7 @@ export const staffApiSlice = farmApi.injectEndpoints({
         search?: string;
         status?: "active" | "inactive";
         employment_status?: "employed" | "terminated";
+        branch_id?: number | string;
       } | void
     >({
       query: (params) => {
@@ -53,6 +54,7 @@ export const staffApiSlice = farmApi.injectEndpoints({
         if (params?.search) query.set("search", params.search);
         if (params?.status) query.set("status", params.status);
         if (params?.employment_status) query.set("employment_status", params.employment_status);
+        if (params?.branch_id) query.set("branch_id", String(params.branch_id));
         return `setup/staff${query.size ? `?${query}` : ""}`;
       },
       providesTags: ["staff"],
