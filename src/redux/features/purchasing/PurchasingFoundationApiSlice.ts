@@ -176,6 +176,18 @@ export const purchasingFoundationApiSlice = farmApi.injectEndpoints({
       invalidatesTags: ["purchaseInvoices"],
     }),
 
+    confirmPurchaseInvoice: builder.mutation<
+      SingleResponse<PurchaseInvoice>,
+      { id: number | string; cashbook_id: number }
+    >({
+      query: ({ id, cashbook_id }) => ({
+        url: `purchasing/invoices/${id}/confirm`,
+        method: "POST",
+        body: { cashbook_id },
+      }),
+      invalidatesTags: ["purchaseInvoices"],
+    }),
+
     getPurchaseReceipts: builder.query<PaginatedResponse<PurchaseReceipt>, QueryParams | void>({
       query: (params) => withQuery("purchasing/receipts", params || undefined),
       providesTags: ["purchaseReceipts"],
@@ -224,6 +236,7 @@ export const {
   useLazyGetPurchaseInvoiceQuery,
   useUpdatePurchaseInvoiceMutation,
   useCancelPurchaseInvoiceMutation,
+  useConfirmPurchaseInvoiceMutation,
   useGetPurchaseReceiptsQuery,
   useCreatePurchaseReceiptMutation,
   useGetPurchaseReceiptQuery,

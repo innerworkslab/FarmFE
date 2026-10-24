@@ -8,6 +8,7 @@ import {
   PurchaseInvoicePayload,
   PurchaseReceiptPayload,
   useCancelPurchaseInvoiceMutation,
+  useConfirmPurchaseInvoiceMutation,
   useConfirmPurchaseReceiptMutation,
   useCreatePurchaseInvoiceMutation,
   useCreatePurchaseReceiptMutation,
@@ -40,6 +41,7 @@ import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
 import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
+import { useGetCashbooksQuery } from "@/redux/features/financial/CashbookApiSlice";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -387,6 +389,8 @@ export default function PurchasingPage() {
     ({ ...receiptFormFromPayload(receiptSample), expiry_date: "" })
   );
   const [cancelReason, setCancelReason] = useState("Supplier cancelled before any receipt.");
+  const [confirmingInvoice, setConfirmingInvoice] = useState<PurchaseInvoice | null>(null);
+  const [confirmationCashbookId, setConfirmationCashbookId] = useState("");
 
   const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
   const { data: inventoriesSetupData } = useGetInventoriesQuery({ per_page: 100 });
@@ -427,6 +431,12 @@ export default function PurchasingPage() {
   const [cancelInvoice, cancelInvoiceState] = useCancelPurchaseInvoiceMutation();
   const [createReceipt, createReceiptState] = useCreatePurchaseReceiptMutation();
   const [confirmReceipt, confirmReceiptState] = useConfirmPurchaseReceiptMutation();
+  const [confirmInvoice, confirmInvoiceState] = useConfirmPurchaseInvoiceMutation();
+
+  const { data: confirmationCashbooksData, isLoading: confirmationCashbooksLoading } = useGetCashbooksQuery(
+    { branch_id: confirmingInvoice?.branch_id, status: "active", per_page: 100 },
+    { skip: !confirmingInvoice }
+  );
 
   const invoices = invoicesData?.data || [];
   const receipts = receiptsData?.data || [];
@@ -439,6 +449,24 @@ export default function PurchasingPage() {
   const medicines = medicinesData?.data || [];
   const inventoryItems = inventoryItemsData?.data || [];
   const uoms = uomsData?.data || [];
+  const confirmationCashbookOptions = (confirmationCashbooksData?.data || [])
+    .filter((cashbook) => cashbook.currency_code === "MMK" && cashbook.branch_id === confirmingInvoice?.branch_id)
+    .map((cashbook) => ({ value: String(cashbook.id), label: `${cashbook.name} (${cashbook.type}, ${cashbook.currency_code})` }));
+
+  const submitInvoiceConfirmation = async () => {
+    if (!confirmingInvoice || !confirmationCashbookId) {
+      toast.error("Select an active MMK cashbook for this branch.");
+      return;
+    }
+    try {
+      await confirmInvoice({ id: confirmingInvoice.id, cashbook_id: Number(confirmationCashbookId) }).unwrap();
+      toast.success("Purchase invoice confirmed.");
+      setConfirmingInvoice(null);
+      setConfirmationCashbookId("");
+    } catch {
+      toast.error("Could not confirm purchase invoice.");
+    }
+  };
 
   const branchMap = useMemo(
     () => new Map((branchesData?.data || []).map((b) => [b.id, b.name])),
@@ -891,6 +919,17 @@ export default function PurchasingPage() {
                         icon={<Eye size={14} />}
                       />
                       <a className="rounded border px-2 py-1 text-xs" href={`/financial/supplier-payments?branch_id=${item.branch_id}&invoice_id=${item.id}`}>AP / Pay</a>
+                      {canEditInvoice(item.status) && Number(item.paid_amount ?? 0) !== 0 && (
+                        <TableActionButton
+                          label="Confirm"
+                          tone="green"
+                          onClick={() => {
+                            setConfirmingInvoice(item);
+                            setConfirmationCashbookId("");
+                          }}
+                          icon={<CheckCircle2 size={14} />}
+                        />
+                      )}
                       {canEditInvoice(item.status) && (
                         <TableActionButton
                           label="Update"
@@ -1175,6 +1214,36 @@ export default function PurchasingPage() {
         onClose={() => setJsonAction(null)}
         onSubmit={runFormAction}
       />
+
+      <Modal isOpen={!!confirmingInvoice} onClose={() => setConfirmingInvoice(null)} className="max-w-lg p-6">
+        <div className="space-y-5">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Confirm purchase invoice</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Confirm {confirmingInvoice?.invoice_number || "this invoice"}. Choose the active MMK cashbook for its branch.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Cashbook <span className="text-red-500">*</span></label>
+            <Select
+              options={confirmationCashbookOptions}
+              placeholder={confirmationCashbooksLoading ? "Loading cashbooks..." : "Select cashbook"}
+              value={confirmationCashbookId}
+              onChange={(event) => setConfirmationCashbookId(event.target.value)}
+              disabled={confirmationCashbooksLoading || !confirmationCashbookOptions.length}
+            />
+            {!confirmationCashbooksLoading && !confirmationCashbookOptions.length && (
+              <p className="mt-1.5 text-sm text-red-600">No active MMK cashbooks are available for this invoice branch.</p>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setConfirmingInvoice(null)}>Cancel</Button>
+            <Button onClick={submitInvoiceConfirmation} disabled={!confirmationCashbookId || confirmInvoiceState.isLoading}>
+              {confirmInvoiceState.isLoading ? "Confirming..." : "Confirm invoice"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} warehouses={setupInventories} invoices={invoices} items={inventoryItems} />
     </div>
