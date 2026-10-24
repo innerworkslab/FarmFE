@@ -1152,7 +1152,7 @@ export default function PurchasingPage() {
         onSubmit={runFormAction}
       />
 
-      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} warehouses={setupInventories} invoices={invoices} items={inventoryItems} />
+      <ResponseModal data={selectedJson} onClose={() => setSelectedJson(null)} suppliers={suppliers} branches={branches} invoices={invoices} items={inventoryItems} />
     </div>
   );
 }
@@ -1306,7 +1306,6 @@ function PurchasingActionModal({
     })
     .filter((line): line is NonNullable<typeof line> => line !== null);
   const invoiceLines = [invoiceForm, ...(invoiceForm.additionalLines || [])];
-  const invoiceBranchId = invoiceForm.branch_id;
   const activeInvoiceLine = invoiceLines[Math.min(activeInvoiceLineIndex, invoiceLines.length - 1)] || invoiceForm;
   const receiptLinesInForm = [receiptForm, ...(receiptForm.additionalLines || [])];
   const activeReceiptLine = receiptLinesInForm[Math.min(activeReceiptLineIndex, receiptLinesInForm.length - 1)] || receiptForm;
@@ -1882,12 +1881,11 @@ const responseRecord = (data: unknown): Record<string, unknown> | null => {
   return value as Record<string, unknown>;
 };
 
-function ResponseModal({ data, onClose, suppliers, branches, warehouses, invoices, items }: {
+function ResponseModal({ data, onClose, suppliers, branches, invoices, items }: {
   data: unknown | null;
   onClose: () => void;
   suppliers: Array<{ id: number; code?: string; name: string }>;
   branches: Array<{ id: number; code?: string; name: string }>;
-  warehouses: Array<{ id: number; code?: string; name: string }>;
   invoices: Array<{ id: number; invoice_number: string }>;
   items: InventoryItem[];
 }) {
