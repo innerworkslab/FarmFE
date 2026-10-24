@@ -40,7 +40,6 @@ import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
 import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
-import { useGetCashbooksQuery } from "@/redux/features/financial/CashbookApiSlice";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -264,7 +263,6 @@ const toInvoicePayload = (
   invoice_date: form.invoice_date,
   supplier_id: Number(form.supplier_id),
   branch_id: Number(form.branch_id),
-  cashbook_id: Number(form.cashbook_id),
   ...(form.paid_amount ? { paid_amount: Number(form.paid_amount) } : {}),
   ...(form.notes ? { notes: form.notes } : {}),
   lines: [form, ...(form.additionalLines || [])]
@@ -611,7 +609,6 @@ export default function PurchasingPage() {
         if (!invoiceForm.invoice_date) headerErrors.invoice_date = "Select an invoice date.";
         if (!invoiceForm.supplier_id) headerErrors.supplier_id = "Select a supplier.";
         if (!invoiceForm.branch_id) headerErrors.branch_id = "Select a branch.";
-        if (!invoiceForm.cashbook_id) headerErrors.cashbook_id = "Select a cashbook.";
         if (invoiceForm.paid_amount && (!Number.isFinite(Number(invoiceForm.paid_amount)) || Number(invoiceForm.paid_amount) < 0)) headerErrors.paid_amount = "Enter a valid paid amount.";
         if (Object.keys(headerErrors).length) {
           setInvoiceFieldErrors(headerErrors);
@@ -1265,18 +1262,6 @@ function PurchasingActionModal({
   const [receiptLinePending, setReceiptLinePending] = useState(true);
   const [localInvoiceFieldErrors, setLocalInvoiceFieldErrors] = useState<Record<string, string>>({});
   const [localReceiptFieldErrors, setLocalReceiptFieldErrors] = useState<Record<string, string>>({});
-  const cashbooksQuery = useGetCashbooksQuery(
-    {
-      branch_id: Number(invoiceForm.branch_id) || undefined,
-      status: "active",
-      per_page: 100,
-    },
-    { skip: !isOpen || !invoiceForm.branch_id || (action !== "createInvoice" && action !== "updateInvoice") }
-  );
-  const cashbookOptions = (cashbooksQuery.currentData?.data || []).map((cashbook) => ({
-    value: String(cashbook.id),
-    label: `${cashbook.name} (${cashbook.type}, ${cashbook.currency_code})`,
-  }));
   useEffect(() => {
     const lineError = Object.keys(invoiceFieldErrors).map((key) => key.match(/^lines\.(\d+)\./)).find(Boolean);
     if (lineError) {
@@ -1434,21 +1419,9 @@ function PurchasingActionModal({
               <FormField label="Branch" required error={invoiceFieldErrors.branch_id}>
                 <Select
                   value={invoiceForm.branch_id}
-                  onChange={(e) => {
-                    setInvoiceField("branch_id", e.target.value);
-                    setInvoiceField("cashbook_id", "");
-                  }}
+                  onChange={(e) => setInvoiceField("branch_id", e.target.value)}
                   options={ensureOption(branchOptions, invoiceForm.branch_id)}
                   placeholder="Select branch"
-                />
-              </FormField>
-              <FormField label="Cashbook" required error={invoiceFieldErrors.cashbook_id}>
-                <Select
-                  value={invoiceForm.cashbook_id}
-                  onChange={(event) => setInvoiceField("cashbook_id", event.target.value)}
-                  options={ensureOption(cashbookOptions, invoiceForm.cashbook_id)}
-                  placeholder={invoiceForm.branch_id ? "Select cashbook" : "Select branch first"}
-                  disabled={!invoiceForm.branch_id || cashbooksQuery.isFetching}
                 />
               </FormField>
               <FormField label="Paid Amount" error={invoiceFieldErrors.paid_amount}>
