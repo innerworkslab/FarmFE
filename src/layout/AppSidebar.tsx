@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useGetCashbooksQuery } from "@/redux/features/financial/CashbookApiSlice";
 import {
   LayoutDashboard,
   UserCheck,
@@ -53,6 +54,8 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: cashbooksResponse } = useGetCashbooksQuery({ per_page: 100 });
+  const sidebarCashbooks = (cashbooksResponse?.data ?? []).filter((cashbook) => cashbook.status === "active");
   const currentTab = searchParams.get("tab");
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith("/inventory"));
   const [purchasingOpen, setPurchasingOpen] = useState(pathname.startsWith("/purchasing"));
@@ -61,7 +64,12 @@ const AppSidebar: React.FC = () => {
   );
   const [farmFeedingOpen, setFarmFeedingOpen] = useState(pathname.startsWith("/farms/feedings"));
   const [farmNavigationOpen, setFarmNavigationOpen] = useState(pathname === "/farms" || pathname.startsWith("/farms/management") || pathname.startsWith("/farms/operations") || pathname.startsWith("/farms/receiving"));
-  const [financialOpen, setFinancialOpen] = useState(pathname.startsWith("/financial"));
+  const [cashbooksOpen, setCashbooksOpen] = useState(
+    pathname.startsWith("/financial/cashbooks") || pathname.startsWith("/financial/transactions")
+  );
+  const [financialOpen, setFinancialOpen] = useState(
+    pathname.startsWith("/financial") && !pathname.startsWith("/financial/cashbooks") && !pathname.startsWith("/financial/transactions")
+  );
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
       pathname.startsWith("/setup/roles") ||
@@ -82,7 +90,8 @@ const AppSidebar: React.FC = () => {
     if (pathname.startsWith("/farms/animal-view")) setFarmAnimalViewOpen(true);
     if (pathname.startsWith("/farms/feedings")) setFarmFeedingOpen(true);
     if (pathname === "/farms" || pathname.startsWith("/farms/management") || pathname.startsWith("/farms/operations") || pathname.startsWith("/farms/receiving")) setFarmNavigationOpen(true);
-    if (pathname.startsWith("/financial")) setFinancialOpen(true);
+    if (pathname.startsWith("/financial/cashbooks") || pathname.startsWith("/financial/transactions")) setCashbooksOpen(true);
+    else if (pathname.startsWith("/financial")) setFinancialOpen(true);
 
     if (
       pathname.startsWith("/setup/branches") ||
@@ -197,10 +206,21 @@ const AppSidebar: React.FC = () => {
         children: [{ name: "Farm Feedings", path: "/farms/feedings", icon: <Wheat size={14} /> }],
       },
       {
+        name: "Cashbooks",
+        icon: <Wallet size={20} />,
+        children: [
+          { name: "Manage cashbooks", path: "/financial/cashbooks", icon: <Settings size={14} /> },
+          ...sidebarCashbooks.map((cashbook) => ({
+            name: `${cashbook.name} · ${cashbook.bank_reference || cashbook.type.toUpperCase()}`,
+            path: `/financial/transactions?cashbook_id=${cashbook.id}`,
+            icon: <Wallet size={14} />,
+          })),
+        ],
+      },
+      {
         name: "Financial Cashbook API",
         icon: <Wallet size={20} />,
         children: [
-          { name: "Cashbooks", path: "/financial/cashbooks", icon: <Wallet size={14} /> },
           { name: "Branch Policy", path: "/financial/policy", icon: <ShieldCheck size={14} /> },
           { name: "Financial Periods", path: "/financial/periods", icon: <CalendarDays size={14} /> },
           { name: "Supplier Payments", path: "/financial/supplier-payments", icon: <ReceiptText size={14} /> },
@@ -209,11 +229,6 @@ const AppSidebar: React.FC = () => {
           { name: "Reconciliation", path: "/financial/reconciliation", icon: <ClipboardCheck size={14} /> },
           { name: "Cash Result", path: "/financial/reports", icon: <ScrollText size={14} /> },
           { name: "Categories", path: "/financial/categories", icon: <Tags size={14} /> },
-          {
-            name: "Transactions",
-            path: "/financial/transactions",
-            icon: <ReceiptText size={14} />,
-          },
           { name: "Ledger", path: "/financial/ledger", icon: <ScrollText size={14} /> },
           {
             name: "Consolidated Balances",
@@ -250,7 +265,7 @@ const AppSidebar: React.FC = () => {
         ],
       },
     ],
-    []
+    [sidebarCashbooks]
   );
 
   const navigationGroups: NavGroup[] = useMemo(
@@ -408,8 +423,10 @@ const AppSidebar: React.FC = () => {
                     ? farmNavigationOpen
                     : group.name === "Farm Animal View API"
                       ? farmAnimalViewOpen
-                      : group.name === "Financial Cashbook API"
-                        ? financialOpen
+                      : group.name === "Cashbooks"
+                        ? cashbooksOpen
+                        : group.name === "Financial Cashbook API"
+                          ? financialOpen
                         : farmFeedingOpen;
             const setOpen =
               group.name === "Inventory Foundation API"
@@ -420,8 +437,10 @@ const AppSidebar: React.FC = () => {
                     ? setFarmNavigationOpen
                     : group.name === "Farm Animal View API"
                       ? setFarmAnimalViewOpen
-                      : group.name === "Financial Cashbook API"
-                        ? setFinancialOpen
+                      : group.name === "Cashbooks"
+                        ? setCashbooksOpen
+                        : group.name === "Financial Cashbook API"
+                          ? setFinancialOpen
                         : setFarmFeedingOpen;
 
             return (
@@ -466,7 +485,7 @@ const AppSidebar: React.FC = () => {
                             <Link
                               key={child.name}
                               href={child.path}
-                              className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
+                              className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-sm font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
                             >
                               <span className="shrink-0">{child.icon}</span>
                               {child.name}
@@ -555,7 +574,7 @@ const AppSidebar: React.FC = () => {
                             <Link
                               key={child.name}
                               href={child.path}
-                              className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
+                              className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-sm font-semibold transition-colors ${childActive ? "bg-[#15803d]/10 text-[#15803d] dark:bg-[#15803d]/20 dark:text-emerald-400" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
                             >
                               <span className="shrink-0">{child.icon}</span>
                               {child.name}

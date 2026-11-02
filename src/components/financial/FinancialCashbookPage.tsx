@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownLeft, ArrowUpRight, BookOpen, Eye, Plus, RotateCcw, Wallet } from "lucide-react";
+import { ArrowDownLeft, BookOpen, Eye, Plus, RotateCcw, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/ui/button/Button";
 import DatePicker from "@/components/form/date-picker";
@@ -92,10 +92,12 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
   const searchParams = useSearchParams();
   const tab = section;
   const [selectedCashbook, setSelectedCashbook] = useState(searchParams.get("cashbook_id") || "");
-  const [cashbookFilter, setCashbookFilter] = useState("");
   const [asOfDate, setAsOfDate] = useState(today());
   const [fromDate, setFromDate] = useState(today());
   const [toDate, setToDate] = useState(today());
+  const [transactionFromDate, setTransactionFromDate] = useState("");
+  const [transactionToDate, setTransactionToDate] = useState("");
+  const [appliedTransactionDates, setAppliedTransactionDates] = useState({ from: "", to: "" });
   const [formKind, setFormKind] = useState<FormKind>(null);
   const [editingCashbook, setEditingCashbook] = useState<Cashbook | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<CashbookTransaction | null>(null);
@@ -103,6 +105,11 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
   const [reason, setReason] = useState("");
   const [cashbookForm, setCashbookForm] = useState<CashbookForm>(emptyCashbook);
   const [transactionForm, setTransactionForm] = useState<TransactionForm>(emptyTransaction);
+  const cashbookIdFromUrl = searchParams.get("cashbook_id") || "";
+
+  useEffect(() => {
+    if (cashbookIdFromUrl) setSelectedCashbook(cashbookIdFromUrl);
+  }, [cashbookIdFromUrl]);
 
   const { data: branchesResponse } = useGetBranchesQuery({ per_page: 100 });
   const { data: cashbooksResponse, isLoading: cashbooksLoading } = useGetCashbooksQuery({
@@ -124,10 +131,14 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
     (category) => category.status === "active" && category.direction === transactionForm.direction
   );
   const effectiveCashbookId = selectedCashbook || String(activeCashbooks[0]?.id || "");
+  const transactionCashbookId = effectiveCashbookId;
+  const transactionCashbook = cashbooks.find((item) => String(item.id) === transactionCashbookId);
   const { data: transactionsResponse, isLoading: transactionsLoading } =
     useGetCashbookTransactionsQuery(
       {
-        cashbook_id: cashbookFilter || undefined,
+        cashbook_id: transactionCashbookId || undefined,
+        from_date: appliedTransactionDates.from || undefined,
+        to_date: appliedTransactionDates.to || undefined,
         per_page: 50,
       },
       { skip: tab !== "transactions" }
@@ -136,10 +147,10 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
     {
       id: effectiveCashbookId || "0",
       per_page: 50,
-      from_date: fromDate || undefined,
-      to_date: toDate || undefined,
+      from_date: tab === "transactions" ? appliedTransactionDates.from || undefined : fromDate || undefined,
+      to_date: tab === "transactions" ? appliedTransactionDates.to || undefined : toDate || undefined,
     },
-    { skip: tab !== "ledger" || !effectiveCashbookId }
+    { skip: (tab !== "ledger" && tab !== "transactions") || !effectiveCashbookId }
   );
   const { data: summaryResponse, isLoading: summaryLoading } = useGetCashbookDailySummaryQuery(
     {
@@ -310,16 +321,11 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
             <Wallet size={17} className="text-emerald-600" /> Financial management
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{pageTitle[tab]}</h1>
-          <p className="mt-1 text-sm text-gray-500">{pageDescription[tab]}</p>
+          <p className="mt-1 text-sm text-gray-500">{tab === "transactions" ? `Transactions for ${transactionCashbook?.name || `cashbook #${transactionCashbookId || "—"}`}.` : pageDescription[tab]}</p>
         </div>
         {tab === "cashbooks" && (
           <Button startIcon={<Plus size={16} />} onClick={() => openCashbook()}>
             New cashbook
-          </Button>
-        )}
-        {tab === "transactions" && (
-          <Button startIcon={<Plus size={16} />} onClick={() => openTransaction()}>
-            New transaction
           </Button>
         )}
       </header>
@@ -430,143 +436,111 @@ export default function FinancialCashbookPage({ section = "cashbooks" }: { secti
       )}
 
       {tab === "transactions" && (
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Cashbook</label>
-            <select
-              className={`${inputClass} max-w-sm`}
-              value={cashbookFilter}
-              onChange={(event) => setCashbookFilter(event.target.value)}
-            >
-              <option value="">All cashbooks</option>
-              {cashbooks.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-gray-500">
-              Drafts must be confirmed before they change the ledger balance.
-            </span>
+        <section className="space-y-3">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+            <p className="text-sm text-gray-500">Opening balance</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
+              {money(transactionCashbook?.opening_balance, transactionCashbook?.currency_code)}
+            </p>
           </div>
-          <DataPanel
-            loading={transactionsLoading}
-            hasData={(transactionsResponse?.data.length ?? 0) > 0}
-            empty="No transactions found."
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {[
-                    "Reference",
-                    "Cashbook",
-                    "Date",
-                    "Direction",
-                    "Amount",
-                    "Status",
-                    "Actions",
-                  ].map((head) => (
-                    <TableCell
-                      key={head}
-                      isHeader
-                      className={`px-4 py-3 text-xs font-semibold text-gray-500 ${head === "Amount" ? "text-right" : ""}`}
-                    >
-                      {head}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(transactionsResponse?.data ?? []).map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
-                      {item.reference || `#${item.id}`}
-                      <div className="text-xs font-normal text-gray-500">
-                        {item.external_reference || "—"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {item.cashbook?.name ||
-                        cashbooks.find((book) => book.id === item.cashbook_id)?.name ||
-                        `#${item.cashbook_id}`}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {formatReadableDate(item.business_date)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${item.direction === "in" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"}`}
-                      >
-                        {item.direction === "in" ? (
-                          <ArrowDownLeft size={14} />
-                        ) : (
-                          <ArrowUpRight size={14} />
-                        )}
-                        {item.direction}
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      className={`px-4 py-3 text-right text-sm font-semibold tabular-nums ${item.direction === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}
-                    >
-                      {money(item.amount, item.cashbook?.currency_code)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <StatusBadge status={item.status} />
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <TableActionButton
-                          label="View"
-                          tone="neutral"
-                          icon={<Eye size={14} />}
-                          onClick={() =>
-                            void fetchTransaction(item.id)
-                              .unwrap()
-                              .then(setDetail)
-                              .catch(notifyError)
-                          }
-                        />
-                        {item.status === "draft" && (
-                          <>
-                            <TableActionButton
-                              label="Edit draft"
-                              tone="neutral"
-                              icon={<BookOpen size={14} />}
-                              onClick={() => openTransaction(item)}
-                            />
-                            <TableActionButton
-                              label="Confirm"
-                              tone="green"
-                              icon={<ArrowDownLeft size={14} />}
-                              onClick={() =>
-                                runAction(
-                                  () => confirmTransaction(item.id).unwrap(),
-                                  "Transaction confirmed."
-                                )
-                              }
-                            />
-                          </>
-                        )}
-                        {item.status === "draft" && (item.source_type === "manual" || !item.source_type) && <TableActionButton label="Cancel draft" tone="red" icon={<RotateCcw size={14}/>} onClick={() => { setEditingTransaction(item); setReason(""); setFormKind("cancel"); }}/>}
-                        {item.status === "confirmed" && (
-                          <TableActionButton
-                            label="Reverse"
-                            tone="red"
-                            icon={<RotateCcw size={14} />}
-                            onClick={() => {
-                              setEditingTransaction(item);
-                              setReason("");
-                              setFormKind("reverse");
-                            }}
-                          />
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </DataPanel>
+
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div className="flex flex-wrap items-end gap-3 p-4">
+              <Field label="From date">
+                <DatePicker
+                  id="cashbook-transaction-from-date"
+                  value={transactionFromDate}
+                  onChange={(_, date) => {
+                    setTransactionFromDate(date);
+                    setAppliedTransactionDates((current) => ({ ...current, from: date }));
+                  }}
+                />
+              </Field>
+              <Field label="To date">
+                <DatePicker
+                  id="cashbook-transaction-to-date"
+                  value={transactionToDate}
+                  onChange={(_, date) => {
+                    setTransactionToDate(date);
+                    setAppliedTransactionDates((current) => ({ ...current, to: date }));
+                  }}
+                />
+              </Field>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setTransactionFromDate("");
+                  setTransactionToDate("");
+                  setAppliedTransactionDates({ from: "", to: "" });
+                }}
+              >
+                Clear dates
+              </Button>
+              <Button className="ml-auto" startIcon={<Plus size={16} />} onClick={() => openTransaction()}>
+                Add transaction
+              </Button>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-800">
+              <h2 className="border-b border-gray-200 px-5 py-4 font-semibold text-gray-800 dark:border-gray-800 dark:text-white">
+                Cashbook transactions
+              </h2>
+              {transactionsLoading ? (
+                <div className="flex h-52 items-center justify-center"><Loading /></div>
+              ) : (transactionsResponse?.data.length ?? 0) === 0 ? (
+                <div className="flex h-52 items-center justify-center text-sm text-gray-500">
+                  No transactions found for this cashbook and date range.
+                </div>
+              ) : (
+                <div className="max-w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {["ID", "Transaction date", "Remark", "Cashbook", "Type", "Amount", "Reference", "Balance after", "Actions"].map((head) => (
+                          <TableCell key={head} isHeader className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 ${["Amount", "Balance after"].includes(head) ? "text-right" : ""}`}>
+                            {head}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(transactionsResponse?.data ?? []).map((item) => {
+                        const ledgerEntry = ledgerResponse?.data.find((entry) => entry.cashbook_transaction_id === item.id);
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{item.id}</TableCell>
+                            <TableCell className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{formatReadableDate(item.business_date)}</TableCell>
+                            <TableCell className="min-w-48 px-4 py-4 text-sm text-gray-700 dark:text-gray-200">{item.description || "—"}</TableCell>
+                            <TableCell className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{item.cashbook?.name || transactionCashbook?.name || `#${item.cashbook_id}`}</TableCell>
+                            <TableCell className="px-4 py-4 text-sm capitalize text-gray-700 dark:text-gray-200">{item.direction === "in" ? "Income" : "Expense"}</TableCell>
+                            <TableCell className={`whitespace-nowrap px-4 py-4 text-right text-sm tabular-nums ${item.direction === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-gray-800 dark:text-gray-200"}`}>{money(item.amount, item.cashbook?.currency_code || transactionCashbook?.currency_code)}</TableCell>
+                            <TableCell className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{item.reference || item.external_reference || "—"}</TableCell>
+                            <TableCell className="whitespace-nowrap px-4 py-4 text-right text-sm tabular-nums text-gray-700 dark:text-gray-200">{ledgerEntry ? money(ledgerEntry.running_balance, item.cashbook?.currency_code || transactionCashbook?.currency_code) : "—"}</TableCell>
+                            <TableCell className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                <TableActionButton
+                                  label="View"
+                                  tone="neutral"
+                                  icon={<Eye size={14} />}
+                                  onClick={() => void fetchTransaction(item.id).unwrap().then(setDetail).catch(notifyError)}
+                                />
+                                {item.status === "draft" && <>
+                                  <TableActionButton label="Edit draft" tone="neutral" icon={<BookOpen size={14} />} onClick={() => openTransaction(item)} />
+                                  <TableActionButton label="Confirm" tone="green" icon={<ArrowDownLeft size={14} />} onClick={() => runAction(() => confirmTransaction(item.id).unwrap(), "Transaction confirmed.")} />
+                                </>}
+                                {item.status === "draft" && (item.source_type === "manual" || !item.source_type) && <TableActionButton label="Cancel draft" tone="red" icon={<RotateCcw size={14} />} onClick={() => { setEditingTransaction(item); setReason(""); setFormKind("cancel"); }} />}
+                                {item.status === "confirmed" && <TableActionButton label="Reverse" tone="red" icon={<RotateCcw size={14} />} onClick={() => { setEditingTransaction(item); setReason(""); setFormKind("reverse"); }} />}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
