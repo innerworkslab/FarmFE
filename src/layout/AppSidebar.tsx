@@ -48,6 +48,7 @@ type NavGroup = {
   name: string;
   icon: React.ReactNode;
   children: SetupChild[];
+  path?: string;
 };
 
 const AppSidebar: React.FC = () => {
@@ -68,7 +69,7 @@ const AppSidebar: React.FC = () => {
     pathname.startsWith("/financial/cashbooks") || pathname.startsWith("/financial/transactions")
   );
   const [financialOpen, setFinancialOpen] = useState(
-    pathname.startsWith("/financial") && !pathname.startsWith("/financial/cashbooks") && !pathname.startsWith("/financial/transactions")
+    pathname.startsWith("/financial") && !pathname.startsWith("/financial/cashbooks") && !pathname.startsWith("/financial/transactions") && pathname !== "/financial/transfers"
   );
   const [coreSetupOpen, setCoreSetupOpen] = useState(
     pathname.startsWith("/setup/branches") ||
@@ -91,7 +92,7 @@ const AppSidebar: React.FC = () => {
     if (pathname.startsWith("/farms/feedings")) setFarmFeedingOpen(true);
     if (pathname === "/farms" || pathname.startsWith("/farms/management") || pathname.startsWith("/farms/operations") || pathname.startsWith("/farms/receiving")) setFarmNavigationOpen(true);
     if (pathname.startsWith("/financial/cashbooks") || pathname.startsWith("/financial/transactions")) setCashbooksOpen(true);
-    else if (pathname.startsWith("/financial")) setFinancialOpen(true);
+    else if (pathname.startsWith("/financial") && pathname !== "/financial/transfers") setFinancialOpen(true);
 
     if (
       pathname.startsWith("/setup/branches") ||
@@ -218,6 +219,12 @@ const AppSidebar: React.FC = () => {
         ],
       },
       {
+        name: "Cashbook Transfers",
+        path: "/financial/transfers",
+        icon: <Wallet size={20} />,
+        children: [],
+      },
+      {
         name: "Financial Cashbook API",
         icon: <Wallet size={20} />,
         children: [
@@ -225,7 +232,6 @@ const AppSidebar: React.FC = () => {
           { name: "Financial Periods", path: "/financial/periods", icon: <CalendarDays size={14} /> },
           { name: "Supplier Payments", path: "/financial/supplier-payments", icon: <ReceiptText size={14} /> },
           { name: "Payroll Recovery", path: "/financial/payroll-recoveries", icon: <Users size={14} /> },
-          { name: "Cashbook Transfers", path: "/financial/transfers", icon: <Wallet size={14} /> },
           { name: "Reconciliation", path: "/financial/reconciliation", icon: <ClipboardCheck size={14} /> },
           { name: "Cash Result", path: "/financial/reports", icon: <ScrollText size={14} /> },
           { name: "Categories", path: "/financial/categories", icon: <Tags size={14} /> },
@@ -354,7 +360,7 @@ const AppSidebar: React.FC = () => {
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[75px]"}
+        ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[75px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
@@ -408,6 +414,22 @@ const AppSidebar: React.FC = () => {
           })}
 
           {foundationGroups.map((group) => {
+            if (group.path) {
+              const active = pathname === group.path;
+              return (
+                <Link
+                  key={group.name}
+                  href={group.path}
+                  title={!showLabels ? group.name : undefined}
+                  className={linkClass(active)}
+                >
+                  <span className={active ? "text-[#15803d] dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}>
+                    {group.icon}
+                  </span>
+                  {showLabels && <span className="truncate">{group.name}</span>}
+                </Link>
+              );
+            }
             const groupBasePath = group.children[0].path.split("?")[0];
             const groupActive =
               group.children.some((child) => isChildActive(child.path)) ||

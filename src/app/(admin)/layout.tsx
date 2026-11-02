@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-      ? "lg:ml-[240px]"
+      ? "lg:ml-[280px]"
       : "lg:ml-[75px]";
 
   return (

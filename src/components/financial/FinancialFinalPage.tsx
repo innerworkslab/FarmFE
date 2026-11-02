@@ -115,6 +115,12 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
   const timezoneOptions = [{ value: "Asia/Yangon", label: "Asia/Yangon" }];
   const draftRequest = useRef<{ signature: string; key: string } | null>(null);
   const branches = useGetBranchesQuery({ per_page: 100 });
+  useEffect(() => {
+    if (section !== "transfers" || branch) return;
+    const availableBranches = branches.currentData?.data || [];
+    const defaultBranch = availableBranches.find((item) => item.status === "active") || availableBranches[0];
+    if (defaultBranch) setBranch(String(defaultBranch.id));
+  }, [section, branch, branches.currentData?.data]);
   const users = useGetSetupAdminsQuery(undefined, { skip: section !== "policy" });
   const policy = useGetBranchPolicyQuery(branch, { skip: !branch || section !== "policy" });
   const limits = useGetPostingLimitsQuery(branch, { skip: !branch || section !== "policy" });
@@ -425,6 +431,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
         <>
           <Button
             size="sm"
+            className={group === "transfer" ? "!h-8 !px-2 !py-1 text-xs" : ""}
             disabled={busy}
             onClick={() =>
               open({
@@ -440,6 +447,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
           </Button>
           <Button
             size="sm"
+            className={group === "transfer" ? "!h-8 !px-2 !py-1 text-xs" : ""}
             variant="outline"
             disabled={busy}
             onClick={() =>
@@ -544,17 +552,19 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
           Manage branch finance, approvals and verified cash activity.
         </p>
       </div>
-      <nav className="flex flex-wrap gap-2">
-        {sections.map((s) => (
-          <Link
-            key={s.key}
-            href={s.path}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${s.key === section ? "bg-green-700 text-white" : "border border-gray-200 dark:border-gray-700"}`}
-          >
-            {s.label}
-          </Link>
-        ))}
-      </nav>
+      {section !== "transfers" && (
+        <nav className="flex flex-wrap gap-2">
+          {sections.map((s) => (
+            <Link
+              key={s.key}
+              href={s.path}
+              className={`rounded-lg px-3 py-2 text-sm font-medium ${s.key === section ? "bg-green-700 text-white" : "border border-gray-200 dark:border-gray-700"}`}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </nav>
+      )}
       <section className={`${panel} grid gap-4 sm:grid-cols-3`}>
         <Field label="Branch">
           <select
