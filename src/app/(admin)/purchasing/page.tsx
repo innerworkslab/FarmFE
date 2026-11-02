@@ -43,6 +43,7 @@ import { useGetFoodsQuery } from "@/redux/features/setup/FoodApiSlice";
 import { useGetMedicinesQuery } from "@/redux/features/setup/MedicineApiSlice";
 import { useGetUomsQuery } from "@/redux/features/setup/UomApiSlice";
 import { useGetSuppliersQuery } from "@/redux/features/setup/SupplierApiSlice";
+import { useGetFarmInformationListQuery } from "@/redux/features/setup/FarmInformationApiSlice";
 import { useGetCashbooksQuery } from "@/redux/features/financial/CashbookApiSlice";
 import { toast } from "sonner";
 import {
@@ -60,6 +61,7 @@ import {
 } from "lucide-react";
 
 type PurchasingTab = "invoices" | "receipts" | "balances" | "ledger";
+type InvoiceCategoryFilter = "all" | "food" | "medicine" | "equipment";
 type JsonAction = "createInvoice" | "updateInvoice" | "cancelInvoice" | "createReceipt" | "updateReceipt";
 
 type InvoiceForm = {
@@ -97,10 +99,12 @@ type ReceiptForm = {
   idempotency_key: string;
   notes: string;
   purchase_invoice_line_id: string;
+  category?: string;
   accepted_quantity: string;
   accepted_foc_quantity: string;
   rejected_quantity: string;
   target_inventory_id: string;
+  target_farm_information_id?: string;
   target_location: string;
   supplier_batch_number: string;
   manufacturing_date: string;
@@ -110,6 +114,7 @@ type ReceiptForm = {
   observed_temperature: string;
   temperature_uom: string;
   exception_reason: string;
+  equipment_serial_numbers?: string;
 };
 
 const foodInvoiceSample: PurchaseInvoicePayload = {
@@ -159,6 +164,15 @@ const medicineInvoiceSample: PurchaseInvoicePayload = {
       tax_rate: 0,
     },
   ],
+};
+
+const equipmentInvoiceSample: PurchaseInvoicePayload = {
+  invoice_number: `PINV-POSTMAN-EQUIP-${Date.now()}`,
+  invoice_date: new Date().toISOString().slice(0, 10),
+  supplier_id: 1,
+  branch_id: 1,
+  notes: "Equipment purchase; receive serial-tracked equipment by identity or other equipment by quantity.",
+  lines: [{ category: "equipment", item_id: 1, purchase_uom_id: 1, stock_uom_id: 1, conversion_factor: 1, quantity: 1, unit_price: 0, foc_type: "quantity", foc_value: 0, tax_rate: 0 }],
 };
 
 const foodInvoiceUpdateSample: PurchaseInvoicePayload = {
@@ -303,6 +317,7 @@ const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm =>
       line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
     rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "",
     target_inventory_id: String(line.target_inventory_id || ""),
+    target_farm_information_id: line.target_farm_information_id ? String(line.target_farm_information_id) : "",
     target_location: line.target_location || "",
     supplier_batch_number: line.supplier_batch_number || "",
     manufacturing_date: line.manufacturing_date || "",
@@ -313,6 +328,9 @@ const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm =>
       line.observed_temperature !== undefined ? String(line.observed_temperature) : "",
     temperature_uom: line.temperature_uom || "",
     exception_reason: line.exception_reason || "",
+    equipment_serial_numbers: Array.isArray((line.metadata as { units?: unknown[] } | undefined)?.units)
+      ? ((line.metadata as { units: Array<{ serial_number?: string }> }).units).map((unit) => unit.serial_number || "").filter(Boolean).join("\n")
+      : "",
   };
 };
 
@@ -330,7 +348,8 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
         : {}),
       ...(line.rejected_quantity ? { rejected_quantity: Number(line.rejected_quantity) } : {}),
       target_inventory_id: Number(line.target_inventory_id),
-      target_location: line.target_location,
+      ...(line.target_farm_information_id ? { target_farm_information_id: Number(line.target_farm_information_id) } : {}),
+      ...(line.target_location.trim() ? { target_location: line.target_location.trim() } : {}),
       ...(line.supplier_batch_number ? { supplier_batch_number: line.supplier_batch_number } : {}),
       ...(line.manufacturing_date ? { manufacturing_date: line.manufacturing_date } : {}),
       ...(line.expiry_date ? { expiry_date: line.expiry_date } : {}),
@@ -341,6 +360,7 @@ const toReceiptPayload = (form: ReceiptForm): PurchaseReceiptPayload => ({
         : {}),
       ...(line.temperature_uom ? { temperature_uom: line.temperature_uom } : {}),
       ...(line.exception_reason ? { exception_reason: line.exception_reason } : {}),
+      ...(line.category === "equipment" ? line.equipment_serial_numbers?.trim() ? { metadata: { units: line.equipment_serial_numbers.split(/[\n,]+/).map((serial_number) => serial_number.trim()).filter(Boolean).map((serial_number, index) => ({ serial_number, ...(index >= Number(line.accepted_quantity) ? { foc: true } : {}) })) } } : { metadata: { tracking_mode: "quantity" } } : {}),
     })),
 });
 
@@ -375,6 +395,8 @@ export default function PurchasingPage() {
       ? tabParam
       : "invoices";
   const [tab, setTab] = useState<PurchasingTab>(initialTab);
+  const [invoiceCategoryFilter, setInvoiceCategoryFilter] = useState<InvoiceCategoryFilter>("all");
+  const [receiptCategoryFilter, setReceiptCategoryFilter] = useState<InvoiceCategoryFilter>("all");
   const [balanceFilters, setBalanceFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
   const [balancePage, setBalancePage] = useState(1);
   const [ledgerFilters, setLedgerFilters] = useState({ from_date: new Date().toLocaleDateString("en-CA").slice(0, 7) + "-01", to_date: new Date().toLocaleDateString("en-CA"), inventory_id: "", item_id: "", location: "" });
@@ -396,6 +418,7 @@ export default function PurchasingPage() {
   const [confirmationCashbookId, setConfirmationCashbookId] = useState("");
 
   const { data: branchesData } = useGetBranchesQuery({ per_page: 100 });
+  const { data: farmInformationData } = useGetFarmInformationListQuery({ per_page: 100 });
   const { data: inventoriesSetupData } = useGetInventoriesQuery({ per_page: 100 });
   const { data: foodsData } = useGetFoodsQuery({ per_page: 100 });
   const { data: medicinesData } = useGetMedicinesQuery({ per_page: 100 });
@@ -403,10 +426,10 @@ export default function PurchasingPage() {
   const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
 
   const { data: invoicesData, isLoading: invoicesLoading } = useGetPurchaseInvoicesQuery({
-    per_page: 15,
+    per_page: 100,
   });
   const { data: receiptsData, isLoading: receiptsLoading } = useGetPurchaseReceiptsQuery({
-    per_page: 15,
+    per_page: 100,
   });
   const { currentData: balancesData, isFetching: balancesLoading, isError: balancesError } = useGetInventoryBalancesQuery({
     per_page: 15,
@@ -443,10 +466,17 @@ export default function PurchasingPage() {
   );
 
   const invoices = invoicesData?.data || [];
+  const filteredInvoices = invoiceCategoryFilter === "all"
+    ? invoices
+    : invoices.filter((invoice) => invoice.lines?.some((line) => line.category === invoiceCategoryFilter));
   const receipts = receiptsData?.data || [];
+  const filteredReceipts = receiptCategoryFilter === "all"
+    ? receipts
+    : receipts.filter((receipt) => receipt.lines?.some((line) => line.category === receiptCategoryFilter));
   const balances = balancesData?.data || [];
   const ledger = ledgerData?.data || [];
   const branches = branchesData?.data || [];
+  const farmInformation = farmInformationData?.data || [];
   const setupInventories = inventoriesSetupData?.data || [];
   const suppliers = suppliersData?.data || [];
   const foods = foodsData?.data || [];
@@ -617,7 +647,9 @@ export default function PurchasingPage() {
         accepted_foc_quantity: line.accepted_foc_quantity !== undefined ? String(line.accepted_foc_quantity) : "",
         rejected_quantity: line.rejected_quantity !== undefined ? String(line.rejected_quantity) : "",
         target_inventory_id: String(line.target_inventory_id || ""),
+        target_farm_information_id: line.target_farm_information_id ? String(line.target_farm_information_id) : "",
         target_location: line.target_location || "",
+        category: line.category,
         supplier_batch_number: line.supplier_batch_number || "",
         manufacturing_date: line.manufacturing_date || "",
         expiry_date: line.expiry_date || "",
@@ -626,6 +658,7 @@ export default function PurchasingPage() {
         observed_temperature: line.observed_temperature !== undefined ? String(line.observed_temperature) : "",
         temperature_uom: line.temperature_uom || "",
         exception_reason: line.exception_reason || "",
+        equipment_serial_numbers: Array.isArray(line.metadata?.units) ? (line.metadata.units as Array<{ serial_number?: string }>).map((unit) => String(unit.serial_number || "")).filter(Boolean).join("\n") : "",
       }));
       const [firstLine, ...additionalLines] = lines;
       const emptyLine = receiptFormFromPayload(receiptSample);
@@ -645,16 +678,16 @@ export default function PurchasingPage() {
   };
 
   React.useEffect(() => {
-    if (createInvoiceType === "food" || createInvoiceType === "medicine") {
+    if (["food", "medicine", "equipment", "serial-equipment", "quantity-equipment"].includes(createInvoiceType || "")) {
       void openFormAction(
         "createInvoice",
-        createInvoiceType === "medicine" ? medicineInvoiceSample : foodInvoiceSample
+        createInvoiceType === "medicine" ? medicineInvoiceSample : createInvoiceType?.endsWith("equipment") ? equipmentInvoiceSample : foodInvoiceSample
       );
     }
   }, [createInvoiceType]);
 
   React.useEffect(() => {
-    if (createReceiptType === "food" || createReceiptType === "medicine") {
+    if (["food", "medicine", "equipment", "serial-equipment", "quantity-equipment"].includes(createReceiptType || "")) {
       void openFormAction(
         "createReceipt",
         createReceiptType === "medicine" ? medicineReceiptSample : receiptSample
@@ -729,7 +762,7 @@ export default function PurchasingPage() {
           if (!Number.isFinite(foc) || foc < 0) receiptLineErrors[`lines.${index}.accepted_foc_quantity`] = "Enter a valid FOC quantity.";
           if (!Number.isFinite(rejected) || rejected < 0) receiptLineErrors[`lines.${index}.rejected_quantity`] = "Enter a valid rejected quantity.";
           if (!line.target_inventory_id) receiptLineErrors[`lines.${index}.target_inventory_id`] = "Select a target warehouse.";
-          if (!line.target_location) receiptLineErrors[`lines.${index}.target_location`] = "Enter a target location.";
+          if (!line.target_location && !line.target_farm_information_id && line.category !== "equipment" && line.category !== "animal") receiptLineErrors[`lines.${index}.target_location`] = "Enter a target location.";
         });
         if (!payload.lines.length) receiptLineErrors["lines.0.purchase_invoice_line_id"] = "Select an invoice item before adding it.";
         if (Object.keys(receiptLineErrors).length) {
@@ -750,7 +783,7 @@ export default function PurchasingPage() {
           if (!source) { sourceErrors[`lines.${lineIndex}.purchase_invoice_line_id`] = "Select an item from this invoice."; continue; }
           if (source.category === "medicine" && !["compliant", "breached", "unknown"].includes(line.cold_chain_status || "")) sourceErrors[`lines.${lineIndex}.cold_chain_status`] = "Select a cold-chain status for medicine receipts.";
           const inventoryItem = inventoryItems.find((item) => item.id === source.item_id && item.category === source.category);
-          if (inventoryItem?.expiry_tracking && !line.expiry_date) sourceErrors[`lines.${lineIndex}.expiry_date`] = "Expiry date is required for this item.";
+          if (source.category !== "equipment" && source.category !== "animal" && inventoryItem?.expiry_tracking && !line.expiry_date) sourceErrors[`lines.${lineIndex}.expiry_date`] = "Expiry date is required for this item.";
           const remaining = Number(source.remaining_quantity ?? Math.max(0, Number(source.quantity) - Number(source.received_quantity || 0)));
           const remainingFoc = Number(source.remaining_foc_quantity ?? Math.max(0, Number(source.foc_quantity || 0) - Number(source.received_foc_quantity || 0)));
           if (line.accepted_quantity > remaining || Number(line.accepted_foc_quantity || 0) > remainingFoc) sourceErrors[`lines.${lineIndex}.accepted_quantity`] = "Receipt quantity exceeds the remaining invoice quantity.";
@@ -811,12 +844,10 @@ export default function PurchasingPage() {
   };
 
   if (
-    createInvoiceType === "food" ||
-    createInvoiceType === "medicine" ||
-    createReceiptType === "food" ||
-    createReceiptType === "medicine"
+    ["food", "medicine", "equipment", "serial-equipment", "quantity-equipment"].includes(createInvoiceType || "") ||
+    ["food", "medicine", "equipment", "serial-equipment", "quantity-equipment"].includes(createReceiptType || "")
   ) {
-    const isCreatingReceipt = createReceiptType === "food" || createReceiptType === "medicine";
+    const isCreatingReceipt = ["food", "medicine", "equipment", "serial-equipment", "quantity-equipment"].includes(createReceiptType || "");
     const backToList = isCreatingReceipt ? "/purchasing?tab=receipts" : "/purchasing?tab=invoices";
     return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
@@ -840,9 +871,12 @@ export default function PurchasingPage() {
           cancelReason={cancelReason}
           branchOptions={branches.map(namedOption)}
           supplierOptions={suppliers.map(namedOption)}
-          inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
+          inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, allowed_item_categories: i.allowed_item_categories, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
+          farmOptions={farmInformation.map((farm) => ({ branch_id: farm.branch_id, value: String(farm.id), label: farm.name }))}
           foodOptions={inventoryItems.filter((item) => item.category === "food").map(namedOption)}
           medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
+          equipmentOptions={inventoryItems.filter((item) => item.category === "equipment").map(namedOption)}
+          receiptMode={createReceiptType || "food"}
           uomOptions={uoms.map((u) => ({ value: String(u.id), label: `${u.code} - ${u.name} (${u.symbol})` }))}
           invoiceItems={inventoryItems}
           invoiceFieldErrors={invoiceFieldErrors}
@@ -891,6 +925,7 @@ export default function PurchasingPage() {
               <ReceiptText size={15} />
               Medicine Invoice
             </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => router.push("/purchasing?tab=invoices&createInvoice=equipment")}><ReceiptText size={15}/>Equipment Invoice</Button>
           </div>
         )}
         {tab === "receipts" && (
@@ -912,11 +947,31 @@ export default function PurchasingPage() {
               <ClipboardCheck size={15} />
               Medicine Receipt
             </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => router.push("/purchasing?tab=receipts&createReceipt=equipment")}><ClipboardCheck size={15}/>Equipment Receipt</Button>
           </div>
         )}
       </div>
 
       {tab === "invoices" && (
+        <>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter purchase invoices">
+          {([
+            ["all", "All"],
+            ["food", "Food Invoice"],
+            ["medicine", "Medicine Invoice"],
+            ["equipment", "Equipment Invoice"],
+          ] as const).map(([filter, label]) => (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={invoiceCategoryFilter === filter}
+              onClick={() => setInvoiceCategoryFilter(filter)}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${invoiceCategoryFilter === filter ? "border-green-700 bg-green-700 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <DataPanel loading={invoicesLoading} empty="No purchase invoices found.">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -935,7 +990,7 @@ export default function PurchasingPage() {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {invoices.map((item, index) => (
+              {filteredInvoices.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
                     {index + 1}
@@ -1004,12 +1059,33 @@ export default function PurchasingPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              {!invoicesLoading && filteredInvoices.length === 0 && <TableRow><TableCell colSpan={8} className="px-5 py-10 text-center text-sm text-gray-500">{invoiceCategoryFilter === "all" ? "No purchase invoices found." : `No ${invoiceCategoryFilter} invoices found.`}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </DataPanel>
+        </>
       )}
 
       {tab === "receipts" && (
+        <>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter purchase receipts">
+          {([
+            ["all", "All"],
+            ["food", "Food Receipt"],
+            ["medicine", "Medicine Receipt"],
+            ["equipment", "Equipment Receipt"],
+          ] as const).map(([filter, label]) => (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={receiptCategoryFilter === filter}
+              onClick={() => setReceiptCategoryFilter(filter)}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${receiptCategoryFilter === filter ? "border-green-700 bg-green-700 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <DataPanel loading={receiptsLoading} empty="No purchase receipts found.">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -1026,7 +1102,7 @@ export default function PurchasingPage() {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {receipts.map((item, index) => (
+              {filteredReceipts.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-gray-500">
                     {index + 1}
@@ -1079,9 +1155,11 @@ export default function PurchasingPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              {!receiptsLoading && filteredReceipts.length === 0 && <TableRow><TableCell colSpan={7} className="px-5 py-10 text-center text-sm text-gray-500">{receiptCategoryFilter === "all" ? "No purchase receipts found." : `No ${receiptCategoryFilter} receipts found.`}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </DataPanel>
+        </>
       )}
 
       {tab === "balances" && (
@@ -1255,9 +1333,11 @@ export default function PurchasingPage() {
         cancelReason={cancelReason}
         branchOptions={branches.map(namedOption)}
         supplierOptions={suppliers.map(namedOption)}
-        inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
+        inventoryOptions={setupInventories.map((i) => ({ branch_id: i.branch_id, allowed_item_categories: i.allowed_item_categories, value: String(i.id), label: `${i.code} - ${i.name} (${i.type})` }))}
+        farmOptions={farmInformation.map((farm) => ({ branch_id: farm.branch_id, value: String(farm.id), label: farm.name }))}
         foodOptions={inventoryItems.filter((item) => item.category === "food").map(namedOption)}
         medicineOptions={inventoryItems.filter((item) => item.category === "medicine").map(namedOption)}
+        equipmentOptions={inventoryItems.filter((item) => item.category === "equipment").map(namedOption)}
         uomOptions={uoms.map((u) => ({
           value: String(u.id),
           label: `${u.code} - ${u.name} (${u.symbol})`,
@@ -1335,7 +1415,7 @@ function DataPanel({
   );
 }
 
-type SelectOption = { value: string; label: string; branch_id?: number };
+type SelectOption = { value: string; label: string; branch_id?: number; allowed_item_categories?: string[] };
 
 function PurchasingActionModal({
   action,
@@ -1347,8 +1427,11 @@ function PurchasingActionModal({
   branchOptions,
   supplierOptions,
   inventoryOptions,
+  farmOptions,
   foodOptions,
   medicineOptions,
+  equipmentOptions = [],
+  receiptMode = "food",
   uomOptions,
   invoiceItems,
   invoiceFieldErrors,
@@ -1371,8 +1454,11 @@ function PurchasingActionModal({
   branchOptions: SelectOption[];
   supplierOptions: SelectOption[];
   inventoryOptions: SelectOption[];
+  farmOptions: SelectOption[];
   foodOptions: SelectOption[];
   medicineOptions: SelectOption[];
+  equipmentOptions?: SelectOption[];
+  receiptMode?: string;
   uomOptions: SelectOption[];
   invoiceItems: InventoryItem[];
   invoiceFieldErrors: Record<string, string>;
@@ -1414,7 +1500,7 @@ function PurchasingActionModal({
       setActiveReceiptLineIndex(0);
       setReceiptLinePending(true);
     }
-    onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { is_committed: false, purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_location: "", additionalLines: [] } : {}) }));
+    onReceiptChange((current) => ({ ...current, [key]: value, ...(key === "purchase_invoice_id" ? { is_committed: false, purchase_invoice_line_id: "", accepted_quantity: "", accepted_foc_quantity: "", rejected_quantity: "", target_inventory_id: "", target_farm_information_id: "", target_location: "", additionalLines: [] } : {}) }));
   };
   const selectClass =
     "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90";
@@ -1437,18 +1523,27 @@ function PurchasingActionModal({
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const availableInvoices = useGetPurchaseInvoicesQuery({ search: invoiceSearch || undefined, per_page: 100 }, { skip: !isOpen || (action !== "createReceipt" && action !== "updateReceipt") });
   const { currentData: receiptInvoice, isFetching: invoiceLoading, isError: invoiceError } = useGetPurchaseInvoiceQuery(receiptForm.purchase_invoice_id, { skip: !isOpen || (action !== "createReceipt" && action !== "updateReceipt") || !receiptForm.purchase_invoice_id });
+  const receiptLines = receiptInvoice?.data.lines || [];
+  const effectiveReceiptMode = action === "createReceipt" ? receiptMode : "all";
+  const receiptCategory = effectiveReceiptMode.endsWith("equipment") ? "equipment" : effectiveReceiptMode;
+  const receiptLineMatchesMode = (line: (typeof receiptLines)[number]) => {
+    if (receiptCategory === "all") return true;
+    if (line.category !== receiptCategory) return false;
+    if (receiptCategory !== "equipment") return true;
+    const item = invoiceItems.find((candidate) => candidate.id === line.item_id);
+    return effectiveReceiptMode === "serial-equipment" ? Boolean(item?.serial_tracking) : effectiveReceiptMode === "quantity-equipment" ? !item?.serial_tracking : true;
+  };
   const invoiceOptions = [
     ...(receiptInvoice?.data ? [{ value: String(receiptInvoice.data.id), label: receiptInvoice.data.invoice_number }] : []),
-    ...(availableInvoices.currentData?.data || []).filter((invoice) => invoice.status !== "cancelled" && invoice.delivery_status !== "fully_received").map((invoice) => ({ value: String(invoice.id), label: invoice.invoice_number })),
+    ...(availableInvoices.currentData?.data || []).filter((invoice) => invoice.status !== "cancelled" && invoice.delivery_status !== "fully_received" && invoice.lines?.some(receiptLineMatchesMode)).map((invoice) => ({ value: String(invoice.id), label: invoice.invoice_number })),
   ].filter((option, index, all) => all.findIndex((candidate) => candidate.value === option.value) === index);
-  const receiptLines = receiptInvoice?.data.lines || [];
   const remaining = (line: (typeof receiptLines)[number]) => Number(line.remaining_quantity ?? Math.max(0, Number(line.quantity) - Number(line.received_quantity || 0)));
   const remainingFoc = (line: (typeof receiptLines)[number]) => Number(line.remaining_foc_quantity ?? Math.max(0, Number(line.foc_quantity || 0) - Number(line.received_foc_quantity || 0)));
-  const eligibleLines = receiptLines.filter((line) => remaining(line) > 0 || remainingFoc(line) > 0);
+  const eligibleLines = receiptLines.filter((line) => receiptLineMatchesMode(line) && (remaining(line) > 0 || remainingFoc(line) > 0));
   const invoiceLineSummaries = [invoiceForm, ...(invoiceForm.additionalLines || [])]
     .map((line, index) => {
       if (!line.is_committed) return null;
-      const options = line.category === "medicine" ? medicineOptions : foodOptions;
+      const options = line.category === "medicine" ? medicineOptions : line.category === "equipment" ? equipmentOptions : foodOptions;
       const item = options.find((option) => option.value === line.item_id);
       const uom = uomOptions.find((option) => option.value === line.purchase_uom_id);
       const quantity = Number(line.quantity) || 0;
@@ -1594,7 +1689,11 @@ function PurchasingActionModal({
             </section>
 
             {[[activeInvoiceLine, activeInvoiceLineIndex] as const].map(([invoiceForm, lineIndex]) => {
-              const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : foodOptions;
+              const countUom = uomOptions.find((option) => option.label.includes("HEAD-FARM"));
+              const itemOptions = invoiceForm.category === "medicine" ? medicineOptions : invoiceForm.category === "equipment" ? equipmentOptions.map((option) => {
+                const item = invoiceItems.find((candidate) => String(candidate.id) === option.value);
+                return { ...option, label: `${option.label} · ${item?.serial_tracking ? "Serial tracked" : "Quantity tracked"}` };
+              }) : foodOptions;
               const lineError = (field: string) => localInvoiceFieldErrors[field] || invoiceFieldErrors[`lines.${lineIndex}.${field}`];
               const setInvoiceField = (key: keyof InvoiceForm, value: string) => {
                 const item = key === "item_id" ? invoiceItems.find((item) => String(item.id) === value) : undefined;
@@ -1606,7 +1705,9 @@ function PurchasingActionModal({
                   return next;
                 });
                 onInvoiceChange((current) => {
-                  const change = { [key]: value, ...(key === "category" ? { item_id: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "" } : {}), ...(item ? { purchase_uom_id: String(item.purchase_uom_id || ""), stock_uom_id: String(item.stock_uom_id || ""), conversion_factor: String(item.uom_conversion || 1) } : {}) };
+                  const categoryChange = key === "category" ? { item_id: "", purchase_uom_id: "", stock_uom_id: "", conversion_factor: "" } : {};
+                  const equipmentUomId = item?.category === "equipment" ? item.stock_uom_id || item.purchase_uom_id || countUom?.value || "" : "";
+                  const change = { [key]: value, ...categoryChange, ...(item ? { purchase_uom_id: String(equipmentUomId || item.purchase_uom_id || ""), stock_uom_id: String(equipmentUomId || item.stock_uom_id || ""), conversion_factor: String(item.category === "equipment" ? 1 : item.uom_conversion || 1) } : {}) };
                   return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
                 });
               };
@@ -1624,6 +1725,7 @@ function PurchasingActionModal({
                   >
                     <option value="food">food</option>
                     <option value="medicine">medicine</option>
+                    <option value="equipment">equipment</option>
                   </select>
                 </FormField>
                 <FormField label="Item" required error={lineError("item_id")}>
@@ -1633,7 +1735,9 @@ function PurchasingActionModal({
                     options={ensureOption(itemOptions, invoiceForm.item_id)}
                     placeholder="Select item"
                   />
+                  {invoiceForm.category === "equipment" && invoiceForm.item_id && <span className="mt-1 block text-xs text-gray-500">{invoiceItems.find((item) => String(item.id) === invoiceForm.item_id)?.serial_tracking ? "Serial tracked: receipt requires one serial number per unit." : "Quantity tracked: receipt records the received quantity."}</span>}
                 </FormField>
+                {invoiceForm.category !== "equipment" && <>
                 <FormField label="Purchase UOM" required error={lineError("purchase_uom_id")}>
                   <Select
                     value={invoiceForm.purchase_uom_id}
@@ -1664,6 +1768,7 @@ function PurchasingActionModal({
                     onChange={(event) => setInvoiceField("conversion_factor", event.target.value)}
                   />
                 </FormField>
+                </>}
                 <FormField label="Quantity" required error={lineError("quantity")}>
                   <Input
                     type="number"
@@ -1861,21 +1966,23 @@ function PurchasingActionModal({
                 />
               </FormField>
             </section>
+            {receiptInvoice?.data && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm dark:border-green-900 dark:bg-green-950/20"><span className="font-medium">Selected invoice: {receiptInvoice.data.invoice_number}</span><span className="text-gray-500">{receiptInvoice.data.status || "—"}</span></div>}
 
             {invoiceError && <p className="text-sm text-red-600">Unable to load invoice items. Select the invoice again to retry.</p>}
             {!invoiceLoading && receiptForm.purchase_invoice_id && !eligibleLines.length && <p className="text-sm">No remaining items available to receive.</p>}
             {[[activeReceiptLine, activeReceiptLineIndex] as const].map(([receiptForm, lineIndex]) => {
               const selectedLine = receiptLines.find((line) => String(line.id) === receiptForm.purchase_invoice_line_id);
               const selectedItem = invoiceItems.find((item) => item.id === selectedLine?.item_id && item.category === selectedLine?.category);
+              const isAssetReceipt = selectedLine?.category === "equipment" || selectedLine?.category === "animal";
               const coldChainStatusRequired = selectedLine?.category === "medicine";
               const receiptLineError = (field: string) => localReceiptFieldErrors[field] || receiptFieldErrors[`lines.${lineIndex}.${field}`];
               const setReceiptField = (key: keyof ReceiptForm, value: string | boolean) => {
-                const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity", "target_inventory_id", "target_location"] : [])];
+                const clearedKeys = [key, ...(key === "purchase_invoice_line_id" ? ["accepted_quantity", "accepted_foc_quantity", "target_inventory_id", "target_farm_information_id", "target_location"] : [])];
                 clearedKeys.forEach((field) => onClearReceiptFieldError(`lines.${lineIndex}.${field}`));
                 setLocalReceiptFieldErrors((errors) => { const next = { ...errors }; clearedKeys.forEach((field) => delete next[field]); return next; });
                 onReceiptChange((current) => {
                 const selected = key === "purchase_invoice_line_id" ? receiptLines.find((line) => String(line.id) === value) : undefined;
-                const change = { [key]: value, ...(selected ? { accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: "", target_location: "" } : {}), ...(key === "cold_chain_required" && value === false ? { ...(!coldChainStatusRequired ? { cold_chain_status: "" } : {}), observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
+                const change = { [key]: value, ...(selected ? { category: selected.category, accepted_quantity: "", accepted_foc_quantity: "", target_inventory_id: "", target_farm_information_id: "", target_location: "", equipment_serial_numbers: "" } : {}), ...(key === "cold_chain_required" && value === false ? { ...(!coldChainStatusRequired ? { cold_chain_status: "" } : {}), observed_temperature: "", temperature_uom: "", exception_reason: "" } : {}) };
                 return lineIndex === 0 ? { ...current, ...change } : { ...current, additionalLines: current.additionalLines?.map((line, index) => index === lineIndex - 1 ? { ...line, ...change } : line) };
                 });
               };
@@ -1922,16 +2029,14 @@ function PurchasingActionModal({
                   <Select
                     value={receiptForm.target_inventory_id}
                     onChange={(event) => setReceiptField("target_inventory_id", event.target.value)}
-                    options={inventoryOptions.filter((option) => option.branch_id === receiptInvoice?.data.branch_id)}
+                    options={inventoryOptions.filter((option) => option.branch_id === receiptInvoice?.data.branch_id && (!selectedLine?.category || !option.allowed_item_categories?.length || option.allowed_item_categories.includes(selectedLine.category) || option.allowed_item_categories.includes(String(selectedItem?.master_category || ""))))}
                     placeholder="Select warehouse"
                   />
                 </FormField>
-                <FormField label="Target Location" required error={receiptLineError("target_location")}>
-                  <Input
-                    value={receiptForm.target_location}
-                    onChange={(event) => setReceiptField("target_location", event.target.value)}
-                  />
-                </FormField>
+                {isAssetReceipt && <FormField label="Target Farm"><Select value={receiptForm.target_farm_information_id || ""} onChange={(event) => setReceiptField("target_farm_information_id", event.target.value)} options={farmOptions.filter((option) => option.branch_id === receiptInvoice?.data.branch_id)} placeholder="Select farm" /></FormField>}
+                {!isAssetReceipt && <FormField label="Target Location" required error={receiptLineError("target_location")}><Input value={receiptForm.target_location} onChange={(event) => setReceiptField("target_location", event.target.value)} /></FormField>}
+                {selectedLine?.category === "equipment" && Boolean(selectedItem?.serial_tracking) && <FormField label="Serial Numbers" required error={receiptLineError("equipment_serial_numbers")}><textarea className={`${selectClass} min-h-24 py-3`} value={receiptForm.equipment_serial_numbers || ""} onChange={(event) => setReceiptField("equipment_serial_numbers", event.target.value)} placeholder="Enter one serial number per line" /></FormField>}
+                {!isAssetReceipt && <>
                 <FormField label="Supplier Batch Number">
                   <Input
                     value={receiptForm.supplier_batch_number}
@@ -2003,6 +2108,7 @@ function PurchasingActionModal({
                     </FormField>
                   </>
                 )}
+                </>}
               </div>
             </section></React.Fragment>;
             })}
@@ -2016,13 +2122,17 @@ function PurchasingActionModal({
               if (!Number.isFinite(acceptedFoc) || acceptedFoc < 0) errors.accepted_foc_quantity = "Enter a valid FOC quantity.";
               if (!Number.isFinite(rejected) || rejected < 0) errors.rejected_quantity = "Enter a valid rejected quantity.";
               if (!activeReceiptLine.target_inventory_id) errors.target_inventory_id = "Select a target warehouse.";
-              if (!activeReceiptLine.target_location.trim()) errors.target_location = "Enter a target location.";
+              if (activeSelectedReceiptLine?.category !== "equipment" && activeSelectedReceiptLine?.category !== "animal" && !activeReceiptLine.target_farm_information_id && !activeReceiptLine.target_location.trim()) errors.target_location = "Enter a target location.";
+              if (activeSelectedReceiptLine?.category === "equipment" && activeSelectedReceiptItem?.serial_tracking) {
+                const serials = (activeReceiptLine.equipment_serial_numbers || "").split(/[\n,]+/).map((serial) => serial.trim()).filter(Boolean);
+                if (serials.length !== accepted + acceptedFoc) errors.equipment_serial_numbers = "Enter one serial number for every accepted or FOC unit.";
+              }
               if (receiptLinesInForm.some((line, index) => index !== activeReceiptLineIndex && line.purchase_invoice_line_id === activeReceiptLine.purchase_invoice_line_id && activeReceiptLine.purchase_invoice_line_id)) errors.purchase_invoice_line_id = "This invoice item is already on the receipt.";
-              if (activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
-              if ((activeReceiptLine.cold_chain_required || activeSelectedReceiptLine?.category === "medicine") && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
+              if (activeSelectedReceiptLine?.category !== "equipment" && activeSelectedReceiptLine?.category !== "animal" && activeSelectedReceiptItem?.expiry_tracking && !activeReceiptLine.expiry_date) errors.expiry_date = "Expiry date is required for this item.";
+              if (activeSelectedReceiptLine?.category !== "equipment" && activeSelectedReceiptLine?.category !== "animal" && (activeReceiptLine.cold_chain_required || activeSelectedReceiptLine?.category === "medicine") && !activeReceiptLine.cold_chain_status) errors.cold_chain_status = "Select a cold-chain status.";
               setLocalReceiptFieldErrors(errors);
               if (Object.keys(errors).length) {
-                toast.error("Please fix the highlighted receipt item fields.");
+                toast.error(Object.values(errors)[0] || "Please fix the highlighted receipt item fields.");
                 return;
               }
               setReceiptLinePending(true);
@@ -2049,6 +2159,7 @@ function PurchasingActionModal({
                   observed_temperature: "",
                   temperature_uom: "",
                   exception_reason: "",
+                  equipment_serial_numbers: "",
                 };
                 const nextLines = [...lines, blankLine];
                 return { ...nextLines[0], additionalLines: nextLines.slice(1) };
