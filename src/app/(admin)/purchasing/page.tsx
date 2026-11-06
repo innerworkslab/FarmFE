@@ -285,21 +285,27 @@ const toInvoicePayload = (
   ...(form.notes ? { notes: form.notes } : {}),
   lines: [form, ...(form.additionalLines || [])]
     .filter((line) => line.is_committed && line.item_id)
-    .map((line) => ({
-      category: line.category,
-      ...(line.description ? { description: line.description } : {}),
-      item_id: Number(line.item_id),
-      purchase_uom_id: Number(line.purchase_uom_id),
-      stock_uom_id: Number(line.stock_uom_id),
-      conversion_factor: Number(line.conversion_factor),
-      quantity: Number(line.quantity),
-      unit_price: Number(line.unit_price),
-      ...(line.discount_type ? { discount_type: line.discount_type } : {}),
-      ...(line.discount_value ? { discount_value: Number(line.discount_value) } : {}),
-      ...(line.foc_type ? { foc_type: line.foc_type } : {}),
-      ...(line.foc_value ? { foc_value: Number(line.foc_value) } : {}),
-      ...(line.tax_rate ? { tax_rate: Number(line.tax_rate) } : {}),
-    })),
+    .map((line) => {
+      const discountType = line.discount_type;
+      const hasDiscountType = discountType === "percentage" || discountType === "fixed";
+      const hasFocType = line.foc_type === "quantity" || line.foc_type === "percentage";
+
+      return {
+        category: line.category,
+        ...(line.description ? { description: line.description } : {}),
+        item_id: Number(line.item_id),
+        purchase_uom_id: Number(line.purchase_uom_id),
+        stock_uom_id: Number(line.stock_uom_id),
+        conversion_factor: Number(line.conversion_factor),
+        quantity: Number(line.quantity),
+        unit_price: Number(line.unit_price),
+        ...(hasDiscountType ? { discount_type: discountType } : {}),
+        ...(hasDiscountType && line.discount_value ? { discount_value: Number(line.discount_value) } : {}),
+        ...(hasFocType ? { foc_type: line.foc_type } : {}),
+        ...(hasFocType && line.foc_value ? { foc_value: Number(line.foc_value) } : {}),
+        ...(line.tax_rate ? { tax_rate: Number(line.tax_rate) } : {}),
+      };
+    }),
 });
 
 const receiptFormFromPayload = (payload: PurchaseReceiptPayload): ReceiptForm => {
@@ -1554,7 +1560,7 @@ function PurchasingActionModal({
         gross,
         line.discount_type === "percentage"
           ? (gross * Math.min(discountValue, 100)) / 100
-          : line.discount_type === "amount"
+          : line.discount_type === "fixed"
             ? discountValue
             : 0
       );
@@ -1793,7 +1799,7 @@ function PurchasingActionModal({
                   >
                     <option value="">none</option>
                     <option value="percentage">percentage</option>
-                    <option value="amount">amount</option>
+                    <option value="fixed">fixed amount</option>
                   </select>
                 </FormField>
                 <FormField label="Discount Value">
@@ -1812,7 +1818,7 @@ function PurchasingActionModal({
                   >
                     <option value="">none</option>
                     <option value="quantity">quantity</option>
-                    <option value="amount">amount</option>
+                    <option value="percentage">percentage</option>
                   </select>
                 </FormField>
                 <FormField label="FOC Value">

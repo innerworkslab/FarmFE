@@ -36,9 +36,9 @@ export interface PurchaseInvoiceLinePayload {
   conversion_factor: number;
   quantity: number;
   unit_price: number;
-  discount_type?: "percentage" | "amount" | string;
+  discount_type?: "percentage" | "fixed" | string;
   discount_value?: number;
-  foc_type?: "quantity" | "amount" | string;
+  foc_type?: "quantity" | "percentage" | string;
   foc_value?: number;
   tax_rate?: number;
   target_inventory_id?: number;
