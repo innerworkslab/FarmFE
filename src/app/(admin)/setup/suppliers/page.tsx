@@ -49,7 +49,6 @@ export default function SuppliersPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [form, setForm] = useState<SupplierForm>({
-    code: "",
     name: "",
     types: ["food"],
     opening_balance_currency_code: "MMK",
@@ -62,7 +61,6 @@ export default function SuppliersPage() {
   const handleOpenAdd = () => {
     setEditingItem(null);
     setForm({
-      code: "",
       name: "",
       types: ["food"],
       opening_balance_currency_code: "MMK",
@@ -103,7 +101,9 @@ export default function SuppliersPage() {
         }).unwrap();
         toast.success("Supplier updated successfully");
       } else {
-        await createSupplier(payload).unwrap();
+        const createPayload = { ...payload };
+        delete createPayload.code;
+        await createSupplier(createPayload).unwrap();
         toast.success("Supplier created successfully");
       }
       setIsModalOpen(false);
@@ -256,19 +256,21 @@ export default function SuppliersPage() {
             {editingItem ? "Edit Supplier" : "Add New Supplier"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Supplier Code <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. SUP-PM"
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value })}
-                />
-              </div>
+            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
+              {editingItem && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Supplier Code <span className="text-red-500 dark:text-red-400">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. SUP-PM"
+                    value={form.code ?? ""}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Supplier Name <span className="text-red-500 dark:text-red-400">*</span>

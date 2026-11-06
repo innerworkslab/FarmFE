@@ -45,7 +45,7 @@ export interface SingleSupplierResponse {
 }
 
 export interface CreateSupplierPayload {
-  code: string;
+  code?: string;
   name: string;
   types: string[];
   phone_number: string;

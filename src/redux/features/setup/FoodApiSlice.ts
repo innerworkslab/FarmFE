@@ -46,7 +46,7 @@ export interface SingleFoodResponse {
 }
 
 export interface FoodPayload {
-  code: string;
+  code?: string;
   name: string;
   category: string;
   target_animal_type?: string | null;

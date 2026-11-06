@@ -21,7 +21,6 @@ import {
 } from "@/redux/features/setup/StaffApiSlice";
 
 const emptyForm = (): StaffPayload => ({
-  staff_code: "",
   name: "",
   phone_number: "",
   branch_id: 0,
@@ -64,12 +63,17 @@ export default function StaffPage() {
     try {
       const body = {
         ...form,
-        staff_code: form.staff_code.trim(),
         name: form.name.trim(),
         phone_number: form.phone_number?.trim() || null,
       };
-      if (editing) await updateStaff({ id: editing.id, body }).unwrap();
-      else await createStaff(body).unwrap();
+      if (editing) {
+        await updateStaff({
+          id: editing.id,
+          body: { ...body, staff_code: form.staff_code?.trim() ?? editing.staff_code },
+        }).unwrap();
+      } else {
+        await createStaff(body).unwrap();
+      }
       toast.success(editing ? "Staff updated." : "Staff created.");
       setOpen(false);
     } catch (error) {
@@ -202,14 +206,16 @@ export default function StaffPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {editing ? "Edit staff" : "Add staff"}
           </h2>
-          <label className="block text-xs font-medium text-gray-600">
-            Staff code
-            <Input
-              required
-              value={form.staff_code}
-              onChange={(e) => setForm({ ...form, staff_code: e.target.value })}
-            />
-          </label>
+          {editing && (
+            <label className="block text-xs font-medium text-gray-600">
+              Staff code
+              <Input
+                required
+                value={form.staff_code ?? ""}
+                onChange={(e) => setForm({ ...form, staff_code: e.target.value })}
+              />
+            </label>
+          )}
           <label className="block text-xs font-medium text-gray-600">
             Name
             <Input

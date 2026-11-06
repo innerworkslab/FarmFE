@@ -16,7 +16,7 @@ export interface StaffRecord {
 }
 
 export interface StaffPayload {
-  staff_code: string;
+  staff_code?: string;
   name: string;
   phone_number?: string | null;
   branch_id: number;

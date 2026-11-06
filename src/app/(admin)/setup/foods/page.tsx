@@ -48,7 +48,6 @@ export default function FoodsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [form, setForm] = useState<FoodForm>({
-    code: "",
     name: "",
     category: "feed",
     target_animal_type: "cattle",
@@ -67,7 +66,6 @@ export default function FoodsPage() {
     const defaultUomId = uoms[0]?.id || 1;
     setEditingItem(null);
     setForm({
-      code: "",
       name: "",
       category: "feed",
       target_animal_type: "cattle",
@@ -120,7 +118,9 @@ export default function FoodsPage() {
         await updateFood({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Food / Feed updated successfully");
       } else {
-        await createFood(payload).unwrap();
+        const createPayload = { ...payload };
+        delete createPayload.code;
+        await createFood(createPayload).unwrap();
         toast.success("Food / Feed created successfully");
       }
       setIsModalOpen(false);
@@ -328,19 +328,21 @@ export default function FoodsPage() {
             {editingItem ? "Edit Food / Feed" : "Add New Food / Feed"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Code <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. FOD-PM"
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value })}
-                />
-              </div>
+            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
+              {editingItem && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Code <span className="text-red-500 dark:text-red-400">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. FOD-PM"
+                    value={form.code ?? ""}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Food Name <span className="text-red-500 dark:text-red-400">*</span>
