@@ -30,6 +30,10 @@ export interface FarmInformationRecord extends FarmLocationRelations {
   branch_id: number;
   current_animal_id: number | null;
   responsible_employee_id: number | null;
+  house_barn_ids?: number[];
+  pen_cage_pond_ids?: number[];
+  house_barns?: HouseBarn[];
+  pen_cage_ponds?: PenCagePond[];
   version?: number | null;
   created_at?: string;
   updated_at?: string;
@@ -51,8 +55,8 @@ export interface PenCagePondPayload extends HouseBarnPayload {
 // A standalone pond can have a null barn. The API requires at least one
 // location selection and validates branch, active status and parent membership.
 export interface FarmInformationRecordPayload extends HouseBarnPayload {
-  house_barn_id: number | null;
-  pen_cage_pond_id: number | null;
+  house_barn_ids: number[];
+  pen_cage_pond_ids: number[];
   current_animal_id?: number | null;
   responsible_employee_id?: number | null;
 }

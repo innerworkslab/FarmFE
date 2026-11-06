@@ -22,8 +22,9 @@ import Loading from "@/components/common/Loading";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Pill } from "lucide-react";
 
-type MedicineForm = Omit<MedicinePayload, "uom_conversion"> & {
+type MedicineForm = Omit<MedicinePayload, "uom_conversion" | "purchase_price"> & {
   uom_conversion: string;
+  purchase_price: string;
 };
 
 export default function MedicinesPage() {
@@ -55,6 +56,7 @@ export default function MedicinesPage() {
     stock_uom_id: 1,
     purchase_uom_id: 1,
     uom_conversion: "1",
+    purchase_price: "",
     batch_tracking: true,
     cold_chain_required: false,
     expiry_tracking: true,
@@ -73,6 +75,7 @@ export default function MedicinesPage() {
       stock_uom_id: defaultUomId,
       purchase_uom_id: defaultUomId,
       uom_conversion: "1",
+      purchase_price: "",
       batch_tracking: true,
       cold_chain_required: false,
       expiry_tracking: true,
@@ -84,7 +87,6 @@ export default function MedicinesPage() {
   const handleOpenEdit = (item: Medicine) => {
     setEditingItem(item);
     setForm({
-      code: item.code,
       name: item.name,
       type: item.type || "vaccine",
       category: item.category || "injection",
@@ -93,6 +95,7 @@ export default function MedicinesPage() {
       stock_uom_id: item.stock_uom_id || 1,
       purchase_uom_id: item.purchase_uom_id || 1,
       uom_conversion: String(item.uom_conversion ?? 1),
+      purchase_price: item.purchase_price == null ? "" : String(item.purchase_price),
       batch_tracking: !!item.batch_tracking,
       cold_chain_required: !!item.cold_chain_required,
       expiry_tracking: !!item.expiry_tracking,
@@ -106,15 +109,14 @@ export default function MedicinesPage() {
     const payload: MedicinePayload = {
       ...form,
       uom_conversion: Number(form.uom_conversion),
+      purchase_price: form.purchase_price.trim() === "" ? undefined : Number(form.purchase_price),
     };
     try {
       if (editingItem) {
         await updateMedicine({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Medicine updated successfully");
       } else {
-        const createPayload = { ...payload };
-        delete createPayload.code;
-        await createMedicine(createPayload).unwrap();
+        await createMedicine(payload).unwrap();
         toast.success("Medicine created successfully");
       }
       setIsModalOpen(false);
@@ -261,21 +263,7 @@ export default function MedicinesPage() {
             {editingItem ? "Edit Medicine" : "Add New Medicine"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
-              {editingItem && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Medicine Code <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="e.g. MED-PM"
-                    value={form.code ?? ""}
-                    onChange={(e) => setForm({ ...form, code: e.target.value })}
-                  />
-                </div>
-              )}
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Medicine Name <span className="text-red-500 dark:text-red-400">*</span>
@@ -384,15 +372,29 @@ export default function MedicinesPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                UOM Conversion Ratio
-              </label>
-              <Input
-                type="number"
-                value={form.uom_conversion}
-                onChange={(e) => setForm({ ...form, uom_conversion: e.target.value })}
-              />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  UOM Conversion Ratio
+                </label>
+                <Input
+                  type="number"
+                  value={form.uom_conversion}
+                  onChange={(e) => setForm({ ...form, uom_conversion: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Purchase Price
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={form.purchase_price}
+                  onChange={(e) => setForm({ ...form, purchase_price: e.target.value })}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-6 py-2">

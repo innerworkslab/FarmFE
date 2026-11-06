@@ -21,6 +21,7 @@ export interface Animal {
   batch_flock_number?: string | null;
   color_marking?: string | null;
   photo_path?: string | null;
+  photo_url?: string | null;
   version?: number;
   created_at?: string;
   updated_at?: string;
@@ -45,7 +46,6 @@ export interface SingleAnimalResponse {
 }
 
 export interface AnimalPayload {
-  code?: string;
   name: string;
   animal_type_id: number;
   animal_category_id: number;
@@ -55,8 +55,17 @@ export interface AnimalPayload {
   ear_tag_rfid_number?: string | null;
   batch_flock_number?: string | null;
   color_marking?: string;
-  photo_path?: string | null;
+  photo?: File;
 }
+
+const toAnimalFormData = ({ photo, ...payload }: AnimalPayload) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, String(value));
+  });
+  if (photo) formData.append("photo", photo);
+  return formData;
+};
 
 export interface AnimalListParams {
   per_page?: number;
@@ -98,7 +107,7 @@ export const animalApiSlice = farmApi.injectEndpoints({
       query: (payload) => ({
         url: "setup/animals",
         method: "POST",
-        body: payload,
+        body: toAnimalFormData(payload),
       }),
       invalidatesTags: ["animals"],
     }),
@@ -110,7 +119,7 @@ export const animalApiSlice = farmApi.injectEndpoints({
       query: ({ id, ...payload }) => ({
         url: `setup/animals/${id}`,
         method: "POST",
-        body: payload,
+        body: toAnimalFormData(payload),
       }),
       invalidatesTags: ["animals"],
     }),

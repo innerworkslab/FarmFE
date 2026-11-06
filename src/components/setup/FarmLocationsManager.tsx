@@ -9,6 +9,7 @@ import TableActionButton from "@/components/ui/table/TableActionButton";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
+import MultiSelect from "@/components/form/MultiSelect";
 import { useGetBranchesQuery } from "@/redux/features/setup/BranchApiSlice";
 import { useGetStaffQuery } from "@/redux/features/setup/StaffApiSlice";
 import {
@@ -47,6 +48,8 @@ const emptyForm = {
   branch_id: 0,
   house_barn_id: null as number | null,
   pen_cage_pond_id: null as number | null,
+  house_barn_ids: [] as number[],
+  pen_cage_pond_ids: [] as number[],
   responsible_employee_id: null as number | null,
 };
 const errorText = (error: unknown) => {
@@ -128,7 +131,6 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
   const penOptions = useGetPenCagePondsQuery(
     {
       branch_id: form.branch_id,
-      house_barn_id: form.house_barn_id || undefined,
       status: "active",
       per_page: 100,
     },
@@ -180,6 +182,12 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
             branch_id: row.branch_id,
             house_barn_id: "house_barn_id" in row ? row.house_barn_id : null,
             pen_cage_pond_id: "pen_cage_pond_id" in row ? row.pen_cage_pond_id : null,
+            house_barn_ids: "house_barn_ids" in row
+              ? row.house_barn_ids || []
+              : "house_barn_id" in row && row.house_barn_id ? [row.house_barn_id] : [],
+            pen_cage_pond_ids: "pen_cage_pond_ids" in row
+              ? row.pen_cage_pond_ids || []
+              : "pen_cage_pond_id" in row && row.pen_cage_pond_id ? [row.pen_cage_pond_id] : [],
             responsible_employee_id: "responsible_employee_id" in row ? row.responsible_employee_id : null,
           }
         : { ...emptyForm, branch_id: Number(branch) || 0 }
@@ -192,20 +200,15 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
     setFormError("");
     if (!form.name.trim() || !form.branch_id)
       return setFormError("Enter a name and select a branch.");
-    if (kind === "farms" && !form.house_barn_id && !form.pen_cage_pond_id)
+    if (kind === "farms" && !form.house_barn_ids.length && !form.pen_cage_pond_ids.length)
       return setFormError("Select a house / barn or a pen / cage / pond.");
-    if (
-      kind !== "barns" &&
-      form.house_barn_id &&
-      !barns.some((row) => row.id === form.house_barn_id)
-    )
+    if (kind === "pens" && form.house_barn_id && !barns.some((row) => row.id === form.house_barn_id))
       return setFormError("Select an active house / barn in this branch.");
     if (
       kind === "farms" &&
-      form.pen_cage_pond_id &&
-      !pens.some((row) => row.id === form.pen_cage_pond_id)
+      form.pen_cage_pond_ids.some((id) => !pens.some((row) => row.id === id))
     )
-      return setFormError("Select an active pen / cage / pond for this branch and barn.");
+      return setFormError("Select active pens / cages / ponds in this branch.");
     const base = { name: form.name.trim(), branch_id: form.branch_id };
     setBusy(true);
     try {
@@ -219,8 +222,8 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
       } else {
         const body = {
           ...base,
-          house_barn_id: form.house_barn_id,
-          pen_cage_pond_id: form.pen_cage_pond_id,
+          house_barn_ids: form.house_barn_ids,
+          pen_cage_pond_ids: form.pen_cage_pond_ids,
           responsible_employee_id: form.responsible_employee_id,
         };
         if (editing) await updateFarm({ id: editing.id, body }).unwrap();
@@ -246,8 +249,8 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
         await barnOptions.refetch();
         setForm((current) => ({
           ...current,
-          house_barn_id: result.data.id,
-          pen_cage_pond_id: null,
+          house_barn_id: current.house_barn_id || result.data.id,
+          house_barn_ids: [...new Set([...current.house_barn_ids, result.data.id])],
         }));
         setNewBarnName("");
         setAddBarnOpen(false);
@@ -255,13 +258,12 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
         const result = await createPen({
           name,
           branch_id: form.branch_id,
-          house_barn_id: form.house_barn_id,
+          house_barn_id: form.house_barn_ids[0] || null,
         }).unwrap();
         await penOptions.refetch();
         setForm((current) => ({
           ...current,
-          house_barn_id: result.data.house_barn_id,
-          pen_cage_pond_id: result.data.id,
+          pen_cage_pond_ids: [...new Set([...current.pen_cage_pond_ids, result.data.id])],
         }));
         setNewPenName("");
         setAddPenOpen(false);
@@ -279,6 +281,16 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
     ("branch" in row ? row.branch?.name : undefined) ||
     `#${row.branch_id}`;
   const locationName = (row: Row, key: "house_barn" | "pen_cage_pond") => {
+    if (key === "house_barn" && "house_barn_ids" in row) {
+      const farm = row as FarmInformationRecord;
+      const names = farm.house_barns?.map((location) => location.name) || [];
+      return names.join(", ") || (farm.house_barn_ids?.length ? farm.house_barn_ids.map((id) => `#${id}`).join(", ") : "No house / barn");
+    }
+    if (key === "pen_cage_pond" && "pen_cage_pond_ids" in row) {
+      const farm = row as FarmInformationRecord;
+      const names = farm.pen_cage_ponds?.map((location) => location.name) || [];
+      return names.join(", ") || (farm.pen_cage_pond_ids?.length ? farm.pen_cage_pond_ids.map((id) => `#${id}`).join(", ") : "No pen / cage / pond");
+    }
     if (key in row) return (row as FarmInformationRecord)[key]?.name || "—";
     if (key === "house_barn" && "house_barn_id" in row)
       return (
@@ -564,6 +576,8 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   branch_id: Number(e.target.value),
                   house_barn_id: null,
                   pen_cage_pond_id: null,
+                  house_barn_ids: [],
+                  pen_cage_pond_ids: [],
                   responsible_employee_id: null,
                 })
               }
@@ -597,35 +611,38 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
             </Field>
           )}
           {kind !== "barns" && (
-            <Field label="House / Barn">
-              <div className="flex items-start gap-2">
+            <div className="space-y-2">
+              <div className="flex items-end gap-2">
                 <div className="min-w-0 flex-1">
-                  <Select
-                    disabled={!form.branch_id || optionsBusy || !!optionsError}
-                    value={form.house_barn_id || ""}
-                    options={[
-                      {
-                        value: "",
-                        label: kind === "pens" ? "Standalone (no barn)" : "No house / barn",
-                      },
-                      ...options(barns),
-                      ...(form.house_barn_id && !barns.some((b) => b.id === form.house_barn_id)
-                        ? [
-                            {
-                              value: String(form.house_barn_id),
-                              label: `Unavailable barn #${form.house_barn_id} — choose another`,
-                            },
-                          ]
-                        : []),
-                    ]}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        house_barn_id: Number(e.target.value) || null,
-                        pen_cage_pond_id: null,
-                      })
-                    }
-                  />
+                  {kind === "farms" ? (
+                    <MultiSelect
+                      label="House / Barn"
+                      disabled={!form.branch_id || optionsBusy || !!optionsError}
+                      options={[
+                        ...barns.map((barn) => ({ value: String(barn.id), text: barn.name, selected: form.house_barn_ids.includes(barn.id) })),
+                        ...form.house_barn_ids
+                          .filter((id) => !barns.some((barn) => barn.id === id))
+                          .map((id) => ({ value: String(id), text: `Unavailable house / barn #${id}`, selected: true })),
+                      ]}
+                      selectedValues={form.house_barn_ids.map(String)}
+                      onChange={(selected) => setForm({ ...form, house_barn_ids: selected.map(Number).filter(Number.isFinite) })}
+                    />
+                  ) : (
+                    <Field label="House / Barn">
+                      <Select
+                        disabled={!form.branch_id || optionsBusy || !!optionsError}
+                        value={form.house_barn_id || ""}
+                        options={[
+                          { value: "", label: "Standalone (no barn)" },
+                          ...options(barns),
+                          ...(form.house_barn_id && !barns.some((b) => b.id === form.house_barn_id)
+                            ? [{ value: String(form.house_barn_id), label: `Unavailable barn #${form.house_barn_id} — choose another` }]
+                            : []),
+                        ]}
+                        onChange={(e) => setForm({ ...form, house_barn_id: Number(e.target.value) || null })}
+                      />
+                    </Field>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -661,35 +678,23 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   </Button>
                 </div>
               )}
-            </Field>
+            </div>
           )}
           {kind === "farms" && (
-            <Field label="Pen / Cage / Pond">
-              <div className="flex items-start gap-2">
+            <div className="space-y-2">
+              <div className="flex items-end gap-2">
                 <div className="min-w-0 flex-1">
-                  <Select
+                  <MultiSelect
+                    label="Pen / Cage / Pond"
                     disabled={!form.branch_id || optionsBusy || !!optionsError}
-                    value={form.pen_cage_pond_id || ""}
                     options={[
-                      { value: "", label: "No pen / cage / pond" },
-                      ...options(pens),
-                      ...(form.pen_cage_pond_id && !pens.some((p) => p.id === form.pen_cage_pond_id)
-                        ? [
-                            {
-                              value: String(form.pen_cage_pond_id),
-                              label: `Unavailable location #${form.pen_cage_pond_id} — choose another`,
-                            },
-                          ]
-                        : []),
+                      ...pens.map((pen) => ({ value: String(pen.id), text: pen.name, selected: form.pen_cage_pond_ids.includes(pen.id) })),
+                      ...form.pen_cage_pond_ids
+                        .filter((id) => !pens.some((pen) => pen.id === id))
+                        .map((id) => ({ value: String(id), text: `Unavailable location #${id}`, selected: true })),
                     ]}
-                    onChange={(e) => {
-                      const pen = pens.find((p) => p.id === Number(e.target.value));
-                      setForm({
-                        ...form,
-                        pen_cage_pond_id: pen?.id || null,
-                        house_barn_id: pen ? pen.house_barn_id : form.house_barn_id,
-                      });
-                    }}
+                    selectedValues={form.pen_cage_pond_ids.map(String)}
+                    onChange={(selected) => setForm({ ...form, pen_cage_pond_ids: selected.map(Number).filter(Number.isFinite) })}
                   />
                 </div>
                 <button
@@ -708,7 +713,7 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   <Plus size={18} />
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">Choose a location or add one with +.</p>
+              <p className="text-xs text-gray-500">Choose a location or add one with +.</p>
               {addPenOpen && (
                 <div className="mt-2 flex gap-2">
                   <Input
@@ -728,7 +733,7 @@ export default function FarmLocationsManager({ kind }: { kind: Kind }) {
                   </Button>
                 </div>
               )}
-            </Field>
+            </div>
           )}
           {locationCreateError && (
             <p role="alert" className="text-sm text-red-600">

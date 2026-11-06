@@ -14,6 +14,7 @@ export interface Medicine {
   stock_uom_id: number;
   purchase_uom_id?: number;
   uom_conversion: number | string;
+  purchase_price?: number | string;
   batch_tracking: boolean;
   cold_chain_required: boolean;
   expiry_tracking?: boolean;
@@ -54,6 +55,7 @@ export interface MedicinePayload {
   stock_uom_id: number;
   purchase_uom_id?: number;
   uom_conversion: number | string;
+  purchase_price?: number;
   batch_tracking: boolean;
   cold_chain_required: boolean;
   expiry_tracking?: boolean;

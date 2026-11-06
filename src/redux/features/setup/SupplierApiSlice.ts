@@ -17,6 +17,8 @@ export interface Supplier {
   minimum_order_amount?: string | number | null;
   lead_time_days?: number | null;
   credit_limit?: string | number | null;
+  total_credit?: string | number | null;
+  available_credit?: string | number | null;
   status: "active" | "inactive" | string;
   version?: number;
   created_at: string;
@@ -78,7 +80,7 @@ export const supplierApiSlice = farmApi.injectEndpoints({
   endpoints: (builder) => ({
     createSupplierPayableAdjustment: builder.mutation<
       { data: LedgerAdjustmentEntry },
-      { id: number; body: LedgerAdjustmentPayload & { currency_code: string } }
+      { id: number; body: LedgerAdjustmentPayload }
     >({
       query: ({ id, body }) => ({
         url: `setup/suppliers/${id}/payables/adjustments`,

@@ -1,8 +1,7 @@
 "use client";
 
-import { BookOpen, ChevronRight, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronRight, FileText, Loader2 } from "lucide-react";
 import Button from "@/components/ui/button/Button";
-import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Supplier, useGetSupplierPayablesQuery } from "@/redux/features/setup/SupplierApiSlice";
 import { formatReadableDate } from "@/lib/dateFormat";
@@ -13,13 +12,13 @@ const amount = (value: string | number) =>
     maximumFractionDigits: 2,
   });
 
-export default function SupplierPayablesModal({
+export default function SupplierPayablesPage({
   supplier,
-  onClose,
+  onBack,
   onAdjust,
 }: {
   supplier: Supplier;
-  onClose: () => void;
+  onBack: () => void;
   onAdjust: () => void;
 }) {
   const { currentData, isFetching, isError, refetch } = useGetSupplierPayablesQuery(supplier.id);
@@ -36,9 +35,17 @@ export default function SupplierPayablesModal({
   );
 
   return (
-    <Modal isOpen onClose={onClose} className="m-4 max-w-4xl">
-      <div className="p-6 sm:p-8">
-        <div className="mb-6 flex items-start gap-3 pr-10">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft size={15} /> Supplier AP
+        </Button>
+        <Button type="button" size="sm" onClick={onAdjust}>
+          Adjust AP <ChevronRight size={15} />
+        </Button>
+      </div>
+      <section className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03] sm:p-8">
+        <div className="mb-6 flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
             <BookOpen size={21} />
           </div>
@@ -51,7 +58,7 @@ export default function SupplierPayablesModal({
             </p>
           </div>
         </div>
-        <div className="max-h-[60vh] space-y-6 overflow-y-auto pr-1">
+        <div className="space-y-6">
           {isFetching ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-gray-500">
               <Loader2 className="animate-spin" size={18} />
@@ -174,15 +181,7 @@ export default function SupplierPayablesModal({
             </>
           )}
         </div>
-        <div className="mt-6 flex items-center justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-          <Button type="button" size="sm" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-          <Button type="button" size="sm" onClick={onAdjust}>
-            Adjust AP <ChevronRight size={15} />
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </section>
+    </div>
   );
 }

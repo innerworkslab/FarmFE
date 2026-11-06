@@ -22,11 +22,11 @@ export default function LedgerAdjustmentModal({
   onClose: () => void;
 }) {
   const ledger = kind === "customer" ? "AR" : "AP";
+  const currencyCode = "MMK";
   const [branchId, setBranchId] = useState(String(party.preferred_branch_id || ""));
   const [amount, setAmount] = useState("");
-  const [direction, setDirection] = useState("increase");
+  const [direction, setDirection] = useState(kind === "supplier" ? "decrease" : "increase");
   const [reason, setReason] = useState("");
-  const [currency, setCurrency] = useState("MMK");
   const [savedEntry, setSavedEntry] = useState<LedgerAdjustmentEntry | null>(null);
   const requestKey = useRef<{ signature: string; key: string } | null>(null);
   const submitting = useRef(false);
@@ -54,17 +54,12 @@ export default function LedgerAdjustmentModal({
       toast.error("Enter a positive amount and a reason");
       return;
     }
-    const currencyCode = currency.trim().toUpperCase();
-    if (kind === "supplier" && !/^[A-Z]{3}$/.test(currencyCode)) {
-      toast.error("Enter a three-letter currency code");
-      return;
-    }
     const values = {
       branch_id: Number(branchId),
-      amount: direction === "decrease" ? -magnitude : magnitude,
+      amount: kind === "supplier" ? magnitude : direction === "decrease" ? -magnitude : magnitude,
       reason: reason.trim(),
     };
-    const signature = JSON.stringify({ kind, id: party.id, ...values, currencyCode });
+    const signature = JSON.stringify({ kind, id: party.id, ...values });
     if (requestKey.current?.signature !== signature)
       requestKey.current = { signature, key: crypto.randomUUID() };
     const body = { ...values, idempotency_key: requestKey.current.key };
@@ -73,10 +68,7 @@ export default function LedgerAdjustmentModal({
       const response =
         kind === "customer"
           ? await adjustCustomer({ id: party.id, body }).unwrap()
-          : await adjustSupplier({
-              id: party.id,
-              body: { ...body, currency_code: currencyCode },
-            }).unwrap();
+          : await adjustSupplier({ id: party.id, body }).unwrap();
       setSavedEntry(response.data);
       toast.success(`${ledger} adjustment posted`);
     } catch (error: unknown) {
@@ -132,7 +124,7 @@ export default function LedgerAdjustmentModal({
             <p className="rounded-xl bg-gray-50 p-3 text-xs leading-relaxed text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
               {kind === "customer"
                 ? "Increase or decrease the amount owed by this customer."
-                : "Increase or decrease the amount owed to this supplier."}{" "}
+                : "Reduce the amount owed to this supplier. The adjustment is posted in MMK."}{" "}
               Saving posts an adjustment on the current business date.
             </p>
             <fieldset disabled={isSaving} className="space-y-4">
@@ -152,34 +144,32 @@ export default function LedgerAdjustmentModal({
                   ))}
                 </select>
               </label>
-              <fieldset>
-                <legend className="mb-2 text-sm text-gray-700 dark:text-gray-300">
-                  Adjustment <span className="text-red-500 dark:text-red-400">*</span>
-                </legend>
-                <div className="grid grid-cols-2 gap-3">
-                  {(["increase", "decrease"] as const).map((value) => (
-                    <label
-                      key={value}
-                      className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-3 text-sm transition focus-within:ring-2 focus-within:ring-blue-400 ${direction === value ? "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-950/30 dark:text-blue-300" : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"}`}
-                    >
-                      <input
-                        className="sr-only"
-                        type="radio"
-                        name="adjustment-direction"
-                        value={value}
-                        checked={direction === value}
-                        onChange={() => setDirection(value)}
-                      />
-                      {value === "increase" ? (
-                        <ArrowUpRight size={17} />
-                      ) : (
-                        <ArrowDownLeft size={17} />
-                      )}
-                      <span>{value === "increase" ? "Increase (+)" : "Decrease (−)"}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              {kind === "customer" && (
+                <fieldset>
+                  <legend className="mb-2 text-sm text-gray-700 dark:text-gray-300">
+                    Adjustment <span className="text-red-500 dark:text-red-400">*</span>
+                  </legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["increase", "decrease"] as const).map((value) => (
+                      <label
+                        key={value}
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-3 text-sm transition focus-within:ring-2 focus-within:ring-blue-400 ${direction === value ? "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-950/30 dark:text-blue-300" : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"}`}
+                      >
+                        <input
+                          className="sr-only"
+                          type="radio"
+                          name="adjustment-direction"
+                          value={value}
+                          checked={direction === value}
+                          onChange={() => setDirection(value)}
+                        />
+                        {value === "increase" ? <ArrowUpRight size={17} /> : <ArrowDownLeft size={17} />}
+                        <span>{value === "increase" ? "Increase (+)" : "Decrease (−)"}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
               <label className="block text-sm text-gray-700 dark:text-gray-300">
                 Amount <span className="text-red-500 dark:text-red-400">*</span>
                 <Input
@@ -192,17 +182,6 @@ export default function LedgerAdjustmentModal({
                   onChange={(event) => setAmount(event.target.value)}
                 />
               </label>
-              {kind === "supplier" && (
-                <label className="block text-sm text-gray-700 dark:text-gray-300">
-                  Currency <span className="text-red-500 dark:text-red-400">*</span>
-                  <Input
-                    required
-                    value={currency}
-                    maxLength={3}
-                    onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                  />
-                </label>
-              )}
               <label className="block text-sm text-gray-700 dark:text-gray-300">
                 Reason <span className="text-red-500 dark:text-red-400">*</span>
                 <TextArea
@@ -228,7 +207,7 @@ export default function LedgerAdjustmentModal({
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
-                  {kind === "supplier" ? currency : ""}
+                  {kind === "supplier" ? currencyCode : ""}
                 </span>
               </div>
             )}

@@ -50,7 +50,6 @@ export default function StaffPage() {
   const startEdit = (staff: StaffRecord) => {
     setEditing(staff);
     setForm({
-      staff_code: staff.staff_code,
       name: staff.name,
       phone_number: staff.phone_number ?? "",
       branch_id: Number(staff.branch_id),
@@ -69,7 +68,7 @@ export default function StaffPage() {
       if (editing) {
         await updateStaff({
           id: editing.id,
-          body: { ...body, staff_code: form.staff_code?.trim() ?? editing.staff_code },
+          body,
         }).unwrap();
       } else {
         await createStaff(body).unwrap();
@@ -206,16 +205,6 @@ export default function StaffPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {editing ? "Edit staff" : "Add staff"}
           </h2>
-          {editing && (
-            <label className="block text-xs font-medium text-gray-600">
-              Staff code
-              <Input
-                required
-                value={form.staff_code ?? ""}
-                onChange={(e) => setForm({ ...form, staff_code: e.target.value })}
-              />
-            </label>
-          )}
           <label className="block text-xs font-medium text-gray-600">
             Name
             <Input

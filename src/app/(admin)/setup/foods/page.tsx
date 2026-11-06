@@ -85,7 +85,6 @@ export default function FoodsPage() {
   const handleOpenEdit = (item: Food) => {
     setEditingItem(item);
     setForm({
-      code: item.code,
       name: item.name,
       category: item.category || "feed",
       target_animal_type: item.target_animal_type || "",
@@ -118,9 +117,7 @@ export default function FoodsPage() {
         await updateFood({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Food / Feed updated successfully");
       } else {
-        const createPayload = { ...payload };
-        delete createPayload.code;
-        await createFood(createPayload).unwrap();
+        await createFood(payload).unwrap();
         toast.success("Food / Feed created successfully");
       }
       setIsModalOpen(false);
@@ -328,21 +325,7 @@ export default function FoodsPage() {
             {editingItem ? "Edit Food / Feed" : "Add New Food / Feed"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
-              {editingItem && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Code <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="e.g. FOD-PM"
-                    value={form.code ?? ""}
-                    onChange={(e) => setForm({ ...form, code: e.target.value })}
-                  />
-                </div>
-              )}
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Food Name <span className="text-red-500 dark:text-red-400">*</span>

@@ -31,9 +31,9 @@ export interface PurchaseInvoiceLinePayload {
   description?: string | null;
   category: "food" | "medicine" | string;
   item_id: number;
-  purchase_uom_id: number;
-  stock_uom_id: number;
-  conversion_factor: number;
+  purchase_uom_id?: number;
+  stock_uom_id?: number;
+  conversion_factor?: number;
   quantity: number;
   unit_price: number;
   discount_type?: "percentage" | "fixed" | string;

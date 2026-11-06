@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   useGetAnimalsQuery,
   useCreateAnimalMutation,
@@ -20,7 +21,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, PawPrint } from "lucide-react";
 import { AnimalClassificationKind, useCreateAnimalClassificationMutation, useGetAnimalClassificationsQuery } from "@/redux/features/setup/AnimalClassificationApiSlice";
 
-type AnimalForm = Omit<AnimalPayload, "animal_type_id" | "animal_category_id" | "animal_breed_id"> & {
+type AnimalForm = Omit<AnimalPayload, "animal_type_id" | "animal_category_id" | "animal_breed_id" | "photo"> & {
   animal_type_id: string;
   animal_category_id: string;
   animal_breed_id: string;
@@ -48,6 +49,7 @@ export default function AnimalsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Animal | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [quickCreateKind, setQuickCreateKind] = useState<AnimalClassificationKind | null>(null);
   const [quickCreateName, setQuickCreateName] = useState("");
@@ -68,6 +70,7 @@ export default function AnimalsPage() {
 
   const handleOpenAdd = () => {
     setEditingItem(null);
+    setPhotoFile(null);
     setForm({
       name: "",
       animal_type_id: String(animalTypes[0]?.id || ""),
@@ -83,8 +86,8 @@ export default function AnimalsPage() {
 
   const handleOpenEdit = (item: Animal) => {
     setEditingItem(item);
+    setPhotoFile(null);
     setForm({
-      code: item.code,
       name: item.name,
       animal_type_id: String(item.animal_type_id || item.animal_type?.id || ""),
       animal_category_id: String(item.animal_category_id || item.animal_category?.id || ""),
@@ -101,6 +104,7 @@ export default function AnimalsPage() {
     e.preventDefault();
     const payload: AnimalPayload = {
       ...form,
+      ...(photoFile ? { photo: photoFile } : {}),
       animal_type_id: Number(form.animal_type_id),
       animal_category_id: Number(form.animal_category_id),
       animal_breed_id: Number(form.animal_breed_id),
@@ -113,9 +117,7 @@ export default function AnimalsPage() {
         await updateAnimal({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Animal master updated successfully");
       } else {
-        const createPayload = { ...payload };
-        delete createPayload.code;
-        await createAnimal(createPayload).unwrap();
+        await createAnimal(payload).unwrap();
         toast.success("Animal master created successfully");
       }
       setIsModalOpen(false);
@@ -261,21 +263,7 @@ export default function AnimalsPage() {
             {editingItem ? "Edit Animal" : "Add New Animal"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
-              {editingItem && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Animal Code <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="e.g. ANM-PM"
-                    value={form.code ?? ""}
-                    onChange={(e) => setForm({ ...form, code: e.target.value })}
-                  />
-                </div>
-              )}
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Name / Batch Title <span className="text-red-500 dark:text-red-400">*</span>
@@ -367,14 +355,36 @@ export default function AnimalsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Color / Marking</label>
                 <Input type="text" value={form.color_marking || ""} onChange={(e) => setForm({ ...form, color_marking: e.target.value })} placeholder="e.g. Brown and white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Photo path</label>
-                <Input type="text" value={form.photo_path || ""} onChange={(e) => setForm({ ...form, photo_path: e.target.value || null })} placeholder="Optional image path" />
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Photo</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="block h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-xs dark:border-gray-700 dark:text-gray-300 dark:file:bg-gray-800"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] ?? null;
+                    if (file && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                      toast.error("Choose a JPG, PNG, or WebP image.");
+                      event.target.value = "";
+                      return;
+                    }
+                    if (file && file.size > 5 * 1024 * 1024) {
+                      toast.error("The photo must be 5 MB or smaller.");
+                      event.target.value = "";
+                      return;
+                    }
+                    setPhotoFile(file);
+                  }}
+                />
+                {photoFile && <p className="mt-1 truncate text-xs text-gray-500">Selected: {photoFile.name}</p>}
+                {!photoFile && editingItem?.photo_url && (
+                  <Image src={editingItem.photo_url} alt={`${editingItem.name} photo`} width={64} height={64} unoptimized className="mt-2 size-16 rounded-md object-cover" />
+                )}
               </div>
             </div>
 

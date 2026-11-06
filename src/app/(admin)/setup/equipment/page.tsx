@@ -68,7 +68,6 @@ export default function EquipmentPage() {
   const handleOpenEdit = (item: Equipment) => {
     setEditingItem(item);
     setForm({
-      code: item.code,
       name: item.name,
       category: item.category || "weighing",
       brand: item.brand || "",
@@ -96,9 +95,7 @@ export default function EquipmentPage() {
         await updateEquipment({ id: editingItem.id, body: payload }).unwrap();
         toast.success("Equipment updated successfully");
       } else {
-        const createPayload = { ...payload };
-        delete createPayload.code;
-        await createEquipment(createPayload).unwrap();
+        await createEquipment(payload).unwrap();
         toast.success("Equipment created successfully");
       }
       setIsModalOpen(false);
@@ -281,21 +278,7 @@ export default function EquipmentPage() {
             {editingItem ? "Edit Equipment" : "Add New Equipment"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
-              {editingItem && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Code <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="e.g. EQP-PM"
-                    value={form.code ?? ""}
-                    onChange={(e) => setForm({ ...form, code: e.target.value })}
-                  />
-                </div>
-              )}
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Equipment Name <span className="text-red-500 dark:text-red-400">*</span>

@@ -294,9 +294,6 @@ const toInvoicePayload = (
         category: line.category,
         ...(line.description ? { description: line.description } : {}),
         item_id: Number(line.item_id),
-        purchase_uom_id: Number(line.purchase_uom_id),
-        stock_uom_id: Number(line.stock_uom_id),
-        conversion_factor: Number(line.conversion_factor),
         quantity: Number(line.quantity),
         unit_price: Number(line.unit_price),
         ...(hasDiscountType ? { discount_type: discountType } : {}),
@@ -1743,38 +1740,14 @@ function PurchasingActionModal({
                   />
                   {invoiceForm.category === "equipment" && invoiceForm.item_id && <span className="mt-1 block text-xs text-gray-500">{invoiceItems.find((item) => String(item.id) === invoiceForm.item_id)?.serial_tracking ? "Serial tracked: receipt requires one serial number per unit." : "Quantity tracked: receipt records the received quantity."}</span>}
                 </FormField>
-                {invoiceForm.category !== "equipment" && <>
-                <FormField label="Purchase UOM" required error={lineError("purchase_uom_id")}>
-                  <Select
-                    value={invoiceForm.purchase_uom_id}
-                    onChange={(e) => setInvoiceField("purchase_uom_id", e.target.value)}
-                    options={ensureOption(uomOptions, invoiceForm.purchase_uom_id)}
-                    placeholder="Select purchase UOM"
-                  />
-                </FormField>
-                <FormField label="Description">
-                  <Input
-                    value={invoiceForm.description}
-                    onChange={(event) => setInvoiceField("description", event.target.value)}
-                  />
-                </FormField>
-                <FormField label="Stock UOM" required error={lineError("stock_uom_id")}>
-                  <Select
-                    value={invoiceForm.stock_uom_id}
-                    onChange={(e) => setInvoiceField("stock_uom_id", e.target.value)}
-                    options={ensureOption(uomOptions, invoiceForm.stock_uom_id)}
-                    placeholder="Select stock UOM"
-                  />
-                </FormField>
-                <FormField label="Conversion Factor" required error={lineError("conversion_factor")}>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={invoiceForm.conversion_factor}
-                    onChange={(event) => setInvoiceField("conversion_factor", event.target.value)}
-                  />
-                </FormField>
-                </>}
+                {invoiceForm.category !== "equipment" && (
+                  <FormField label="Description">
+                    <Input
+                      value={invoiceForm.description}
+                      onChange={(event) => setInvoiceField("description", event.target.value)}
+                    />
+                  </FormField>
+                )}
                 <FormField label="Quantity" required error={lineError("quantity")}>
                   <Input
                     type="number"
@@ -1841,14 +1814,10 @@ function PurchasingActionModal({
             </section></React.Fragment>;
             })}
             <Button size="sm" onClick={() => {
-              const conversionFactor = Number(activeInvoiceLine.conversion_factor);
               const quantity = Number(activeInvoiceLine.quantity);
               const unitPrice = Number(activeInvoiceLine.unit_price);
               const errors: Record<string, string> = {};
               if (!activeInvoiceLine.item_id) errors.item_id = "Select an item.";
-              if (!activeInvoiceLine.purchase_uom_id) errors.purchase_uom_id = "Select a purchase UOM.";
-              if (!activeInvoiceLine.stock_uom_id) errors.stock_uom_id = "Select a stock UOM.";
-              if (!Number.isFinite(conversionFactor) || conversionFactor <= 0) errors.conversion_factor = "Enter a conversion factor greater than zero.";
               if (!Number.isFinite(quantity) || quantity <= 0) errors.quantity = "Enter a quantity greater than zero.";
               if (!Number.isFinite(unitPrice) || unitPrice < 0) errors.unit_price = "Enter a valid unit price.";
               setLocalInvoiceFieldErrors(errors);
