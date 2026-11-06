@@ -47,7 +47,6 @@ export default function MedicinesPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [form, setForm] = useState<MedicineForm>({
-    code: "",
     name: "",
     type: "vaccine",
     category: "injection",
@@ -66,7 +65,6 @@ export default function MedicinesPage() {
     const defaultUomId = uoms[0]?.id || 1;
     setEditingItem(null);
     setForm({
-      code: "",
       name: "",
       type: "vaccine",
       category: "injection",
@@ -114,7 +112,9 @@ export default function MedicinesPage() {
         await updateMedicine({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Medicine updated successfully");
       } else {
-        await createMedicine(payload).unwrap();
+        const createPayload = { ...payload };
+        delete createPayload.code;
+        await createMedicine(createPayload).unwrap();
         toast.success("Medicine created successfully");
       }
       setIsModalOpen(false);
@@ -261,19 +261,21 @@ export default function MedicinesPage() {
             {editingItem ? "Edit Medicine" : "Add New Medicine"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Medicine Code <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. MED-PM"
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value })}
-                />
-              </div>
+            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
+              {editingItem && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Medicine Code <span className="text-red-500 dark:text-red-400">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. MED-PM"
+                    value={form.code ?? ""}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Medicine Name <span className="text-red-500 dark:text-red-400">*</span>

@@ -45,7 +45,7 @@ export interface SingleAnimalResponse {
 }
 
 export interface AnimalPayload {
-  code: string;
+  code?: string;
   name: string;
   animal_type_id: number;
   animal_category_id: number;

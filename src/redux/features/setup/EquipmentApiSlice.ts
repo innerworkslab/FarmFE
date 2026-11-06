@@ -39,7 +39,7 @@ export interface SingleEquipmentResponse {
 }
 
 export interface EquipmentPayload {
-  code: string;
+  code?: string;
   name: string;
   category: string;
   brand: string;

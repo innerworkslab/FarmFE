@@ -52,7 +52,6 @@ export default function CustomersPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [form, setForm] = useState<CustomerForm>({
-    code: "",
     name: "",
     type: "retail",
     phone_number: "",
@@ -69,7 +68,6 @@ export default function CustomersPage() {
   const handleOpenAdd = () => {
     setEditingItem(null);
     setForm({
-      code: "",
       name: "",
       type: "retail",
       phone_number: "",
@@ -114,7 +112,9 @@ export default function CustomersPage() {
         await updateCustomer({ id: editingItem.id, body: { ...payload, opening_balance: undefined } }).unwrap();
         toast.success("Customer updated successfully");
       } else {
-        await createCustomer({ ...payload, code: undefined }).unwrap();
+        const createPayload = { ...payload };
+        delete createPayload.code;
+        await createCustomer(createPayload).unwrap();
         toast.success("Customer created successfully");
       }
       setIsModalOpen(false);

@@ -54,7 +54,6 @@ export default function AnimalsPage() {
   const [createClassification, { isLoading: isCreatingClassification }] = useCreateAnimalClassificationMutation();
 
   const [form, setForm] = useState<AnimalForm>({
-    code: "",
     name: "",
     animal_type_id: "",
     animal_category_id: "",
@@ -70,7 +69,6 @@ export default function AnimalsPage() {
   const handleOpenAdd = () => {
     setEditingItem(null);
     setForm({
-      code: "",
       name: "",
       animal_type_id: String(animalTypes[0]?.id || ""),
       animal_category_id: "",
@@ -115,7 +113,9 @@ export default function AnimalsPage() {
         await updateAnimal({ id: editingItem.id, ...payload }).unwrap();
         toast.success("Animal master updated successfully");
       } else {
-        await createAnimal(payload).unwrap();
+        const createPayload = { ...payload };
+        delete createPayload.code;
+        await createAnimal(createPayload).unwrap();
         toast.success("Animal master created successfully");
       }
       setIsModalOpen(false);
@@ -261,19 +261,21 @@ export default function AnimalsPage() {
             {editingItem ? "Edit Animal" : "Add New Animal"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Animal Code <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="e.g. ANM-PM"
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value })}
-                />
-              </div>
+            <div className={`grid gap-3 ${editingItem ? "grid-cols-2" : "grid-cols-1"}`}>
+              {editingItem && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Animal Code <span className="text-red-500 dark:text-red-400">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. ANM-PM"
+                    value={form.code ?? ""}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Name / Batch Title <span className="text-red-500 dark:text-red-400">*</span>
