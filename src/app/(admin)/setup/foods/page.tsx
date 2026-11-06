@@ -451,7 +451,7 @@ export default function FoodsPage() {
                 />
               </label>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                <span className="mb-1 block">Base Stock Unit</span>
+                <span className="mb-1 block">Stock UOM</span>
                 <Select
                   value={form.stock_uom_id}
                   onChange={(e) => setForm({ ...form, stock_uom_id: Number(e.target.value) })}
