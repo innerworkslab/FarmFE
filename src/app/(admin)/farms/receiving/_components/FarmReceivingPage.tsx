@@ -48,7 +48,7 @@ const emptyIdentity = (): Identity => ({ rfid: "", gender: "unknown", date_of_bi
 const farmInvoiceLineTotals = (line: Pick<FarmInvoiceLineDraft, "quantity" | "unit_price" | "discount_type" | "discount_value" | "tax_rate">) => {
   const subtotal = Math.max(0, line.quantity * line.unit_price);
   const discountValue = Math.max(0, line.discount_value);
-  const discount = Math.min(subtotal, line.discount_type === "percentage" ? subtotal * Math.min(discountValue, 100) / 100 : line.discount_type === "fixed" ? discountValue : 0);
+  const discount = Math.min(subtotal, line.discount_type === "percentage" ? subtotal * Math.min(discountValue, 100) / 100 : line.discount_type === "amount" || line.discount_type === "fixed" ? discountValue : 0);
   const tax = (subtotal - discount) * Math.max(0, line.tax_rate) / 100;
   return { subtotal, discount, tax, total: subtotal - discount + tax };
 };
@@ -253,7 +253,7 @@ export default function FarmReceivingPage({ tab, invoiceForm = false, receiptFor
     const gross = Number(quantity) * Number(unitPrice);
     const parsedDiscount = Number(discountValue) || 0;
     if (Number(quantity) <= 0 || !Number.isInteger(Number(quantity)) || !unitPrice || Number(unitPrice) < 0 || !Number.isInteger(Number(focQuantity)) || Number(focQuantity) < 0 || parsedDiscount < 0 || !Number.isFinite(Number(taxRate)) || Number(taxRate) < 0) return toast.error("Enter valid quantities, price, discount and tax rate.");
-    if ((discountType === "percentage" && parsedDiscount > 100) || (discountType === "fixed" && parsedDiscount > gross)) return toast.error("Discount cannot exceed the item subtotal.");
+    if ((discountType === "percentage" && parsedDiscount > 100) || ((discountType === "amount" || discountType === "fixed") && parsedDiscount > gross)) return toast.error("Discount cannot exceed the item subtotal.");
     setInvoiceLines((lines) => [...lines, { category, item_id: selectedItem.id, purchase_uom_id: stockUomId, stock_uom_id: stockUomId, conversion_factor: 1, quantity: Number(quantity), unit_price: Number(unitPrice), discount_type: discountType, discount_value: parsedDiscount, tax_rate: Number(taxRate), foc_type: "quantity", foc_value: Number(focQuantity), target_inventory_id: 0, target_farm_information_id: farm.id, item_name: selectedItem.name, item_code: selectedItem.code }]);
     setItemId("");
     setQuantity("");
@@ -281,7 +281,7 @@ export default function FarmReceivingPage({ tab, invoiceForm = false, receiptFor
     if (!branchId || !farm || farm.branch_id !== Number(branchId) || !supplierId || !invoiceLines.length) return toast.error("Select a branch, a farm in that branch, a supplier and add at least one invoice item.");
     if (paidAmount.trim() && (!Number.isFinite(Number(paidAmount)) || Number(paidAmount) < 0)) return toast.error("Enter a valid paid amount.");
     void run(async () => {
-      const payload = { invoice_number: invoiceNumber.trim() || undefined, invoice_date: invoiceDate, supplier_id: Number(supplierId), branch_id: Number(branchId), ...(paidAmount.trim() ? { paid_amount: Number(paidAmount) } : {}), lines: invoiceLines.map((line) => ({ category: line.category, item_id: line.item_id, purchase_uom_id: line.purchase_uom_id, stock_uom_id: line.stock_uom_id, conversion_factor: line.conversion_factor, quantity: line.quantity, unit_price: line.unit_price, ...(line.discount_type !== "none" ? { discount_type: line.discount_type } : {}), discount_value: line.discount_value, foc_type: line.foc_type, foc_value: line.foc_value, tax_rate: line.tax_rate, target_farm_information_id: line.target_farm_information_id })) };
+      const payload = { invoice_number: invoiceNumber.trim() || undefined, invoice_date: invoiceDate, supplier_id: Number(supplierId), branch_id: Number(branchId), ...(paidAmount.trim() ? { paid_amount: Number(paidAmount) } : {}), lines: invoiceLines.map((line) => ({ category: line.category, item_id: line.item_id, purchase_uom_id: line.purchase_uom_id, stock_uom_id: line.stock_uom_id, conversion_factor: line.conversion_factor, quantity: line.quantity, unit_price: line.unit_price, ...(line.discount_type !== "none" ? { discount_type: line.discount_type === "fixed" ? "amount" : line.discount_type } : {}), discount_value: line.discount_value, foc_type: line.foc_type, foc_value: line.foc_value, tax_rate: line.tax_rate, target_farm_information_id: line.target_farm_information_id })) };
       if (editInvoiceId) await updateInvoice({ id: editInvoiceId, body: payload }).unwrap();
       else await createInvoice(payload).unwrap();
       router.push("/farms/receiving/invoices");
@@ -365,7 +365,7 @@ export default function FarmReceivingPage({ tab, invoiceForm = false, receiptFor
         <Field title="Item"><select className={input} value={itemId} onChange={(event) => setItemId(event.target.value)}><option value="">Select item</option>{eligibleItems.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></Field>
         <Field title="Quantity"><input className={input} type="number" min="0" step="any" value={quantity} onChange={(event) => setQuantity(event.target.value)}/></Field>
         <Field title="Unit Price"><input className={input} type="number" min="0" step="any" value={unitPrice} onChange={(event) => setUnitPrice(event.target.value)}/></Field>
-        <Field title="Discount Type"><select className={input} value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="none">none</option><option value="percentage">percentage</option><option value="fixed">fixed amount</option></select></Field>
+        <Field title="Discount Type"><select className={input} value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="none">none</option><option value="percentage">percentage</option><option value="amount">fixed amount</option></select></Field>
         <Field title="Discount Value"><input className={input} type="number" min="0" step="any" value={discountValue} onChange={(event) => setDiscountValue(event.target.value)} disabled={discountType === "none"}/></Field>
         <Field title="FOC quantity"><input className={input} type="number" min="0" step="any" value={focQuantity} onChange={(event) => setFocQuantity(event.target.value)}/></Field>
         <Field title="Tax Rate (%)"><input className={input} type="number" min="0" step="any" value={taxRate} onChange={(event) => setTaxRate(event.target.value)}/></Field>
