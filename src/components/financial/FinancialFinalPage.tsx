@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw } from "lucide-react";
 import Button from "@/components/ui/button/Button";
@@ -158,6 +157,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
   const categoryQuery = useGetCashLedgerCategoriesQuery({ status: "active", per_page: 100 });
   const books = cashbookQuery.currentData?.data || [];
   const categories = categoryQuery.currentData?.data || [];
+  const selectedInvoice = invoices.currentData?.data.find((item) => String(item.id) === invoice);
   const [savePolicy] = useSaveBranchPolicyMutation();
   const [saveLimit] = useSavePostingLimitMutation();
   const [createPeriod] = useCreateFinancialPeriodMutation();
@@ -270,9 +270,9 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
                 {
                   key: "cashbook_id",
                   label: "Payment cashbook",
-                  options: (payments.currentData?.data.eligible_cashbooks || [])
-                    .filter((b) => b.currency_code === paymentCurrency && String(b.branch_id) === branch)
-                    .map((b) => ({ value: String(b.id), label: `${b.name} · ${b.currency_code}` })),
+                  options: books
+                    .filter((b) => b.status === "active" && String(b.branch_id) === String(selectedInvoice?.branch_id ?? branch))
+                    .map((b) => ({ value: String(b.id), label: b.name })),
                 },
                 { key: "category_id", label: "Cash-out category", options: options("out") },
                 {
@@ -347,6 +347,19 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
                       : [];
   const submit = () => {
     if (!job || busy) return;
+    if (job.kind === "payment") {
+      const selectedCashbook = books.find((book) => String(book.id) === String(form.cashbook_id));
+      if (!selectedInvoice || String(selectedInvoice.branch_id) !== branch) {
+        return toast.error("Select an invoice that belongs to the selected branch.");
+      }
+      if (
+        !selectedCashbook ||
+        selectedCashbook.status !== "active" ||
+        selectedCashbook.branch_id !== selectedInvoice.branch_id
+      ) {
+        return toast.error("Choose an active cashbook in the invoice branch.");
+      }
+    }
     if (
       fields.some((f) => f.type !== "checkbox" && !f.optional && !String(form[f.key] ?? "").trim())
     )
@@ -552,19 +565,6 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
           Manage branch finance, approvals and verified cash activity.
         </p>
       </div>
-      {section !== "transfers" && (
-        <nav className="flex flex-wrap gap-2">
-          {sections.map((s) => (
-            <Link
-              key={s.key}
-              href={s.path}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${s.key === section ? "bg-green-700 text-white" : "border border-gray-200 dark:border-gray-700"}`}
-            >
-              {s.label}
-            </Link>
-          ))}
-        </nav>
-      )}
       <section className={`${panel} grid gap-4 sm:grid-cols-3`}>
         <Field label="Branch">
           <select
@@ -771,7 +771,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
               </p>
             </div>
             <Button
-              disabled={!payments.currentData || !paymentCurrency || !payments.currentData.data.eligible_cashbooks?.length}
+              disabled={!payments.currentData || !paymentCurrency || !selectedInvoice || String(selectedInvoice.branch_id) !== branch}
               onClick={() =>
                 open(
                   { kind: "payment", title: "New supplier payment draft" },
@@ -785,7 +785,7 @@ export default function FinancialFinalPage({ section = "policy" }: { section?: F
           </div>
           {payments.isError && <p className="mb-3 text-sm text-red-600">Unable to load invoice payments.</p>}
           {payments.currentData && !paymentCurrency && <p className="mb-3 text-sm text-red-600">This invoice has no currency. Set the invoice currency before making a payment.</p>}
-          {payments.currentData && paymentCurrency && !payments.currentData.data.eligible_cashbooks?.length && <p className="mb-3 text-sm text-gray-500">No active compatible cashbooks are available for this invoice.</p>}
+          {payments.currentData && selectedInvoice && !books.some((book) => book.status === "active" && book.branch_id === selectedInvoice.branch_id) && <p className="mb-3 text-sm text-gray-500">No active cashbooks are available in this invoice branch.</p>}
           {movementTable(payments.currentData?.data.payments || [], "payment")}
         </section>
       )}
